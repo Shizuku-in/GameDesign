@@ -4,8 +4,10 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 #include "systems/WeaponDefs.hpp"
+#include "systems/IWeaponBehavior.hpp"
 
 #include <vector>
+#include <memory>
 
 class SoundPlayer;
 
@@ -37,25 +39,9 @@ private:
         WeaponType type = WeaponType::MagicWand;
         int level = 0; // 0 = 空槽位
         float cooldown = 0.f;
-        float orbitBaseAngle = 0.f; // Axe: 起始角度偏移
+        std::unique_ptr<IWeaponBehavior> behavior;
     };
 
     Slot m_slots[MAX_SLOTS];
 
-    // --- 各武器发射辅助函数 ---
-    bool fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
-                    Pool<Projectile>& projectiles);
-    bool fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
-                       Pool<Projectile>& proj);
-    bool fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
-                   Pool<Projectile>& proj);
-    bool fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
-                 Pool<Projectile>& proj);
-    bool fireFireball(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
-                      Pool<Projectile>& proj);
-    void tickGarlic(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies);
-
-    // --- 索敌 ---
-    const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange,
-                                  const Pool<Enemy>& enemies) const;
 };

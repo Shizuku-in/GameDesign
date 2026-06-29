@@ -20,20 +20,31 @@ struct Enemy {
     EnemyType type = EnemyType::Basic;
 };
 
+// --- 弹幕运动类型 ---
+enum class ProjMotion : std::uint8_t { Linear, Orbit };
+
 // --- 弹幕实例（存储在 Pool<Projectile> 中）---
 struct Projectile {
     sf::Vector2f pos;
-    sf::Vector2f vel; // 归一化方向 × 速度（轨道运动时不使用）
+    sf::Vector2f vel; // 归一化方向 × 速度（线性运动时使用）
     float damage = 0.f;
     float speed = 0.f;
     float lifetime = 0.f; // 剩余存活时间（秒）
     float radius = 0.f;
     int pierceCount = 0; // 剩余穿透数（0 = 命中即消失）
 
-    // 轨道运动状态（orbitRadius > 0 表示弹幕环绕玩家运动，不使用 vel）
-    float orbitAngle = 0.f;  // 当前角度（弧度）
-    float orbitRadius = 0.f; // 距玩家距离; 0 = 非轨道运动
-    float orbitSpeed = 0.f;  // 角速度（弧度/秒）
+    // 运动逻辑分支
+    ProjMotion motion = ProjMotion::Linear;
+    
+    // 具体运动所需的专有状态（使用 union 节省内存，不增加额外开销）
+    union {
+        struct {
+            float angle;  // 当前角度（弧度）
+            float radius; // 距玩家距离
+            float speed;  // 角速度（弧度/秒）
+        } orbit;
+        // 如果以后新增回旋镖、抛物线，可以在这里加 struct
+    } state;
 };
 
 // --- 经验宝石实例（存储在 Pool<XPGem> 中）---

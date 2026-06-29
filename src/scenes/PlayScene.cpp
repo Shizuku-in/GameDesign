@@ -230,12 +230,17 @@ void PlayScene::updateEnemies(float dt) {
 
 void PlayScene::updateProjectiles(float dt) {
     m_projectiles.forEach([&](Projectile& p) {
-        if (p.orbitRadius > 0.f) {
-            p.orbitAngle += p.orbitSpeed * dt;
+        switch (p.motion) {
+        case ProjMotion::Orbit:
+            p.state.orbit.angle += p.state.orbit.speed * dt;
             p.pos = m_player.pos +
-                    sf::Vector2f(std::cos(p.orbitAngle), std::sin(p.orbitAngle)) * p.orbitRadius;
-        } else {
+                    sf::Vector2f(std::cos(p.state.orbit.angle), std::sin(p.state.orbit.angle)) *
+                        p.state.orbit.radius;
+            break;
+        case ProjMotion::Linear:
+        default:
             p.pos += p.vel * dt;
+            break;
         }
         p.lifetime -= dt;
     });

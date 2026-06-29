@@ -24,6 +24,7 @@ add_executable(game
     src/core/Scene.cpp
     src/systems/WeaponDefs.cpp
     src/systems/WeaponSystem.cpp
+    src/systems/WeaponBehaviors.cpp
     src/systems/UpgradeDefs.cpp
     src/systems/HUD.cpp
     src/systems/CollisionSystem.cpp
