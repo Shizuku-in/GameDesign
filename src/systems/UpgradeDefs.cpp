@@ -1,8 +1,8 @@
 #include "systems/UpgradeDefs.hpp"
 
+#include "core/Random.hpp"
 #include <algorithm>
 #include <cstdio>
-#include <random>
 
 // 属性提升定义
 struct StatBoostDef {
@@ -94,9 +94,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
     }
 
     // 随机打乱，取最多 3 个
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(pool.begin(), pool.end(), g);
+    std::shuffle(pool.begin(), pool.end(), Random::getEngine());
 
     int count = std::min(3, static_cast<int>(pool.size()));
     return std::vector<UpgradeOption>(pool.begin(), pool.begin() + count);

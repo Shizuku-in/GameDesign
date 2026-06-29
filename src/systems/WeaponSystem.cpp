@@ -1,7 +1,7 @@
 #include "systems/WeaponSystem.hpp"
 #include "data/Collision.hpp"
-#include "systems/WeaponFactory.hpp"
 #include "systems/SoundPlayer.hpp"
+#include "systems/WeaponFactory.hpp"
 
 #include <cmath>
 #include <limits>
@@ -18,7 +18,7 @@ bool WeaponSystem::addWeapon(WeaponType type) {
             auto newBehavior = WeaponFactory::create(type);
             if (!newBehavior)
                 return false;
-            
+
             slot.type = type;
             slot.level = 1;
             slot.cooldown = 0.f; // 立即开火
@@ -135,4 +135,3 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
         }
     }
 }
-

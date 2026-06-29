@@ -1,7 +1,7 @@
 #include "systems/WeaponBehaviors.hpp"
-#include "systems/WeaponFactory.hpp"
 #include "data/Collision.hpp"
 #include "data/Constants.hpp"
+#include "systems/WeaponFactory.hpp"
 #include <cmath>
 #include <limits>
 
@@ -27,16 +27,23 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
 
 std::unique_ptr<IWeaponBehavior> WeaponFactory::create(WeaponType type) {
     switch (type) {
-    case WeaponType::MagicWand: return std::make_unique<MagicWandBehavior>();
-    case WeaponType::Knife:     return std::make_unique<KnifeBehavior>();
-    case WeaponType::Axe:       return std::make_unique<AxeBehavior>();
-    case WeaponType::Fireball:  return std::make_unique<FireballBehavior>();
-    case WeaponType::Garlic:    return std::make_unique<GarlicBehavior>();
-    default:                    return nullptr;
+    case WeaponType::MagicWand:
+        return std::make_unique<MagicWandBehavior>();
+    case WeaponType::Knife:
+        return std::make_unique<KnifeBehavior>();
+    case WeaponType::Axe:
+        return std::make_unique<AxeBehavior>();
+    case WeaponType::Fireball:
+        return std::make_unique<FireballBehavior>();
+    case WeaponType::Garlic:
+        return std::make_unique<GarlicBehavior>();
+    default:
+        return nullptr;
     }
 }
 
-bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& proj) {
+bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
+                             Pool<Projectile>& proj) {
     auto stats = getWeaponStats(WeaponType::MagicWand, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
@@ -65,7 +72,8 @@ bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& 
     return true;
 }
 
-bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& proj) {
+bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
+                         Pool<Projectile>& proj) {
     auto stats = getWeaponStats(WeaponType::Knife, level);
 
     sf::Vector2f dir = {1.f, 0.f};
@@ -106,13 +114,14 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
     return anySpawned;
 }
 
-bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enemies*/, Pool<Projectile>& proj) {
+bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enemies*/,
+                       Pool<Projectile>& proj) {
     auto stats = getWeaponStats(WeaponType::Axe, level);
 
     int count = stats.projectileCount;
     if (count <= 0)
         return false;
-        
+
     float angleStep = 2.f * PI / static_cast<float>(count);
     bool anySpawned = false;
 
@@ -128,7 +137,8 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
         p->state.orbit.angle = angle;
         p->state.orbit.radius = Config::AXE_ORBIT_RADIUS;
         p->state.orbit.speed = Config::AXE_ORBIT_SPEED;
-        p->pos = player.pos + sf::Vector2f(std::cos(angle), std::sin(angle)) * p->state.orbit.radius;
+        p->pos =
+            player.pos + sf::Vector2f(std::cos(angle), std::sin(angle)) * p->state.orbit.radius;
         p->damage = stats.damage;
         p->speed = 0.f;
         p->lifetime = stats.projectileLifetime;
@@ -143,7 +153,8 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
     return anySpawned;
 }
 
-bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& proj) {
+bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
+                            Pool<Projectile>& proj) {
     auto stats = getWeaponStats(WeaponType::Fireball, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);

@@ -1,12 +1,8 @@
 #include "systems/SpawningSystem.hpp"
+#include "core/Random.hpp"
 #include "data/Constants.hpp"
 
 #include <cmath>
-#include <cstdlib>
-
-namespace {
-float randFloat() { return static_cast<float>(std::rand()) / RAND_MAX; }
-} // namespace
 
 SpawningSystem::SpawningSystem() { reset(); }
 
@@ -49,7 +45,7 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
         for (int t = 0; t < activeTypes; ++t)
             totalWeight += Config::ENEMY_SPAWN_WEIGHT[t];
 
-        float r = randFloat() * totalWeight;
+        float r = Random::getFloat() * totalWeight;
         float accum = 0.f;
         EnemyType chosen = EnemyType::Basic;
         for (int t = 0; t < activeTypes; ++t) {
@@ -90,7 +86,7 @@ void SpawningSystem::spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Ene
 }
 
 sf::Vector2f SpawningSystem::randomSpawnPosition(sf::Vector2f playerPos) const {
-    float angle = randFloat() * 2.f * 3.14159265f;
-    float dist = Config::ENEMY_SPAWN_DISTANCE + randFloat() * Config::ENEMY_SPAWN_JITTER;
+    float angle = Random::getFloat() * 2.f * 3.14159265f;
+    float dist = Config::ENEMY_SPAWN_DISTANCE + Random::getFloat() * Config::ENEMY_SPAWN_JITTER;
     return playerPos + sf::Vector2f(std::cos(angle) * dist, std::sin(angle) * dist);
 }

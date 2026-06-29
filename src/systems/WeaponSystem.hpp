@@ -3,11 +3,11 @@
 #include "core/Pool.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
-#include "systems/WeaponDefs.hpp"
 #include "systems/IWeaponBehavior.hpp"
+#include "systems/WeaponDefs.hpp"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 class SoundPlayer;
 
@@ -43,5 +43,4 @@ private:
     };
 
     Slot m_slots[MAX_SLOTS];
-
 };

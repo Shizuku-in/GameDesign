@@ -35,7 +35,7 @@ struct Projectile {
 
     // 运动逻辑分支
     ProjMotion motion = ProjMotion::Linear;
-    
+
     // 具体运动所需的专有状态（使用 union 节省内存，不增加额外开销）
     union {
         struct {

@@ -22,6 +22,7 @@ add_executable(game
     src/main.cpp
     src/core/Game.cpp
     src/core/Scene.cpp
+    src/core/Random.cpp
     src/systems/WeaponDefs.cpp
     src/systems/WeaponSystem.cpp
     src/systems/WeaponBehaviors.cpp

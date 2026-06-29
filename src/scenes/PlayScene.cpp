@@ -1,5 +1,6 @@
 #include "scenes/PlayScene.hpp"
 #include "core/Game.hpp"
+#include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "scenes/GameOverScene.hpp"
 #include "scenes/PauseMenu.hpp"
@@ -12,8 +13,6 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
 
 // ---------------------------------------------------------------------------
 // 构造
@@ -27,7 +26,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     if (m_font)
         m_hud = std::make_unique<HUD>(*m_font);
 
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    Random::init();
 
     // 预分配
     m_enemies.reserve(Config::POOL_ENEMIES_CAPACITY);
