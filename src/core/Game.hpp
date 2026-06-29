@@ -30,8 +30,8 @@ private:
     void render();
     void handleWindowResize(const sf::Event::Resized& resizeEvent);
 
-    static constexpr unsigned int DEFAULT_WIDTH = 800;
-    static constexpr unsigned int DEFAULT_HEIGHT = 600;
+    static constexpr unsigned int DEFAULT_WIDTH = 1920;
+    static constexpr unsigned int DEFAULT_HEIGHT = 1080;
     static constexpr const char* TITLE = "SFML 3.1 Game";
 
     // 固定时间步：每秒 60 次更新

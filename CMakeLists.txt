@@ -26,9 +26,14 @@ add_executable(game
     src/systems/WeaponSystem.cpp
     src/systems/UpgradeDefs.cpp
     src/systems/HUD.cpp
+    src/systems/CollisionSystem.cpp
+    src/systems/SpawningSystem.cpp
+    src/systems/WorldRenderer.cpp
     src/scenes/PlayScene.cpp
     src/scenes/TitleScene.cpp
     src/scenes/GameOverScene.cpp
+    src/scenes/UpgradeUI.cpp
+    src/scenes/PauseMenu.cpp
 )
 
 # --- Include path for header-only resources ---

@@ -1,10 +1,17 @@
 #include "scenes/TitleScene.hpp"
 #include "core/Game.hpp"
+#include "data/Constants.hpp"
 #include "scenes/PlayScene.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Keyboard.hpp>
+
+namespace {
+constexpr float VW = Config::VIEW_WIDTH;
+constexpr float VH = Config::VIEW_HEIGHT;
+int fs(float r) { return static_cast<int>(VH * r); }
+} // namespace
 
 TitleScene::TitleScene(Game& game)
     : m_game(game), m_titleText(*game.getFonts().get("default"), ""),
@@ -17,19 +24,19 @@ TitleScene::TitleScene(Game& game)
         return;
 
     m_titleText.setString("Survivor-like");
-    m_titleText.setCharacterSize(48);
+    m_titleText.setCharacterSize(fs(0.055f));
     m_titleText.setFillColor(sf::Color::White);
-    m_titleText.setPosition({220.f, 180.f});
+    m_titleText.setPosition({VW * 0.28f, VH * 0.15f});
 
     m_startText.setString("Press ENTER to start");
-    m_startText.setCharacterSize(22);
+    m_startText.setCharacterSize(fs(0.025f));
     m_startText.setFillColor(sf::Color::Yellow);
-    m_startText.setPosition({280.f, 300.f});
+    m_startText.setPosition({VW * 0.35f, VH * 0.28f});
 
     m_controlsText.setString("WASD to move  |  Weapons auto-fire  |  Escape to quit");
-    m_controlsText.setCharacterSize(14);
+    m_controlsText.setCharacterSize(fs(0.015f));
     m_controlsText.setFillColor(sf::Color(160, 160, 160));
-    m_controlsText.setPosition({150.f, 450.f});
+    m_controlsText.setPosition({VW * 0.19f, VH * 0.82f});
 }
 
 void TitleScene::handleEvent(const sf::Event& event) {

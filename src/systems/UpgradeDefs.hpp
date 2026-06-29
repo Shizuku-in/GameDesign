@@ -3,15 +3,17 @@
 #include "data/PlayerState.hpp"
 #include "systems/WeaponSystem.hpp"
 
+#include <string>
 #include <vector>
 
 enum class UpgradeCategory { NewWeapon, WeaponUpgrade, StatBoost };
 
 struct UpgradeOption {
     UpgradeCategory category;
-    const char* name;
-    const char* description;
-    WeaponType weaponType; // NewWeapon 或 WeaponUpgrade 时有效
+    std::string name;
+    std::string description; // 简短说明
+    std::string detail;      // 详细数值对比（WeaponUpgrade 时显示前后属性）
+    WeaponType weaponType;   // NewWeapon 或 WeaponUpgrade 时有效
 
     // 属性加成（仅 StatBoost 时有效）
     float hpBonus = 0.f;

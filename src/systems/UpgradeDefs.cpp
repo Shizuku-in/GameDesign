@@ -1,6 +1,7 @@
 #include "systems/UpgradeDefs.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <random>
 
 // 属性提升定义
@@ -25,6 +26,7 @@ static const StatBoostDef STAT_BOOSTS[] = {
 std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
                                             const WeaponSystem& weapons) {
     std::vector<UpgradeOption> pool;
+    char buf[128];
 
     // 1. 新武器（未拥有且槽位有空余）
     if (!weapons.isFull()) {
@@ -36,6 +38,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
                 opt.category = UpgradeCategory::NewWeapon;
                 opt.name = def.name;
                 opt.description = "New weapon";
+                opt.detail = def.isAOE ? "AoE aura, no projectiles" : "Auto-targeting projectile";
                 opt.weaponType = wt;
                 pool.push_back(opt);
             }
@@ -46,11 +49,29 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
     auto upgradeable = weapons.getUpgradeableWeapons();
     for (auto wt : upgradeable) {
         const auto& def = WEAPON_DEFS[static_cast<int>(wt)];
+        int curLvl = weapons.getLevel(wt);
+        auto cur = getWeaponStats(wt, curLvl);
+        auto nxt = getWeaponStats(wt, curLvl + 1);
+
         UpgradeOption opt{};
         opt.category = UpgradeCategory::WeaponUpgrade;
         opt.name = def.name;
-        opt.description = "Upgrade weapon";
         opt.weaponType = wt;
+
+        std::snprintf(buf, sizeof(buf), "Lv.%d -> Lv.%d", curLvl, curLvl + 1);
+        opt.description = buf;
+
+        if (def.isAOE) {
+            std::snprintf(buf, sizeof(buf), "Dmg %.0f->%.0f | AoE %.0f->%.0f | CD %.2f->%.2fs",
+                          cur.damage, nxt.damage, cur.aoeRadius, nxt.aoeRadius, cur.cooldown,
+                          nxt.cooldown);
+        } else {
+            std::snprintf(buf, sizeof(buf),
+                          "Dmg %.0f->%.0f | CD %.2f->%.2fs | Proj %d->%d | Pierce %d->%d",
+                          cur.damage, nxt.damage, cur.cooldown, nxt.cooldown, cur.projectileCount,
+                          nxt.projectileCount, cur.pierce, nxt.pierce);
+        }
+        opt.detail = buf;
         pool.push_back(opt);
     }
 
@@ -59,7 +80,11 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
         UpgradeOption opt{};
         opt.category = UpgradeCategory::StatBoost;
         opt.name = sb.name;
+        std::snprintf(buf, sizeof(buf), "%s (currently %.0f)", sb.description,
+                      sb.hp > 0.f ? 0.f // placeholder — actual stat in player unused
+                                  : 0.f);
         opt.description = sb.description;
+        opt.detail = "";
         opt.hpBonus = sb.hp;
         opt.speedBonus = sb.speed;
         opt.armorBonus = sb.armor;
