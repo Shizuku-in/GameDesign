@@ -7,30 +7,30 @@ enum class WeaponType : std::uint8_t {
     Knife,
     Axe,
     Fireball,
-    Garlic, // AoE aura, no projectiles
+    Garlic, // AoE 光环，不生成弹幕
     Count
 };
 
-/// Weapon tuning constants at level 1.
+/// 1 级时的武器属性常量。
 struct WeaponDef {
     WeaponType type;
     const char* name;
-    float baseCooldown; // seconds between attacks
+    float baseCooldown; // 攻击间隔（秒）
     float baseDamage;
-    float projectileSpeed;    // pixels/sec (0 for AoE)
-    float projectileLifetime; // seconds (0 for AoE)
-    float projectileRadius;   // visual + collision
-    float range;              // max targeting distance (0 = unlimited)
-    int baseProjectiles;      // how many spawned per attack
-    int basePierce;           // enemies hit before disappearing (0 = single target)
-    int maxLevel;             // typically 8
-    bool isAOE;               // Garlic-style: no projectiles, ticks damage in radius each frame
-    float aoeRadius;          // only meaningful if isAOE
+    float projectileSpeed;    // 弹幕速度（像素/秒，AoE 武器为 0）
+    float projectileLifetime; // 弹幕存活时间（秒，AoE 武器为 0）
+    float projectileRadius;   // 视觉 + 碰撞半径
+    float range;              // 最大索敌距离（0 = 无限制）
+    int baseProjectiles;      // 每次攻击发射数量
+    int basePierce;           // 消失前可命中敌人数（0 = 单体）
+    int maxLevel;             // 最高等级（通常为 8）
+    bool isAOE;               // 大蒜类：不生成弹幕，每帧对范围内敌人造成伤害
+    float aoeRadius;          // 仅 isAOE 时有效
 };
 
 extern const WeaponDef WEAPON_DEFS[];
 
-/// Scaled stats for a weapon at a given level (1-based).
+/// 指定等级（1 级起算）下的缩放属性。
 struct WeaponStats {
     float cooldown;
     float damage;
@@ -43,5 +43,5 @@ struct WeaponStats {
     float aoeRadius;
 };
 
-/// Compute stats for a weapon at level L (L >= 1).
+/// 计算指定武器在等级 L (L >= 1) 时的属性。
 WeaponStats getWeaponStats(WeaponType type, int level);

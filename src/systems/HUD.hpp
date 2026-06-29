@@ -8,7 +8,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-/// Renders HP bar, XP bar, level, timer, and weapon list in screen space.
+/// 在屏幕空间绘制 HP 条、XP 条、等级、计时器和武器列表。
 class HUD {
 public:
     explicit HUD(const sf::Font& font);
@@ -30,6 +30,6 @@ private:
     sf::Text m_levelText;
     sf::Text m_timerText;
 
-    // All weapons displayed as a single multi-line text block
+    // 所有武器显示为单个多行文本块
     sf::Text m_weaponList;
 };

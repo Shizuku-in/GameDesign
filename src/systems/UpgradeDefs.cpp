@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <random>
 
-// Stat boost definitions
+// 属性提升定义
 struct StatBoostDef {
     const char* name;
     const char* description;
@@ -26,7 +26,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
                                             const WeaponSystem& weapons) {
     std::vector<UpgradeOption> pool;
 
-    // 1. New weapons (types the player doesn't own, if slots available)
+    // 1. 新武器（未拥有且槽位有空余）
     if (!weapons.isFull()) {
         for (int i = 0; i < static_cast<int>(WeaponType::Count); ++i) {
             auto wt = static_cast<WeaponType>(i);
@@ -42,7 +42,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
         }
     }
 
-    // 2. Upgradeable owned weapons
+    // 2. 可升级的已拥有武器
     auto upgradeable = weapons.getUpgradeableWeapons();
     for (auto wt : upgradeable) {
         const auto& def = WEAPON_DEFS[static_cast<int>(wt)];
@@ -54,7 +54,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
         pool.push_back(opt);
     }
 
-    // 3. Stat boosts (always available)
+    // 3. 属性提升（始终可选）
     for (const auto& sb : STAT_BOOSTS) {
         UpgradeOption opt{};
         opt.category = UpgradeCategory::StatBoost;
@@ -68,7 +68,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
         pool.push_back(opt);
     }
 
-    // Shuffle and pick up to 3
+    // 随机打乱，取最多 3 个
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(pool.begin(), pool.end(), g);
@@ -89,17 +89,17 @@ void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOptio
 
     case UpgradeCategory::StatBoost:
         player.maxHp += option.hpBonus;
-        player.hp += option.hpBonus; // heal for the same amount
+        player.hp += option.hpBonus; // 同时回复等量 HP
         player.speed += player.speed * option.speedBonus;
         player.armor += option.armorBonus;
         if (player.armor > 0.5f)
-            player.armor = 0.5f; // cap at 50%
+            player.armor = 0.5f; // 上限 50%
         player.magnetRange += option.magnetBonus;
         player.xpMultiplier += option.xpMultiplierBonus;
         break;
     }
 
-    // After upgrade: clamp HP to max
+    // 升级后：HP 钳制到最大值
     if (player.hp > player.maxHp)
         player.hp = player.maxHp;
     if (player.hp < 0.f)

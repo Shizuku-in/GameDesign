@@ -7,40 +7,40 @@
 
 #include <vector>
 
-/// Manages the player's weapon slots and handles auto-attack logic.
+/// 管理玩家武器槽，处理自动攻击逻辑。
 class WeaponSystem {
 public:
     static constexpr int MAX_SLOTS = 6;
 
     WeaponSystem();
 
-    // --- Slot management ---
+    // --- 槽位管理 ---
     bool addWeapon(WeaponType type);
-    bool upgradeWeapon(WeaponType type); // returns false if not owned or already maxed
+    bool upgradeWeapon(WeaponType type); // 未拥有或已满级时返回 false
     bool hasWeapon(WeaponType type) const;
     int getLevel(WeaponType type) const;
     bool isFull() const;
     int emptySlotCount() const;
     std::vector<WeaponType> getUpgradeableWeapons() const;
 
-    // --- Main update (called at 60 Hz) ---
+    // --- 主更新（60 Hz 调用）---
     void update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
                 Pool<Projectile>& projectiles);
 
-    // --- Reset for new game ---
+    // --- 新一局重置 ---
     void reset();
 
 private:
     struct Slot {
         WeaponType type = WeaponType::MagicWand;
-        int level = 0; // 0 = empty slot
+        int level = 0; // 0 = 空槽位
         float cooldown = 0.f;
-        float orbitBaseAngle = 0.f; // for Axe: starting angle offset
+        float orbitBaseAngle = 0.f; // Axe: 起始角度偏移
     };
 
     Slot m_slots[MAX_SLOTS];
 
-    // --- Per-weapon fire helpers ---
+    // --- 各武器发射辅助函数 ---
     void fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                     Pool<Projectile>& projectiles);
     void fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
@@ -53,7 +53,7 @@ private:
                       Pool<Projectile>& proj);
     void tickGarlic(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies);
 
-    // --- Targeting ---
+    // --- 索敌 ---
     const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange,
                                   const Pool<Enemy>& enemies) const;
 };

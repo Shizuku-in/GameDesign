@@ -11,9 +11,9 @@ struct UpgradeOption {
     UpgradeCategory category;
     const char* name;
     const char* description;
-    WeaponType weaponType; // valid if NewWeapon or WeaponUpgrade
+    WeaponType weaponType; // NewWeapon 或 WeaponUpgrade 时有效
 
-    // Stat bonuses (only meaningful for StatBoost)
+    // 属性加成（仅 StatBoost 时有效）
     float hpBonus = 0.f;
     float speedBonus = 0.f;
     float armorBonus = 0.f;
@@ -21,8 +21,8 @@ struct UpgradeOption {
     float xpMultiplierBonus = 0.f;
 };
 
-/// Generate 3 (or fewer if pool exhausted) random upgrade choices.
+/// 生成 3 个（或更少，若选项池不足）随机升级选项。
 std::vector<UpgradeOption> generateUpgrades(const PlayerState& player, const WeaponSystem& weapons);
 
-/// Apply the chosen upgrade to player state and weapon system.
+/// 将选中的升级应用到玩家状态和武器系统。
 void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOption& option);

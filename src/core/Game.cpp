@@ -7,12 +7,12 @@
 Game::Game()
     : m_window(sf::VideoMode({DEFAULT_WIDTH, DEFAULT_HEIGHT}), TITLE, sf::Style::Default,
                sf::State::Windowed) {
-    m_window.setFramerateLimit(0); // uncapped — we control timing ourselves
+    m_window.setFramerateLimit(0); // 不限帧率 — 由游戏循环自行控制
 
-    // Load the UI font (graceful fallback — returns nullptr on failure)
+    // 加载 UI 字体
     m_fonts.load("default", "assets/fonts/DejaVuSans.ttf");
 
-    m_scene = std::make_unique<TitleScene>(*this); // direct assign — safe in constructor
+    m_scene = std::make_unique<TitleScene>(*this); // 直接赋值 — 构造时安全
 }
 
 Game::~Game() = default;
@@ -26,22 +26,22 @@ int Game::run() {
 
         sf::Time frameTime = m_clock.restart();
 
-        // Spiral-of-death guard
+        // 死亡螺旋保护
         if (frameTime > TIME_PER_FRAME_MAX)
             frameTime = TIME_PER_FRAME_MAX;
 
         accumulator += frameTime;
 
-        // Fixed-timestep updates
+        // 固定时间步更新
         while (accumulator >= TIME_PER_FRAME) {
             update(TIME_PER_FRAME);
             accumulator -= TIME_PER_FRAME;
         }
 
-        // One render pass per outer-loop iteration
+        // 每次外层循环一次渲染
         render();
 
-        // Deferred scene switch — safe because no scene code is on the stack
+        // 延迟场景切换 — 此时场景代码不在调用栈上，安全
         if (m_pendingScene) {
             m_scene = std::move(m_pendingScene);
             m_pendingScene = nullptr;
@@ -52,7 +52,7 @@ int Game::run() {
 }
 
 void Game::changeScene(std::unique_ptr<Scene> scene) {
-    // Defer the actual swap — safe to call from inside update() / handleEvent()
+    // 延迟实际切换 — 在 update() / handleEvent() 中调用也安全
     m_pendingScene = std::move(scene);
 }
 

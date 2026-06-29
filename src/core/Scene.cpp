@@ -1,4 +1,3 @@
 #include "core/Scene.hpp"
 
-// Scene is primarily an interface — this file serves as the vtable anchor
-// and a home for shared scene utilities added in the future.
+// Scene 主要作为接口使用 — 此文件充当 vtable 锚点，也可放置将来的共享场景工具函数。

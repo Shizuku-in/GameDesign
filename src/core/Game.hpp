@@ -34,14 +34,14 @@ private:
     static constexpr unsigned int DEFAULT_HEIGHT = 600;
     static constexpr const char* TITLE = "SFML 3.1 Game";
 
-    // Fixed timestep: 60 updates per second
+    // 固定时间步：每秒 60 次更新
     static constexpr sf::Time TIME_PER_FRAME = sf::seconds(1.0f / 60.0f);
-    // Spiral-of-death cap: at most 4 updates per render
+    // 死亡螺旋保护：每次渲染最多执行 4 次更新
     static constexpr sf::Time TIME_PER_FRAME_MAX = sf::seconds(1.0f / 15.0f);
 
     sf::RenderWindow m_window;
     std::unique_ptr<Scene> m_scene;
-    std::unique_ptr<Scene> m_pendingScene; // deferred scene switch (safe from update())
+    std::unique_ptr<Scene> m_pendingScene; // 延迟场景切换（在 update() 中调用也安全）
     ResourceManager<sf::Font> m_fonts;
     sf::Clock m_clock;
 

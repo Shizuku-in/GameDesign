@@ -10,7 +10,7 @@
 HUD::HUD(const sf::Font& font)
     : m_font(font), m_hpLabel(font, "", 14), m_xpLabel(font, "", 12), m_levelText(font, "", 20),
       m_timerText(font, "", 16), m_weaponList(font, "", 13) {
-    // HP bar
+    // HP 条
     m_hpBarBg.setSize({200.f, 16.f});
     m_hpBarBg.setPosition({10.f, 10.f});
     m_hpBarBg.setFillColor(sf::Color(60, 0, 0));
@@ -22,7 +22,7 @@ HUD::HUD(const sf::Font& font)
     m_hpLabel.setFillColor(sf::Color::White);
     m_hpLabel.setPosition({12.f, 10.f});
 
-    // XP bar
+    // XP 条
     m_xpBarBg.setSize({780.f, 12.f});
     m_xpBarBg.setPosition({10.f, 578.f});
     m_xpBarBg.setFillColor(sf::Color(60, 60, 0));
@@ -34,15 +34,15 @@ HUD::HUD(const sf::Font& font)
     m_xpLabel.setFillColor(sf::Color::White);
     m_xpLabel.setPosition({300.f, 576.f});
 
-    // Level
+    // 等级
     m_levelText.setFillColor(sf::Color::White);
     m_levelText.setPosition({360.f, 6.f});
 
-    // Timer
+    // 计时器
     m_timerText.setFillColor(sf::Color::White);
     m_timerText.setPosition({700.f, 8.f});
 
-    // Weapon list
+    // 武器列表
     m_weaponList.setFillColor(sf::Color(200, 200, 200));
     m_weaponList.setPosition({620.f, 40.f});
 }
@@ -68,16 +68,16 @@ void HUD::update(const PlayerState& player, const WeaponSystem& weapons, float g
                   static_cast<int>(player.xpToNext));
     m_xpLabel.setString(buf);
 
-    // Level
+    // 等级
     std::snprintf(buf, sizeof(buf), "Lv.%d", player.level);
     m_levelText.setString(buf);
 
-    // Timer (MM:SS)
+    // 计时器 (MM:SS)
     int totalSec = static_cast<int>(gameTime);
     std::snprintf(buf, sizeof(buf), "%02d:%02d", totalSec / 60, totalSec % 60);
     m_timerText.setString(buf);
 
-    // Weapons (multi-line)
+    // 武器（多行）
     std::string weaponStr;
     for (int i = 0; i < static_cast<int>(WeaponType::Count); ++i) {
         auto wt = static_cast<WeaponType>(i);

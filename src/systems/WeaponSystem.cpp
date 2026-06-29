@@ -6,7 +6,7 @@
 
 WeaponSystem::WeaponSystem() { reset(); }
 
-// --- Slot management ---
+// --- 槽位管理 ---
 
 bool WeaponSystem::addWeapon(WeaponType type) {
     if (hasWeapon(type))
@@ -15,12 +15,12 @@ bool WeaponSystem::addWeapon(WeaponType type) {
         if (slot.level == 0) {
             slot.type = type;
             slot.level = 1;
-            slot.cooldown = 0.f; // fire immediately
+            slot.cooldown = 0.f; // 立即开火
             slot.orbitBaseAngle = 0.f;
             return true;
         }
     }
-    return false; // all slots full
+    return false; // 所有槽位已满
 }
 
 bool WeaponSystem::upgradeWeapon(WeaponType type) {
@@ -33,7 +33,7 @@ bool WeaponSystem::upgradeWeapon(WeaponType type) {
             return true;
         }
     }
-    return false; // not owned
+    return false; // 未拥有此武器
 }
 
 bool WeaponSystem::hasWeapon(WeaponType type) const {
@@ -88,11 +88,11 @@ void WeaponSystem::reset() {
         slot.cooldown = 0.f;
         slot.orbitBaseAngle = 0.f;
     }
-    // Start with MagicWand at level 1
+    // 初始携带 MagicWand 1 级
     addWeapon(WeaponType::MagicWand);
 }
 
-// --- Main update ---
+// --- 主更新 ---
 
 void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
                           Pool<Projectile>& projectiles) {
@@ -104,7 +104,7 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
         const auto& def = WEAPON_DEFS[static_cast<int>(slot.type)];
         slot.cooldown -= dt;
 
-        // AoE weapons tick every frame their cooldown is ready
+        // AoE 武器冷却完毕时每帧造成伤害
         if (def.isAOE) {
             if (slot.cooldown <= 0.f) {
                 auto stats = getWeaponStats(slot.type, slot.level);
@@ -114,7 +114,7 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
             continue;
         }
 
-        // Projectile weapons: fire when cooldown expires
+        // 弹幕武器：冷却完毕时发射
         if (slot.cooldown <= 0.f) {
             fireWeapon(i, player, enemies, projectiles);
             auto stats = getWeaponStats(slot.type, slot.level);
@@ -123,7 +123,7 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
     }
 }
 
-// --- Targeting ---
+// --- 索敌 ---
 
 const Enemy* WeaponSystem::findNearestEnemy(sf::Vector2f from, float maxRange,
                                             const Pool<Enemy>& enemies) const {
@@ -140,7 +140,7 @@ const Enemy* WeaponSystem::findNearestEnemy(sf::Vector2f from, float maxRange,
     return best;
 }
 
-// --- Fire dispatch ---
+// --- 发射分发 ---
 
 void WeaponSystem::fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                               Pool<Projectile>& proj) {
@@ -158,13 +158,13 @@ void WeaponSystem::fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy
         fireFireball(slotIdx, player, enemies, proj);
         break;
     case WeaponType::Garlic:
-        break; // handled in update() AoE path
+        break; // 在 update() 的 AoE 路径处理
     default:
         break;
     }
 }
 
-// --- Individual weapon implementations ---
+// --- 各武器发射实现 ---
 
 void WeaponSystem::fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                                  Pool<Projectile>& proj) {
@@ -200,7 +200,7 @@ void WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>
     auto& slot = m_slots[slotIdx];
     auto stats = getWeaponStats(slot.type, slot.level);
 
-    // Fire toward nearest enemy; if none, fire rightward
+    // 向最近敌人发射；若无则朝右
     sf::Vector2f dir = {1.f, 0.f};
     const auto* target = findNearestEnemy(player.pos, 0.f /*unlimited*/, enemies);
     if (target) {
@@ -213,7 +213,7 @@ void WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>
     }
 
     int count = stats.projectileCount;
-    float spread = (count - 1) * 0.15f; // total spread in radians
+    float spread = (count - 1) * 0.15f; // 总散布角（弧度）
     float baseAngle = std::atan2(dir.y, dir.x);
     float startAngle = baseAngle - spread / 2.f;
 
@@ -262,7 +262,7 @@ void WeaponSystem::fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& 
         p->pierceCount = stats.pierce;
     }
 
-    // Advance base angle for next spawn
+    // 推进基准角度供下次发射
     slot.orbitBaseAngle += 1.0f;
     if (slot.orbitBaseAngle > 2.f * 3.14159265f)
         slot.orbitBaseAngle -= 2.f * 3.14159265f;
@@ -294,7 +294,7 @@ void WeaponSystem::fireFireball(int slotIdx, const PlayerState& player, Pool<Ene
     p->speed = stats.projectileSpeed;
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
-    p->pierceCount = 0; // fireball explodes on first hit
+    p->pierceCount = 0; // 火球首次命中即消失
 }
 
 void WeaponSystem::tickGarlic(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies) {

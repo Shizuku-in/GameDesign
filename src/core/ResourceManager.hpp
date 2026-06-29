@@ -9,9 +9,8 @@ template <typename Resource> class ResourceManager {
 public:
     using Ptr = std::shared_ptr<Resource>;
 
-    /// Load or retrieve a cached resource.
-    /// On first access the resource is constructed from `args` and cached;
-    /// subsequent calls return the cached instance.
+    /// 加载或获取已缓存的资源。
+    /// 首次访问时用 `args` 构造资源并缓存；后续调用返回缓存实例。
     template <typename... Args> Ptr load(const std::string& key, Args&&... args) {
         auto it = m_resources.find(key);
         if (it != m_resources.end())

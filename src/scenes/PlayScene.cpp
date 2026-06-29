@@ -19,11 +19,11 @@ float randFloat() { return static_cast<float>(std::rand()) / RAND_MAX; }
 } // namespace
 
 // ---------------------------------------------------------------------------
-// Constructor
+// 构造
 // ---------------------------------------------------------------------------
 PlayScene::PlayScene(Game& game)
     : m_game(game), m_spawnInterval(Config::ENEMY_BASE_SPAWN_INTERVAL),
-      m_enemiesPerWave(Config::ENEMIES_PER_WAVE_BASE), m_bossTimer(60.f) // first boss at 60s
+      m_enemiesPerWave(Config::ENEMIES_PER_WAVE_BASE), m_bossTimer(60.f) // 首个 Boss 在 60 秒
 {
     m_camera = sf::View(sf::FloatRect({0.f, 0.f}, {Config::VIEW_WIDTH, Config::VIEW_HEIGHT}));
     m_camera.setCenter(m_player.pos);
@@ -35,14 +35,14 @@ PlayScene::PlayScene(Game& game)
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    // Pre-allocate to avoid reallocation during gameplay
+    // 预分配，避免游戏过程中重新分配
     m_enemies.reserve(500);
     m_projectiles.reserve(200);
     m_xpGems.reserve(300);
 }
 
 // ---------------------------------------------------------------------------
-// handleEvent
+// 事件处理
 // ---------------------------------------------------------------------------
 void PlayScene::handleEvent(const sf::Event& event) {
     if (m_gameOver)
@@ -80,7 +80,7 @@ void PlayScene::handleEvent(const sf::Event& event) {
 }
 
 // ---------------------------------------------------------------------------
-// update — main gameplay loop (60 Hz)
+// update — 主游戏循环（60 Hz）
 // ---------------------------------------------------------------------------
 void PlayScene::update(sf::Time dt) {
     if (m_gameOver)
@@ -91,38 +91,38 @@ void PlayScene::update(sf::Time dt) {
     if (m_paused)
         return;
 
-    // 1. Input + movement
+    // 1. 输入 + 移动
     handleInput();
     movePlayer(dtSec);
 
-    // 2. Weapons
+    // 2. 武器
     m_weapons.update(dtSec, m_player, m_enemies, m_projectiles);
 
-    // 3. Enemy AI
+    // 3. 敌人 AI
     updateEnemies(dtSec);
 
-    // 4. Projectile movement + orbit
+    // 4. 弹幕移动 + 轨道运动
     updateProjectiles(dtSec);
 
-    // 5. XP gem movement + magnet
+    // 5. XP 宝石移动 + 磁铁
     updateXPGems(dtSec);
 
-    // 6. Collisions (with cleanup)
+    // 6. 碰撞检测（含清理）
     checkCollisions(dtSec);
 
-    // 7. Spawn waves
+    // 7. 波次生成
     updateSpawning(dtSec);
 
-    // 8. Camera
+    // 8. 相机
     updateCamera();
 
-    // 9. Death check (before level-up)
+    // 9. 死亡检查（升级前）
     if (m_player.hp <= 0.f) {
         onDeath();
         return;
     }
 
-    // 10. Level-up check
+    // 10. 升级检查
     if (m_player.xp >= m_player.xpToNext) {
         onLevelUp();
     }
@@ -134,7 +134,7 @@ void PlayScene::update(sf::Time dt) {
 }
 
 // ---------------------------------------------------------------------------
-// render
+// 渲染
 // ---------------------------------------------------------------------------
 void PlayScene::render(sf::RenderWindow& window) {
     window.setView(m_camera);
@@ -150,7 +150,7 @@ void PlayScene::render(sf::RenderWindow& window) {
 }
 
 // ===========================================================================
-// update sub-steps
+// update 子步骤
 // ===========================================================================
 
 void PlayScene::handleInput() {
@@ -178,7 +178,7 @@ void PlayScene::handleInput() {
 void PlayScene::movePlayer(float dt) {
     m_player.pos += m_player.vel * m_player.speed * dt;
 
-    // Clamp to world
+    // 钳制到世界边界
     if (m_player.pos.x < m_player.radius)
         m_player.pos.x = m_player.radius;
     if (m_player.pos.y < m_player.radius)
@@ -203,7 +203,7 @@ void PlayScene::updateEnemies(float dt) {
         e.pos += dir * e.speed * dt;
     });
 
-    // Clean up enemies far outside the world
+    // 清理远离世界的敌人
     m_enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
         if (e.pos.x < -300.f || e.pos.x > Config::WORLD_WIDTH + 300.f || e.pos.y < -300.f ||
             e.pos.y > Config::WORLD_HEIGHT + 300.f) {
@@ -215,7 +215,7 @@ void PlayScene::updateEnemies(float dt) {
 void PlayScene::updateProjectiles(float dt) {
     m_projectiles.forEach([&](Projectile& p) {
         if (p.orbitRadius > 0.f) {
-            // Orbiting projectile (Axe)
+            // 轨道弹幕 (Axe)
             p.orbitAngle += p.orbitSpeed * dt;
             p.pos = m_player.pos +
                     sf::Vector2f(std::cos(p.orbitAngle), std::sin(p.orbitAngle)) * p.orbitRadius;
@@ -225,7 +225,7 @@ void PlayScene::updateProjectiles(float dt) {
         p.lifetime -= dt;
     });
 
-    // Clean up expired projectiles
+    // 清理过期弹幕
     m_projectiles.forEachHandle([&](Pool<Projectile>::Handle h, Projectile& p) {
         if (p.lifetime <= 0.f)
             m_projectiles.release(h);
@@ -238,7 +238,7 @@ void PlayScene::updateXPGems(float dt) {
             g.magnetTimer -= dt;
             return;
         }
-        // Magnet pull
+        // 磁铁吸引
         sf::Vector2f dir = m_player.pos - g.pos;
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         if (len > 0.f) {
@@ -250,7 +250,7 @@ void PlayScene::updateXPGems(float dt) {
 }
 
 void PlayScene::checkCollisions(float /*dt*/) {
-    // Projectile vs Enemy
+    // 弹幕 vs 敌人
     m_projectiles.forEach([&](Projectile& p) {
         m_enemies.forEach([&](Enemy& e) {
             if (e.hp <= 0.f)
@@ -268,7 +268,7 @@ void PlayScene::checkCollisions(float /*dt*/) {
         });
     });
 
-    // Player vs Enemy
+    // 玩家 vs 敌人
     if (m_player.invincibilityTimer <= 0.f) {
         m_enemies.forEach([&](Enemy& e) {
             if (e.hp <= 0.f)
@@ -281,15 +281,15 @@ void PlayScene::checkCollisions(float /*dt*/) {
         });
     }
 
-    // Player vs XP Gem
+    // 玩家 vs XP 宝石
     m_xpGems.forEach([&](XPGem& g) {
         if (circleCircle(m_player.pos, m_player.magnetRange, g.pos, g.radius)) {
             m_player.xp += g.value * m_player.xpMultiplier;
-            g.value = -1.f; // mark for cleanup
+            g.value = -1.f; // 标记清理
         }
     });
 
-    // --- Cleanup dead/already-processed entities ---
+    // --- 清理已死亡/已处理的实体 ---
 
     m_enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
         if (e.hp <= 0.f)
@@ -312,7 +312,7 @@ void PlayScene::updateSpawning(float dt) {
     m_difficultyTimer += dt;
     m_bossTimer -= dt;
 
-    // Boss every 60s
+    // 每 60 秒生成 Boss
     if (m_bossTimer <= 0.f) {
         spawnEnemy(EnemyType::Boss);
         m_bossTimer = 60.f;
@@ -321,7 +321,7 @@ void PlayScene::updateSpawning(float dt) {
     if (m_spawnTimer > 0.f)
         return;
 
-    // Available enemy types based on elapsed time
+    // 根据已过时间解锁敌人类型
     int activeTypes = 1;
     if (m_gameTime > Config::ENEMY_APPEAR_TIME[1])
         activeTypes = 2;
@@ -346,7 +346,7 @@ void PlayScene::updateSpawning(float dt) {
         spawnEnemy(chosen);
     }
 
-    // Ramp difficulty
+    // 难度递增
     m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL - m_difficultyTimer * 0.005f;
     if (m_spawnInterval < Config::ENEMY_MIN_SPAWN_INTERVAL)
         m_spawnInterval = Config::ENEMY_MIN_SPAWN_INTERVAL;
@@ -390,7 +390,7 @@ void PlayScene::onDeath() {
 }
 
 // ===========================================================================
-// Spawn helpers
+// 生成辅助函数
 // ===========================================================================
 
 void PlayScene::spawnEnemy(EnemyType type) {
@@ -429,7 +429,7 @@ sf::Vector2f PlayScene::randomSpawnPosition() const {
 }
 
 // ===========================================================================
-// Drawing
+// 绘制
 // ===========================================================================
 
 void PlayScene::drawEntities(sf::RenderWindow& window) {
@@ -469,7 +469,7 @@ void PlayScene::drawEntities(sf::RenderWindow& window) {
         window.draw(shape);
     });
 
-    // Player (flashing when invincible)
+    // 玩家（无敌时闪烁）
     bool visible = true;
     if (m_player.invincibilityTimer > 0.f) {
         int flash = static_cast<int>(m_player.invincibilityTimer / 0.1f);

@@ -3,11 +3,10 @@
 #include <cstdint>
 #include <vector>
 
-/// Generic freelist object pool with generation-counted handles.
+/// 通用 freelist 对象池，使用 generation-count 句柄。
 ///
-/// T must be default-constructible. Handles use an {idx, gen} pair to prevent
-/// dangling-reference bugs: after release + re-acquire of the same slot, the
-/// generation changes and old handles fail validation.
+/// T 必须可默认构造。句柄使用 {idx, gen} 对防止悬垂引用：
+/// 释放后重新分配同一槽位时 generation 已变，旧句柄验证失败。
 template <typename T> class Pool {
 public:
     struct Handle {
@@ -15,8 +14,8 @@ public:
         std::uint32_t gen;
     };
 
-    /// Acquire a slot (from freelist or by growing). The returned data is
-    /// default-constructed; caller should overwrite fields immediately.
+    /// 申请一个槽位（优先从 freelist 弹出，否则扩容）。
+    /// 返回数据为默认构造；调用者应立即覆盖所有字段。
     Handle acquire() {
         std::uint32_t idx;
         if (!m_freelist.empty()) {
@@ -29,15 +28,14 @@ public:
 
         std::uint32_t gen = m_nextGen++;
         if (gen == 0)
-            gen = m_nextGen++; // never assign gen==0 (reserved for "free")
+            gen = m_nextGen++; // gen==0 保留给"空闲"状态，跳过
 
         m_slots[idx].gen = gen;
-        m_slots[idx].data = T{}; // fresh default state
+        m_slots[idx].data = T{}; // 初始化为默认状态
         return {idx, gen};
     }
 
-    /// Release a slot back to the freelist. The handle is invalidated
-    /// (its generation will never match this slot again).
+    /// 释放槽位回 freelist。句柄立即失效（其 generation 永远不会再匹配此槽位）。
     void release(Handle h) {
         if (!valid(h))
             return;
@@ -45,7 +43,7 @@ public:
         m_freelist.push_back(h.idx);
     }
 
-    /// Return a pointer to the data, or nullptr if the handle is stale.
+    /// 返回数据指针，句柄过期则返回 nullptr。
     T* get(Handle h) {
         if (!valid(h))
             return nullptr;
@@ -58,7 +56,7 @@ public:
         return &m_slots[h.idx].data;
     }
 
-    /// Call fn(T&) for every occupied slot.
+    /// 对所有占用槽位调用 fn(T&)。
     template <typename F> void forEach(F&& fn) {
         for (auto& slot : m_slots) {
             if (slot.gen != 0)
@@ -73,9 +71,8 @@ public:
         }
     }
 
-    /// Call fn(Handle, T&) for every occupied slot. Safe to call release()
-    /// on the handle from inside the callback (the released slot is skipped
-    /// for the remainder of this iteration).
+    /// 对所有占用槽位调用 fn(Handle, T&)。可在回调中安全调用 release()
+    /// （已释放的槽位在当前遍历的剩余部分会被跳过）。
     template <typename F> void forEachHandle(F&& fn) {
         for (std::uint32_t i = 0; i < m_slots.size(); ++i) {
             auto& slot = m_slots[i];
@@ -86,26 +83,26 @@ public:
         }
     }
 
-    /// Number of currently occupied slots.
+    /// 当前占用槽位数。
     std::size_t activeCount() const { return m_slots.size() - m_freelist.size(); }
 
-    /// Total capacity (occupied + free).
+    /// 总容量（占用 + 空闲）。
     std::size_t capacity() const { return m_slots.size(); }
 
-    /// Drop all slots and freelist entries.
+    /// 清空所有槽位和 freelist。
     void clear() {
         m_slots.clear();
         m_freelist.clear();
         m_nextGen = 1;
     }
 
-    /// Pre-allocate storage for at least `n` total slots.
+    /// 预分配至少 n 个槽位的存储空间。
     void reserve(std::size_t n) { m_slots.reserve(n); }
 
 private:
     struct Slot {
         T data{};
-        std::uint32_t gen = 0; // 0 = free; >0 = occupied (matches Handle::gen)
+        std::uint32_t gen = 0; // 0 = 空闲; >0 = 占用（与 Handle::gen 匹配）
     };
 
     bool valid(Handle h) const {
