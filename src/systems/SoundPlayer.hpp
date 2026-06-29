@@ -12,7 +12,6 @@
 /// 同一音效有多短间隔保护，避免多个实例同时播放导致音量叠加。
 class SoundPlayer {
 public:
-
     explicit SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds);
 
     /// 每帧调用，递减冷却计时器。

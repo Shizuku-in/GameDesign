@@ -23,11 +23,11 @@ constexpr float ENEMY_SPAWN_DISTANCE = 1200.f; // 生成时距玩家的最小距
 constexpr float ENEMY_BASE_SPAWN_INTERVAL = 3.f;
 constexpr float ENEMY_MIN_SPAWN_INTERVAL = 0.5f;
 constexpr int ENEMIES_PER_WAVE_BASE = 3;
-constexpr float ENEMY_BOSS_INTERVAL = 60.f;       // Boss 生成间隔（秒）
-constexpr int ENEMY_MAX_COUNT = 200;              // 敌人数上限
-constexpr float ENEMY_DIFFICULTY_SCALE = 0.005f;  // 难度递增系数
-constexpr float ENEMY_SPAWN_JITTER = 200.f;       // 生成位置随机抖动范围
-constexpr float ENEMY_CULL_MARGIN = 0.35f;        // 清理边距（VIEW_WIDTH 比例）
+constexpr float ENEMY_BOSS_INTERVAL = 60.f;      // Boss 生成间隔（秒）
+constexpr int ENEMY_MAX_COUNT = 200;             // 敌人数上限
+constexpr float ENEMY_DIFFICULTY_SCALE = 0.005f; // 难度递增系数
+constexpr float ENEMY_SPAWN_JITTER = 200.f;      // 生成位置随机抖动范围
+constexpr float ENEMY_CULL_MARGIN = 0.35f;       // 清理边距（VIEW_WIDTH 比例）
 
 // --- 经验 ---
 constexpr float XP_BASE_THRESHOLD = 10.f;
@@ -41,9 +41,9 @@ constexpr float VIEW_HEIGHT = 1080.f;
 constexpr float FIXED_DT = 1.f / 60.f; // 固定时间步
 
 // --- 武器 ---
-constexpr float KNIFE_SPREAD = 0.15f;       // 飞刀散布角（弧度）
-constexpr float AXE_ORBIT_RADIUS = 60.f;    // 斧头轨道半径
-constexpr float AXE_ORBIT_SPEED = 3.0f;     // 斧头轨道角速度（弧度/秒）
+constexpr float KNIFE_SPREAD = 0.15f;    // 飞刀散布角（弧度）
+constexpr float AXE_ORBIT_RADIUS = 60.f; // 斧头轨道半径
+constexpr float AXE_ORBIT_SPEED = 3.0f;  // 斧头轨道角速度（弧度/秒）
 
 // --- 敌人类型属性表 ---
 // 按 EnemyType 枚举顺序: Basic, Fast, Tank, Boss
@@ -59,10 +59,10 @@ constexpr float ENEMY_APPEAR_TIME[] = {0.f, 30.f, 60.f, -1.f}; // -1 = 不按权
 
 // --- 资源路径 ---
 constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/DejaVuSans.ttf";
-constexpr const char* SOUND_SHOOT_PATH  = "assets/sounds/shoot.wav";
-constexpr const char* SOUND_HIT_PATH    = "assets/sounds/hit.wav";
-constexpr const char* SOUND_KILL_PATH   = "assets/sounds/kill.wav";
-constexpr const char* SOUND_HURT_PATH   = "assets/sounds/hurt.wav";
+constexpr const char* SOUND_SHOOT_PATH = "assets/sounds/shoot.wav";
+constexpr const char* SOUND_HIT_PATH = "assets/sounds/hit.wav";
+constexpr const char* SOUND_KILL_PATH = "assets/sounds/kill.wav";
+constexpr const char* SOUND_HURT_PATH = "assets/sounds/hurt.wav";
 constexpr const char* SOUND_PICKUP_PATH = "assets/sounds/pickup.wav";
 constexpr const char* SOUND_LEVELUP_PATH = "assets/sounds/levelup.wav";
 constexpr const char* BGM_PLAY_SCENE_PATH = "assets/sounds/BGM/stone fortress.ogg";

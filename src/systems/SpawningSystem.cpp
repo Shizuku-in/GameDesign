@@ -63,8 +63,8 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
     }
 
     // 难度递增
-    m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL -
-                      m_difficultyTimer * Config::ENEMY_DIFFICULTY_SCALE;
+    m_spawnInterval =
+        Config::ENEMY_BASE_SPAWN_INTERVAL - m_difficultyTimer * Config::ENEMY_DIFFICULTY_SCALE;
     if (m_spawnInterval < Config::ENEMY_MIN_SPAWN_INTERVAL)
         m_spawnInterval = Config::ENEMY_MIN_SPAWN_INTERVAL;
 
