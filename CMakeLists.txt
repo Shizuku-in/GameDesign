@@ -20,9 +20,15 @@ find_package(SFML 3.1 COMPONENTS System Window Graphics REQUIRED)
 # --- Source files ---
 add_executable(game
     src/main.cpp
-    src/Game.cpp
-    src/GameScene.cpp
-    src/Scene.cpp
+    src/core/Game.cpp
+    src/core/Scene.cpp
+    src/systems/WeaponDefs.cpp
+    src/systems/WeaponSystem.cpp
+    src/systems/UpgradeDefs.cpp
+    src/systems/HUD.cpp
+    src/scenes/PlayScene.cpp
+    src/scenes/TitleScene.cpp
+    src/scenes/GameOverScene.cpp
 )
 
 # --- Include path for header-only resources ---
@@ -30,6 +36,13 @@ target_include_directories(game PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # --- Link SFML (Graphics transitively links Window + System + platform deps) ---
 target_link_libraries(game PRIVATE SFML::Graphics)
+
+# --- Copy assets next to the binary on every build ---
+add_custom_command(TARGET game POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:game>/assets"
+    COMMENT "Copying assets to build directory..."
+)
 
 # --- Compiler warnings ---
 if(MSVC)
@@ -69,8 +82,8 @@ endif()
 
 if(CLANG_FORMAT)
     file(GLOB_RECURSE FORMAT_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.cpp
     )
     add_custom_target(format
         COMMAND ${CLANG_FORMAT} -i ${FORMAT_SOURCES}

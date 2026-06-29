@@ -1,5 +1,8 @@
 #pragma once
 
+#include "core/ResourceManager.hpp"
+
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/View.hpp>
 #include <SFML/System/Clock.hpp>
@@ -19,6 +22,7 @@ public:
 
     void changeScene(std::unique_ptr<Scene> scene);
     sf::RenderWindow& getWindow();
+    ResourceManager<sf::Font>& getFonts();
 
 private:
     void processEvents();
@@ -37,6 +41,8 @@ private:
 
     sf::RenderWindow m_window;
     std::unique_ptr<Scene> m_scene;
+    std::unique_ptr<Scene> m_pendingScene; // deferred scene switch (safe from update())
+    ResourceManager<sf::Font> m_fonts;
     sf::Clock m_clock;
 
     bool m_running = true;

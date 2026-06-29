@@ -1,6 +1,6 @@
-#include "Game.hpp"
-#include "GameScene.hpp"
-#include "Scene.hpp"
+#include "core/Game.hpp"
+#include "core/Scene.hpp"
+#include "scenes/TitleScene.hpp"
 
 #include <SFML/Window/VideoMode.hpp>
 
@@ -8,7 +8,11 @@ Game::Game()
     : m_window(sf::VideoMode({DEFAULT_WIDTH, DEFAULT_HEIGHT}), TITLE, sf::Style::Default,
                sf::State::Windowed) {
     m_window.setFramerateLimit(0); // uncapped — we control timing ourselves
-    changeScene(std::make_unique<GameScene>(*this));
+
+    // Load the UI font (graceful fallback — returns nullptr on failure)
+    m_fonts.load("default", "assets/fonts/DejaVuSans.ttf");
+
+    m_scene = std::make_unique<TitleScene>(*this); // direct assign — safe in constructor
 }
 
 Game::~Game() = default;
@@ -36,14 +40,25 @@ int Game::run() {
 
         // One render pass per outer-loop iteration
         render();
+
+        // Deferred scene switch — safe because no scene code is on the stack
+        if (m_pendingScene) {
+            m_scene = std::move(m_pendingScene);
+            m_pendingScene = nullptr;
+        }
     }
 
     return 0;
 }
 
-void Game::changeScene(std::unique_ptr<Scene> scene) { m_scene = std::move(scene); }
+void Game::changeScene(std::unique_ptr<Scene> scene) {
+    // Defer the actual swap — safe to call from inside update() / handleEvent()
+    m_pendingScene = std::move(scene);
+}
 
 sf::RenderWindow& Game::getWindow() { return m_window; }
+
+ResourceManager<sf::Font>& Game::getFonts() { return m_fonts; }
 
 void Game::processEvents() {
     while (const std::optional event = m_window.pollEvent()) {
