@@ -140,6 +140,7 @@ void PlayScene::update(sf::Time dt) {
         onLevelUp();
 
     m_gameTime += dtSec;
+    m_sounds.update(dtSec);
 
     if (m_hud)
         m_hud->update(m_player, m_weapons, m_gameTime);

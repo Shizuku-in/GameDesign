@@ -12,12 +12,20 @@ SoundPlayer::SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds) {
     m_pickup = load("pickup");
     m_levelup = load("levelup");
 
-    // sf::Sound 需要 buffer 才能构造，用 m_shoot 初始化全部然后 stop
     m_pool.reserve(POOL_SIZE);
     for (int i = 0; i < POOL_SIZE; ++i) {
         m_pool.emplace_back(*m_shoot);
         m_pool.back().stop();
     }
+}
+
+void SoundPlayer::update(float dt) {
+    if (m_killTimer > 0.f)
+        m_killTimer -= dt;
+    if (m_hitTimer > 0.f)
+        m_hitTimer -= dt;
+    if (m_shootTimer > 0.f)
+        m_shootTimer -= dt;
 }
 
 void SoundPlayer::play(const sf::SoundBuffer* buf, float volume) {
@@ -35,9 +43,24 @@ void SoundPlayer::play(const sf::SoundBuffer* buf, float volume) {
     }
 }
 
-void SoundPlayer::shoot() { play(m_shoot, 50.f); } // 弹幕射击
-void SoundPlayer::hit() { play(m_hit, 45.f); } // 命中
-void SoundPlayer::kill() { play(m_kill, 55.f); } // 击杀
-void SoundPlayer::hurt() { play(m_hurt, 70.f); } // 受击
-void SoundPlayer::pickup() { play(m_pickup, 40.f); } // 拾取宝石
-void SoundPlayer::levelup() { play(m_levelup, 65.f); } // 升级
+void SoundPlayer::shoot() {
+    if (m_shootTimer > 0.f) return;
+    m_shootTimer = 0.08f; // 发射间隔短，保护也短
+    play(m_shoot, 50.f);
+}
+
+void SoundPlayer::hit() {
+    if (m_hitTimer > 0.f) return;
+    m_hitTimer = 0.05f;
+    play(m_hit, 45.f);
+}
+
+void SoundPlayer::kill() {
+    if (m_killTimer > 0.f) return;
+    m_killTimer = 0.10f; // 击杀间隔稍长，避免堆叠
+    play(m_kill, 55.f);
+}
+
+void SoundPlayer::hurt() { play(m_hurt, 70.f); }
+void SoundPlayer::pickup() { play(m_pickup, 40.f); }
+void SoundPlayer::levelup() { play(m_levelup, 65.f); }
