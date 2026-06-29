@@ -1,6 +1,8 @@
-# SFML 3.1 Game
+# Survivor-like
 
-A cross-platform game built with SFML 3.1 and modern CMake.
+A Vampire Survivors-style "bullet heaven" 2D game built with SFML 3.1 and modern CMake.
+
+Move with WASD, weapons auto-fire at the nearest enemies, collect XP gems, level up, choose upgrades — survive as long as you can.
 
 ## Prerequisites
 
@@ -43,17 +45,53 @@ cmake --build build --config Release
 .\build\Release\game.exe
 ```
 
+Assets (`fonts/`) are automatically copied to the build directory via CMake POST_BUILD.
+
+## Controls
+
+| Key | Action |
+|-----|--------|
+| WASD / Arrow keys | Move |
+| Arrow keys / 1–3 | Select upgrade (level-up screen) |
+| Enter / Space | Confirm upgrade / Start game |
+| Escape | Quit |
+
 ## Project Structure
 
 ```
-├── CMakeLists.txt          # Build configuration
+├── CMakeLists.txt
 ├── README.md
+├── CLAUDE.md                # Architecture & coding conventions
+├── .clang-format            # Code style rules (WebKit-based)
+├── assets/
+│   └── fonts/
+│       └── DejaVuSans.ttf   # UI font
+├── docs/
+│   ├── design-doc.md        # Full game design document
+│   └── wsl-setup-guide.md
+├── scripts/
+│   └── pre-commit           # Git hook for clang-format
 └── src/
-    ├── main.cpp            # Entry point
-    ├── Game.hpp/.cpp       # Core game loop (fixed timestep)
-    ├── Scene.hpp/.cpp      # Abstract scene interface
-    ├── GameScene.hpp/.cpp  # Demo gameplay scene
-    └── ResourceManager.hpp # Header-only resource cache
+    ├── main.cpp
+    ├── core/                # Engine layer
+    │   ├── Game.hpp/.cpp        # Game loop, scene management, font loading
+    │   ├── Scene.hpp/.cpp       # Abstract scene base class
+    │   ├── Pool.hpp             # Generic object pool (freelist + generation handles)
+    │   └── ResourceManager.hpp  # Resource cache template
+    ├── data/                # Pure data definitions (header-only)
+    │   ├── Constants.hpp        # All tuning values
+    │   ├── EntityTypes.hpp      # Enemy, Projectile, XPGem structs
+    │   ├── PlayerState.hpp      # Player state struct
+    │   └── Collision.hpp        # Circle-circle collision helpers
+    ├── systems/             # Gameplay systems
+    │   ├── WeaponDefs.hpp/.cpp  # Weapon table + level-scaling
+    │   ├── WeaponSystem.hpp/.cpp# Auto-attack + targeting + projectile spawning
+    │   ├── UpgradeDefs.hpp/.cpp # Random upgrade generation & application
+    │   └── HUD.hpp/.cpp         # HP/XP bars, level, timer, weapon list
+    └── scenes/              # Game scenes
+        ├── PlayScene.hpp/.cpp   # Main gameplay loop
+        ├── TitleScene.hpp/.cpp  # Title screen
+        └── GameOverScene.hpp/.cpp # Death/score screen
 ```
 
 ## Code Formatting
@@ -68,12 +106,10 @@ This project uses **clang-format** to enforce a consistent code style. Rules are
 | Linux | `sudo apt install clang-format` |
 | Windows | Download from [LLVM releases](https://github.com/llvm/llvm-project/releases) |
 
-macOS also bundles clang-format with Xcode CLI Tools (no extra install needed).
-
 ### Format before committing
 
 ```bash
-cmake --build build --target format        # format changed files in-place
+cmake --build build --target format        # format all source files in-place
 cmake --build build --target format-check  # check only (same as CI)
 ```
 
