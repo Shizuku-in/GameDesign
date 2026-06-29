@@ -12,6 +12,14 @@ Game::Game()
     // 加载 UI 字体
     m_fonts.load("default", "assets/fonts/DejaVuSans.ttf");
 
+    // 加载音效
+    m_sounds.load("shoot", "assets/sounds/shoot.wav");
+    m_sounds.load("hit", "assets/sounds/hit.wav");
+    m_sounds.load("kill", "assets/sounds/kill.wav");
+    m_sounds.load("hurt", "assets/sounds/hurt.wav");
+    m_sounds.load("pickup", "assets/sounds/pickup.wav");
+    m_sounds.load("levelup", "assets/sounds/levelup.wav");
+
     m_scene = std::make_unique<TitleScene>(*this); // 直接赋值 — 构造时安全
 }
 
@@ -59,6 +67,8 @@ void Game::changeScene(std::unique_ptr<Scene> scene) {
 sf::RenderWindow& Game::getWindow() { return m_window; }
 
 ResourceManager<sf::Font>& Game::getFonts() { return m_fonts; }
+
+ResourceManager<sf::SoundBuffer>& Game::getSounds() { return m_sounds; }
 
 void Game::processEvents() {
     while (const std::optional event = m_window.pollEvent()) {

@@ -7,6 +7,8 @@
 
 #include <vector>
 
+class SoundPlayer;
+
 /// 管理玩家武器槽，处理自动攻击逻辑。
 class WeaponSystem {
 public:
@@ -25,7 +27,7 @@ public:
 
     // --- 主更新（60 Hz 调用）---
     void update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
-                Pool<Projectile>& projectiles);
+                Pool<Projectile>& projectiles, SoundPlayer& sounds);
 
     // --- 新一局重置 ---
     void reset();
@@ -41,15 +43,15 @@ private:
     Slot m_slots[MAX_SLOTS];
 
     // --- 各武器发射辅助函数 ---
-    void fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+    bool fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                     Pool<Projectile>& projectiles);
-    void fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+    bool fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                        Pool<Projectile>& proj);
-    void fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+    bool fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                    Pool<Projectile>& proj);
-    void fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+    bool fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                  Pool<Projectile>& proj);
-    void fireFireball(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+    bool fireFireball(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                       Pool<Projectile>& proj);
     void tickGarlic(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies);
 

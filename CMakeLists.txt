@@ -15,7 +15,7 @@ if(APPLE)
 endif()
 
 # --- Locate SFML 3.1 ---
-find_package(SFML 3.1 COMPONENTS System Window Graphics REQUIRED)
+find_package(SFML 3.1 COMPONENTS System Window Graphics Audio REQUIRED)
 
 # --- Source files ---
 add_executable(game
@@ -28,6 +28,7 @@ add_executable(game
     src/systems/HUD.cpp
     src/systems/CollisionSystem.cpp
     src/systems/SpawningSystem.cpp
+    src/systems/SoundPlayer.cpp
     src/systems/WorldRenderer.cpp
     src/scenes/PlayScene.cpp
     src/scenes/TitleScene.cpp
@@ -40,7 +41,7 @@ add_executable(game
 target_include_directories(game PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # --- Link SFML (Graphics transitively links Window + System + platform deps) ---
-target_link_libraries(game PRIVATE SFML::Graphics)
+target_link_libraries(game PRIVATE SFML::Graphics SFML::Audio)
 
 # --- Copy assets next to the binary on every build ---
 add_custom_command(TARGET game POST_BUILD

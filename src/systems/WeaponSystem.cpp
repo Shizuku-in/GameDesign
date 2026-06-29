@@ -1,5 +1,6 @@
 #include "systems/WeaponSystem.hpp"
 #include "data/Collision.hpp"
+#include "systems/SoundPlayer.hpp"
 
 #include <cmath>
 #include <limits>
@@ -95,7 +96,7 @@ void WeaponSystem::reset() {
 // --- 主更新 ---
 
 void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
-                          Pool<Projectile>& projectiles) {
+                          Pool<Projectile>& projectiles, SoundPlayer& sounds) {
     for (int i = 0; i < MAX_SLOTS; ++i) {
         auto& slot = m_slots[i];
         if (slot.level == 0)
@@ -116,7 +117,9 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
 
         // 弹幕武器：冷却完毕时发射
         if (slot.cooldown <= 0.f) {
-            fireWeapon(i, player, enemies, projectiles);
+            bool fired = fireWeapon(i, player, enemies, projectiles);
+            if (fired)
+                sounds.shoot();
             auto stats = getWeaponStats(slot.type, slot.level);
             slot.cooldown = stats.cooldown;
         }
@@ -142,38 +145,34 @@ const Enemy* WeaponSystem::findNearestEnemy(sf::Vector2f from, float maxRange,
 
 // --- 发射分发 ---
 
-void WeaponSystem::fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::fireWeapon(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                               Pool<Projectile>& proj) {
     switch (m_slots[slotIdx].type) {
     case WeaponType::MagicWand:
-        fireMagicWand(slotIdx, player, enemies, proj);
-        break;
+        return fireMagicWand(slotIdx, player, enemies, proj);
     case WeaponType::Knife:
-        fireKnife(slotIdx, player, enemies, proj);
-        break;
+        return fireKnife(slotIdx, player, enemies, proj);
     case WeaponType::Axe:
-        fireAxe(slotIdx, player, enemies, proj);
-        break;
+        return fireAxe(slotIdx, player, enemies, proj);
     case WeaponType::Fireball:
-        fireFireball(slotIdx, player, enemies, proj);
-        break;
+        return fireFireball(slotIdx, player, enemies, proj);
     case WeaponType::Garlic:
-        break; // 在 update() 的 AoE 路径处理
+        return false; // 在 update() 的 AoE 路径处理
     default:
-        break;
+        return false;
     }
 }
 
 // --- 各武器发射实现 ---
 
-void WeaponSystem::fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::fireMagicWand(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                                  Pool<Projectile>& proj) {
     auto& slot = m_slots[slotIdx];
     auto stats = getWeaponStats(slot.type, slot.level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
     if (!target)
-        return;
+        return false;
 
     sf::Vector2f dir = target->pos - player.pos;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -185,7 +184,7 @@ void WeaponSystem::fireMagicWand(int slotIdx, const PlayerState& player, Pool<En
     auto handle = proj.acquire();
     auto* p = proj.get(handle);
     if (!p)
-        return;
+        return false;
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
     p->damage = stats.damage;
@@ -193,16 +192,16 @@ void WeaponSystem::fireMagicWand(int slotIdx, const PlayerState& player, Pool<En
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
     p->pierceCount = stats.pierce;
+    return true;
 }
 
-void WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                              Pool<Projectile>& proj) {
     auto& slot = m_slots[slotIdx];
     auto stats = getWeaponStats(slot.type, slot.level);
 
-    // 向最近敌人发射；若无则朝右
     sf::Vector2f dir = {1.f, 0.f};
-    const auto* target = findNearestEnemy(player.pos, 0.f /*unlimited*/, enemies);
+    const auto* target = findNearestEnemy(player.pos, 0.f /*无限制*/, enemies);
     if (target) {
         dir = target->pos - player.pos;
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -213,9 +212,10 @@ void WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>
     }
 
     int count = stats.projectileCount;
-    float spread = (count - 1) * 0.15f; // 总散布角（弧度）
+    float spread = (count - 1) * 0.15f;
     float baseAngle = std::atan2(dir.y, dir.x);
     float startAngle = baseAngle - spread / 2.f;
+    bool anySpawned = false;
 
     for (int i = 0; i < count; ++i) {
         float angle = startAngle + (count > 1 ? spread * static_cast<float>(i) / (count - 1) : 0.f);
@@ -232,16 +232,19 @@ void WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>
         p->lifetime = stats.projectileLifetime;
         p->radius = stats.projectileRadius;
         p->pierceCount = stats.pierce;
+        anySpawned = true;
     }
+    return anySpawned;
 }
 
-void WeaponSystem::fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& /*enemies*/,
+bool WeaponSystem::fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& /*enemies*/,
                            Pool<Projectile>& proj) {
     auto& slot = m_slots[slotIdx];
     auto stats = getWeaponStats(slot.type, slot.level);
 
     int count = stats.projectileCount;
     float angleStep = 2.f * 3.14159265f / static_cast<float>(count);
+    bool anySpawned = false;
 
     for (int i = 0; i < count; ++i) {
         float angle = slot.orbitBaseAngle + angleStep * static_cast<float>(i);
@@ -260,22 +263,25 @@ void WeaponSystem::fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& 
         p->lifetime = stats.projectileLifetime;
         p->radius = stats.projectileRadius;
         p->pierceCount = stats.pierce;
+        anySpawned = true;
     }
 
     // 推进基准角度供下次发射
     slot.orbitBaseAngle += 1.0f;
     if (slot.orbitBaseAngle > 2.f * 3.14159265f)
         slot.orbitBaseAngle -= 2.f * 3.14159265f;
+
+    return anySpawned;
 }
 
-void WeaponSystem::fireFireball(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::fireFireball(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies,
                                 Pool<Projectile>& proj) {
     auto& slot = m_slots[slotIdx];
     auto stats = getWeaponStats(slot.type, slot.level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
     if (!target)
-        return;
+        return false;
 
     sf::Vector2f dir = target->pos - player.pos;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -287,7 +293,7 @@ void WeaponSystem::fireFireball(int slotIdx, const PlayerState& player, Pool<Ene
     auto handle = proj.acquire();
     auto* p = proj.get(handle);
     if (!p)
-        return;
+        return false;
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
     p->damage = stats.damage;
@@ -295,6 +301,7 @@ void WeaponSystem::fireFireball(int slotIdx, const PlayerState& player, Pool<Ene
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
     p->pierceCount = 0; // 火球首次命中即消失
+    return true;
 }
 
 void WeaponSystem::tickGarlic(int slotIdx, const PlayerState& player, Pool<Enemy>& enemies) {

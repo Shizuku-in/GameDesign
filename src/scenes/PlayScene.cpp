@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------------
 // 构造
 // ---------------------------------------------------------------------------
-PlayScene::PlayScene(Game& game) : m_game(game) {
+PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_camera = sf::View(sf::FloatRect({0.f, 0.f}, {Config::VIEW_WIDTH, Config::VIEW_HEIGHT}));
     m_camera.setCenter(m_player.pos);
 
@@ -33,6 +33,13 @@ PlayScene::PlayScene(Game& game) : m_game(game) {
     m_enemies.reserve(500);
     m_projectiles.reserve(200);
     m_xpGems.reserve(300);
+
+    // BGM
+    if (m_bgm.openFromFile("assets/sounds/BGM/stone fortress.ogg")) {
+        m_bgm.setLooping(true);
+        m_bgm.setVolume(50.f);
+        m_bgm.play();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -105,7 +112,7 @@ void PlayScene::update(sf::Time dt) {
     movePlayer(dtSec);
 
     // 武器
-    m_weapons.update(dtSec, m_player, m_enemies, m_projectiles);
+    m_weapons.update(dtSec, m_player, m_enemies, m_projectiles, m_sounds);
 
     // 实体更新
     updateEnemies(dtSec);
@@ -113,7 +120,8 @@ void PlayScene::update(sf::Time dt) {
     updateXPGems(dtSec);
 
     // 碰撞 + 清理
-    CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_score);
+    CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_score,
+                                       m_sounds);
 
     // 生成
     m_spawning.update(dtSec, m_gameTime, m_player.pos, m_enemies);
@@ -279,6 +287,7 @@ void PlayScene::onLevelUp() {
     ++m_player.level;
     m_upgradeOptions = generateUpgrades(m_player, m_weapons);
     m_selectedOption = 0;
+    m_sounds.levelup();
 }
 
 void PlayScene::onDeath() {

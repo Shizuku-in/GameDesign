@@ -2,6 +2,7 @@
 
 #include "core/ResourceManager.hpp"
 
+#include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -23,6 +24,7 @@ public:
     void changeScene(std::unique_ptr<Scene> scene);
     sf::RenderWindow& getWindow();
     ResourceManager<sf::Font>& getFonts();
+    ResourceManager<sf::SoundBuffer>& getSounds();
 
 private:
     void processEvents();
@@ -43,6 +45,7 @@ private:
     std::unique_ptr<Scene> m_scene;
     std::unique_ptr<Scene> m_pendingScene; // 延迟场景切换（在 update() 中调用也安全）
     ResourceManager<sf::Font> m_fonts;
+    ResourceManager<sf::SoundBuffer> m_sounds;
     sf::Clock m_clock;
 
     bool m_running = true;

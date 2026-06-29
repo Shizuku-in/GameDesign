@@ -5,11 +5,13 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 #include "systems/HUD.hpp"
+#include "systems/SoundPlayer.hpp"
 #include "systems/SpawningSystem.hpp"
 #include "systems/UpgradeDefs.hpp"
 #include "systems/WeaponSystem.hpp"
 #include "systems/WorldRenderer.hpp"
 
+#include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/View.hpp>
 
@@ -40,6 +42,8 @@ private:
     // 子系统
     WeaponSystem m_weapons;
     SpawningSystem m_spawning;
+    SoundPlayer m_sounds;
+    sf::Music m_bgm;
     WorldRenderer m_worldRenderer;
     std::unique_ptr<HUD> m_hud;
 
