@@ -35,7 +35,7 @@ TitleScene::TitleScene(Game& game)
 
     m_controlsText.setString("WASD to move  |  Weapons auto-fire  |  Escape to quit");
     m_controlsText.setCharacterSize(fs(0.015f));
-    m_controlsText.setFillColor(sf::Color(160, 160, 160));
+    m_controlsText.setFillColor(Config::COLOR_TEXT_MUTED);
     m_controlsText.setPosition({VW * 0.19f, VH * 0.82f});
 }
 
@@ -54,7 +54,7 @@ void TitleScene::handleEvent(const sf::Event& event) {
 void TitleScene::update(sf::Time /*dt*/) {}
 
 void TitleScene::render(sf::RenderWindow& window) {
-    window.clear(sf::Color(20, 20, 20));
+    window.clear(Config::COLOR_BG_TITLE);
 
     if (!m_font)
         return;

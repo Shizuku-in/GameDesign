@@ -33,16 +33,16 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         shape.setPosition({e.pos.x - e.radius, e.pos.y - e.radius});
         switch (e.type) {
         case EnemyType::Basic:
-            shape.setFillColor(sf::Color::Red);
+            shape.setFillColor(Config::COLOR_ENEMY_BASIC);
             break;
         case EnemyType::Fast:
-            shape.setFillColor(sf::Color(255, 100, 100));
+            shape.setFillColor(Config::COLOR_ENEMY_FAST);
             break;
         case EnemyType::Tank:
-            shape.setFillColor(sf::Color(180, 0, 0));
+            shape.setFillColor(Config::COLOR_ENEMY_TANK);
             break;
         case EnemyType::Boss:
-            shape.setFillColor(sf::Color(255, 0, 100));
+            shape.setFillColor(Config::COLOR_ENEMY_BOSS);
             break;
         default:
             shape.setFillColor(sf::Color::Red);

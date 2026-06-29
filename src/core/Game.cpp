@@ -1,5 +1,6 @@
 #include "core/Game.hpp"
 #include "core/Scene.hpp"
+#include "data/Constants.hpp"
 #include "scenes/TitleScene.hpp"
 
 #include <SFML/Window/VideoMode.hpp>
@@ -10,15 +11,15 @@ Game::Game()
     m_window.setFramerateLimit(0); // 不限帧率 — 由游戏循环自行控制
 
     // 加载 UI 字体
-    m_fonts.load("default", "assets/fonts/DejaVuSans.ttf");
+    m_fonts.load("default", Config::FONT_DEFAULT_PATH);
 
     // 加载音效
-    m_sounds.load("shoot", "assets/sounds/shoot.wav");
-    m_sounds.load("hit", "assets/sounds/hit.wav");
-    m_sounds.load("kill", "assets/sounds/kill.wav");
-    m_sounds.load("hurt", "assets/sounds/hurt.wav");
-    m_sounds.load("pickup", "assets/sounds/pickup.wav");
-    m_sounds.load("levelup", "assets/sounds/levelup.wav");
+    m_sounds.load("shoot", Config::SOUND_SHOOT_PATH);
+    m_sounds.load("hit", Config::SOUND_HIT_PATH);
+    m_sounds.load("kill", Config::SOUND_KILL_PATH);
+    m_sounds.load("hurt", Config::SOUND_HURT_PATH);
+    m_sounds.load("pickup", Config::SOUND_PICKUP_PATH);
+    m_sounds.load("levelup", Config::SOUND_LEVELUP_PATH);
 
     m_scene = std::make_unique<TitleScene>(*this); // 直接赋值 — 构造时安全
 }

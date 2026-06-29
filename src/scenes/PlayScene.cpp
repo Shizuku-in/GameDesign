@@ -30,12 +30,12 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     // 预分配
-    m_enemies.reserve(500);
-    m_projectiles.reserve(200);
-    m_xpGems.reserve(300);
+    m_enemies.reserve(Config::POOL_ENEMIES_CAPACITY);
+    m_projectiles.reserve(Config::POOL_PROJECTILES_CAPACITY);
+    m_xpGems.reserve(Config::POOL_XPGEMS_CAPACITY);
 
     // BGM
-    if (m_bgm.openFromFile("assets/sounds/BGM/stone fortress.ogg")) {
+    if (m_bgm.openFromFile(Config::BGM_PLAY_SCENE_PATH)) {
         m_bgm.setLooping(true);
         m_bgm.setVolume(50.f);
         m_bgm.play();
@@ -151,7 +151,7 @@ void PlayScene::update(sf::Time dt) {
 // ---------------------------------------------------------------------------
 void PlayScene::render(sf::RenderWindow& window) {
     window.setView(m_camera);
-    window.clear(sf::Color(30, 30, 30));
+    window.clear(Config::COLOR_BG_PLAY);
     m_worldRenderer.render(window, m_player, m_enemies, m_projectiles, m_xpGems);
 
     window.setView(window.getDefaultView());
@@ -219,7 +219,7 @@ void PlayScene::updateEnemies(float dt) {
     });
 
     // 清理远离世界的敌人
-    float margin = Config::VIEW_WIDTH * 0.35f;
+    float margin = Config::VIEW_WIDTH * Config::ENEMY_CULL_MARGIN;
     m_enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
         if (e.pos.x < -margin || e.pos.x > Config::WORLD_WIDTH + margin || e.pos.y < -margin ||
             e.pos.y > Config::WORLD_HEIGHT + margin) {

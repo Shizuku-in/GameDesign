@@ -18,7 +18,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
     // 半透明遮罩
     sf::RectangleShape overlay({VW, VH});
     overlay.setPosition({0.f, 0.f});
-    overlay.setFillColor(sf::Color(0, 0, 0, 180));
+    overlay.setFillColor(Config::COLOR_OVERLAY_UPGRADE);
     window.draw(overlay);
 
     // 标题
@@ -44,14 +44,14 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
 
         std::string prefix = (i == selected) ? "> " : "  ";
         txt.setString(prefix + opt.name + "  [" + std::to_string(i + 1) + "]");
-        txt.setFillColor(i == selected ? sf::Color::Yellow : sf::Color(200, 200, 200));
+        txt.setFillColor(i == selected ? Config::COLOR_TEXT_SELECTED : Config::COLOR_TEXT_DEFAULT);
         window.draw(txt);
 
         // 简短说明
         sf::Text desc(font);
         desc.setString(opt.description);
         desc.setCharacterSize(fs(0.015f));
-        desc.setFillColor(sf::Color(160, 160, 160));
+        desc.setFillColor(Config::COLOR_TEXT_MUTED);
         desc.setPosition({VW * 0.27f, y + VH * 0.022f});
         window.draw(desc);
 
@@ -60,7 +60,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
             sf::Text detail(font);
             detail.setString(opt.detail);
             detail.setCharacterSize(fs(0.014f));
-            detail.setFillColor(sf::Color(140, 200, 140));
+            detail.setFillColor(Config::COLOR_TEXT_SUCCESS);
             detail.setPosition({VW * 0.27f, y + VH * 0.04f});
             window.draw(detail);
         }
@@ -69,7 +69,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
     sf::Text hint(font);
     hint.setString("Arrow keys to select, Enter to confirm, or press 1-3");
     hint.setCharacterSize(fs(0.014f));
-    hint.setFillColor(sf::Color(150, 150, 150));
+    hint.setFillColor(Config::COLOR_TEXT_DIM);
     hint.setPosition({VW * 0.23f, VH * 0.85f});
     window.draw(hint);
 }

@@ -42,7 +42,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
             if (e.hp <= 0.f)
                 return;
             if (circleCircle(player.pos, player.radius, e.pos, e.radius)) {
-                float dmg = e.damage * (1.f / 60.f) * (1.f - player.armor);
+                float dmg = e.damage * Config::FIXED_DT * (1.f - player.armor);
                 player.hp -= dmg;
                 player.invincibilityTimer = Config::PLAYER_IFRAMES;
                 tookDamage = true;

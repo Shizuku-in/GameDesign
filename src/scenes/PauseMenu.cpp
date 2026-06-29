@@ -17,7 +17,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, int selected) {
     // 半透明遮罩
     sf::RectangleShape overlay({VW, VH});
     overlay.setPosition({0.f, 0.f});
-    overlay.setFillColor(sf::Color(0, 0, 0, 160));
+    overlay.setFillColor(Config::COLOR_OVERLAY_PAUSE);
     window.draw(overlay);
 
     // 标题
@@ -37,7 +37,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, int selected) {
             txt.setFillColor(sf::Color::Yellow);
             txt.setString("> Resume");
         } else {
-            txt.setFillColor(sf::Color(200, 200, 200));
+            txt.setFillColor(Config::COLOR_TEXT_DEFAULT);
             txt.setString("  Resume");
         }
         window.draw(txt);
@@ -52,7 +52,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, int selected) {
             txt.setFillColor(sf::Color::Yellow);
             txt.setString("> Quit to Title");
         } else {
-            txt.setFillColor(sf::Color(200, 200, 200));
+            txt.setFillColor(Config::COLOR_TEXT_DEFAULT);
             txt.setString("  Quit to Title");
         }
         window.draw(txt);

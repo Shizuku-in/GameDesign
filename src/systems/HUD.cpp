@@ -23,7 +23,7 @@ HUD::HUD(const sf::Font& font)
     float hpH = VH * 0.017f;
     m_hpBarBg.setSize({hpW, hpH});
     m_hpBarBg.setPosition({VW * 0.01f, VH * 0.01f});
-    m_hpBarBg.setFillColor(sf::Color(60, 0, 0));
+    m_hpBarBg.setFillColor(Config::COLOR_UI_HP_BG);
 
     m_hpBarFill.setSize({hpW, hpH});
     m_hpBarFill.setPosition({VW * 0.01f, VH * 0.01f});
@@ -37,7 +37,7 @@ HUD::HUD(const sf::Font& font)
     float xpH = VH * 0.013f;
     m_xpBarBg.setSize({xpW, xpH});
     m_xpBarBg.setPosition({VW * 0.01f, VH * 0.96f});
-    m_xpBarBg.setFillColor(sf::Color(60, 60, 0));
+    m_xpBarBg.setFillColor(Config::COLOR_UI_XP_BG);
 
     m_xpBarFill.setSize({0.f, xpH});
     m_xpBarFill.setPosition({VW * 0.01f, VH * 0.96f});
@@ -55,7 +55,7 @@ HUD::HUD(const sf::Font& font)
     m_timerText.setPosition({VW * 0.875f, VH * 0.005f});
 
     // 武器列表
-    m_weaponList.setFillColor(sf::Color(200, 200, 200));
+    m_weaponList.setFillColor(Config::COLOR_TEXT_DEFAULT);
     m_weaponList.setPosition({VW * 0.775f, VH * 0.04f});
 }
 

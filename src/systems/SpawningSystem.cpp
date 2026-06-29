@@ -15,7 +15,7 @@ void SpawningSystem::reset() {
     m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL;
     m_enemiesPerWave = Config::ENEMIES_PER_WAVE_BASE;
     m_difficultyTimer = 0.f;
-    m_bossTimer = 60.f; // 首个 Boss 在 60 秒
+    m_bossTimer = Config::ENEMY_BOSS_INTERVAL; // 首个 Boss
 }
 
 void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
@@ -27,14 +27,14 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
     // 每 60 秒生成 Boss
     if (m_bossTimer <= 0.f) {
         spawnEnemy(EnemyType::Boss, playerPos, enemies);
-        m_bossTimer = 60.f;
+        m_bossTimer = Config::ENEMY_BOSS_INTERVAL;
     }
 
     if (m_spawnTimer > 0.f)
         return;
 
     // 敌人数上限保护帧率
-    if (enemies.activeCount() >= 200)
+    if (enemies.activeCount() >= Config::ENEMY_MAX_COUNT)
         return;
 
     // 根据已过时间解锁敌人类型
@@ -63,7 +63,8 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
     }
 
     // 难度递增
-    m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL - m_difficultyTimer * 0.005f;
+    m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL -
+                      m_difficultyTimer * Config::ENEMY_DIFFICULTY_SCALE;
     if (m_spawnInterval < Config::ENEMY_MIN_SPAWN_INTERVAL)
         m_spawnInterval = Config::ENEMY_MIN_SPAWN_INTERVAL;
 
@@ -90,6 +91,6 @@ void SpawningSystem::spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Ene
 
 sf::Vector2f SpawningSystem::randomSpawnPosition(sf::Vector2f playerPos) const {
     float angle = randFloat() * 2.f * 3.14159265f;
-    float dist = Config::ENEMY_SPAWN_DISTANCE + randFloat() * 200.f;
+    float dist = Config::ENEMY_SPAWN_DISTANCE + randFloat() * Config::ENEMY_SPAWN_JITTER;
     return playerPos + sf::Vector2f(std::cos(angle) * dist, std::sin(angle) * dist);
 }

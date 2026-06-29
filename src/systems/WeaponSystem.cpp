@@ -212,7 +212,7 @@ bool WeaponSystem::fireKnife(int slotIdx, const PlayerState& player, Pool<Enemy>
     }
 
     int count = stats.projectileCount;
-    float spread = (count - 1) * 0.15f;
+    float spread = (count - 1) * Config::KNIFE_SPREAD;
     float baseAngle = std::atan2(dir.y, dir.x);
     float startAngle = baseAngle - spread / 2.f;
     bool anySpawned = false;
@@ -255,8 +255,8 @@ bool WeaponSystem::fireAxe(int slotIdx, const PlayerState& player, Pool<Enemy>& 
             continue;
 
         p->orbitAngle = angle;
-        p->orbitRadius = 60.f;
-        p->orbitSpeed = 3.0f;
+        p->orbitRadius = Config::AXE_ORBIT_RADIUS;
+        p->orbitSpeed = Config::AXE_ORBIT_SPEED;
         p->pos = player.pos + sf::Vector2f(std::cos(angle), std::sin(angle)) * p->orbitRadius;
         p->damage = stats.damage;
         p->speed = 0.f;
