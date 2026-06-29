@@ -1,4 +1,4 @@
-#include "systems/WeaponDefs.hpp"
+#include "gameplay/WeaponDefs.hpp"
 
 #include <algorithm>
 #include <cmath>

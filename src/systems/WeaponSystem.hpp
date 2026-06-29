@@ -4,7 +4,7 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 #include "systems/IWeaponBehavior.hpp"
-#include "systems/WeaponDefs.hpp"
+#include "gameplay/WeaponDefs.hpp"
 
 #include <memory>
 #include <vector>

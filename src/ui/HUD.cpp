@@ -1,6 +1,6 @@
-#include "systems/HUD.hpp"
+#include "ui/HUD.hpp"
 #include "data/Constants.hpp"
-#include "systems/WeaponDefs.hpp"
+#include "gameplay/WeaponDefs.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>

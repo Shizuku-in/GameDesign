@@ -1,6 +1,6 @@
 #pragma once
 
-#include "systems/UpgradeDefs.hpp"
+#include "gameplay/UpgradeDefs.hpp"
 
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>

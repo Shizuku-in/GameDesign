@@ -1,4 +1,4 @@
-#include "systems/WorldRenderer.hpp"
+#include "graphics/WorldRenderer.hpp"
 #include "data/Constants.hpp"
 
 #include <SFML/Graphics/CircleShape.hpp>

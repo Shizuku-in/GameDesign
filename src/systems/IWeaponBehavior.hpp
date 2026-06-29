@@ -3,7 +3,7 @@
 #include "core/Pool.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
-#include "systems/WeaponDefs.hpp"
+#include "gameplay/WeaponDefs.hpp"
 #include <memory>
 
 class IWeaponBehavior {

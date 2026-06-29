@@ -3,9 +3,9 @@
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "scenes/GameOverScene.hpp"
-#include "scenes/PauseMenu.hpp"
+#include "ui/PauseMenu.hpp"
 #include "scenes/TitleScene.hpp"
-#include "scenes/UpgradeUI.hpp"
+#include "ui/UpgradeUI.hpp"
 #include "systems/CollisionSystem.hpp"
 
 #include <SFML/Graphics/Color.hpp>

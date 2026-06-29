@@ -4,12 +4,12 @@
 #include "core/Scene.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
-#include "systems/HUD.hpp"
-#include "systems/SoundPlayer.hpp"
+#include "ui/HUD.hpp"
+#include "audio/SoundPlayer.hpp"
 #include "systems/SpawningSystem.hpp"
-#include "systems/UpgradeDefs.hpp"
+#include "gameplay/UpgradeDefs.hpp"
 #include "systems/WeaponSystem.hpp"
-#include "systems/WorldRenderer.hpp"
+#include "graphics/WorldRenderer.hpp"
 
 #include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics/Font.hpp>

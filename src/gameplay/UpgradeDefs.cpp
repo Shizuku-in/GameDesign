@@ -1,4 +1,4 @@
-#include "systems/UpgradeDefs.hpp"
+#include "gameplay/UpgradeDefs.hpp"
 
 #include "core/Random.hpp"
 #include <algorithm>

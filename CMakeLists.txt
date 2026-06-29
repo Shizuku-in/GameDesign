@@ -23,20 +23,20 @@ add_executable(game
     src/core/Game.cpp
     src/core/Scene.cpp
     src/core/Random.cpp
-    src/systems/WeaponDefs.cpp
+    src/gameplay/WeaponDefs.cpp
     src/systems/WeaponSystem.cpp
     src/systems/WeaponBehaviors.cpp
-    src/systems/UpgradeDefs.cpp
-    src/systems/HUD.cpp
+    src/gameplay/UpgradeDefs.cpp
+    src/ui/HUD.cpp
     src/systems/CollisionSystem.cpp
     src/systems/SpawningSystem.cpp
-    src/systems/SoundPlayer.cpp
-    src/systems/WorldRenderer.cpp
+    src/audio/SoundPlayer.cpp
+    src/graphics/WorldRenderer.cpp
     src/scenes/PlayScene.cpp
     src/scenes/TitleScene.cpp
     src/scenes/GameOverScene.cpp
-    src/scenes/UpgradeUI.cpp
-    src/scenes/PauseMenu.cpp
+    src/ui/UpgradeUI.cpp
+    src/ui/PauseMenu.cpp
 )
 
 # --- Include path for header-only resources ---
