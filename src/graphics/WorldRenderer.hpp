@@ -4,6 +4,7 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 
@@ -14,7 +15,8 @@ public:
 
     /// 在世界空间绘制全部内容（需先 setView 到相机）。
     void render(sf::RenderWindow& window, const PlayerState& player, const Pool<Enemy>& enemies,
-                const Pool<Projectile>& projectiles, const Pool<XPGem>& gems);
+                const Pool<Projectile>& projectiles, const Pool<XPGem>& gems,
+                const Pool<DamageText>& damageTexts, const sf::Font* font);
 
 private:
     sf::VertexArray m_grid{sf::PrimitiveType::Lines};

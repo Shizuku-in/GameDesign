@@ -147,8 +147,9 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
         anySpawned = true;
     }
 
-    // 推进基准角度供下次发射
-    m_orbitBaseAngle = std::fmod(m_orbitBaseAngle + 1.0f, 2.f * PI);
+    // 推进基准角度供下次发射（实现无缝衔接）
+    m_orbitBaseAngle =
+        std::fmod(m_orbitBaseAngle + stats.cooldown * Config::AXE_ORBIT_SPEED, 2.f * PI);
 
     return anySpawned;
 }

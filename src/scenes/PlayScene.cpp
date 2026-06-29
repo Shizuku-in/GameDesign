@@ -32,6 +32,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_enemies.reserve(Config::POOL_ENEMIES_CAPACITY);
     m_projectiles.reserve(Config::POOL_PROJECTILES_CAPACITY);
     m_xpGems.reserve(Config::POOL_XPGEMS_CAPACITY);
+    m_damageTexts.reserve(Config::POOL_DAMAGETEXTS_CAPACITY);
 
     // BGM
     if (m_bgm.openFromFile(Config::BGM_PLAY_SCENE_PATH)) {
@@ -117,10 +118,11 @@ void PlayScene::update(sf::Time dt) {
     updateEnemies(dtSec);
     updateProjectiles(dtSec);
     updateXPGems(dtSec);
+    updateDamageTexts(dtSec);
 
     // 碰撞 + 清理
-    CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_score,
-                                       m_sounds);
+    CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_damageTexts,
+                                       m_score, m_sounds);
 
     // 生成
     m_spawning.update(dtSec, m_gameTime, m_player.pos, m_enemies);
@@ -151,7 +153,8 @@ void PlayScene::update(sf::Time dt) {
 void PlayScene::render(sf::RenderWindow& window) {
     window.setView(m_camera);
     window.clear(Config::COLOR_BG_PLAY);
-    m_worldRenderer.render(window, m_player, m_enemies, m_projectiles, m_xpGems);
+    m_worldRenderer.render(window, m_player, m_enemies, m_projectiles, m_xpGems, m_damageTexts,
+                           m_font);
 
     window.setView(window.getDefaultView());
     if (m_hud)
@@ -207,6 +210,11 @@ void PlayScene::movePlayer(float dt) {
 }
 
 void PlayScene::updateEnemies(float dt) {
+    m_enemies.forEach([dt](Enemy& e) {
+        if (e.hitFlashTimer > 0.f) {
+            e.hitFlashTimer -= dt;
+        }
+    });
     m_enemies.forEach([&](Enemy& e) {
         sf::Vector2f dir = m_player.pos - e.pos;
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -247,6 +255,17 @@ void PlayScene::updateProjectiles(float dt) {
     m_projectiles.forEachHandle([&](Pool<Projectile>::Handle h, Projectile& p) {
         if (p.lifetime <= 0.f)
             m_projectiles.release(h);
+    });
+}
+
+void PlayScene::updateDamageTexts(float dt) {
+    m_damageTexts.forEach([&](DamageText& text) {
+        text.pos += text.vel * dt;
+        text.lifetime -= dt;
+    });
+    m_damageTexts.forEachHandle([&](Pool<DamageText>::Handle h, DamageText& text) {
+        if (text.lifetime <= 0.f)
+            m_damageTexts.release(h);
     });
 }
 

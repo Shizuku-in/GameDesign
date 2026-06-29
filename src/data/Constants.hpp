@@ -85,6 +85,7 @@ constexpr SoundConfig SOUND_CFG_LEVELUP{65.f, 0.f};
 constexpr std::size_t POOL_ENEMIES_CAPACITY = 500;
 constexpr std::size_t POOL_PROJECTILES_CAPACITY = 200;
 constexpr std::size_t POOL_XPGEMS_CAPACITY = 300;
+constexpr std::size_t POOL_DAMAGETEXTS_CAPACITY = 200;
 constexpr std::size_t POOL_SOUNDS_CAPACITY = 24;
 
 // --- 颜色 ---

@@ -26,7 +26,8 @@ int getCellIndex(sf::Vector2f pos) {
 } // namespace
 
 void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& projectiles,
-                       Pool<XPGem>& gems, int& score, SoundPlayer& sounds) {
+                       Pool<XPGem>& gems, Pool<DamageText>& damageTexts, int& score,
+                       SoundPlayer& sounds) {
     // 使用 thread_local 以保证线程安全，同时复用 std::vector 的 capacity
     // 避免如果直接放在栈上每帧触发 800+ 次析构和堆内存分配带来的极差性能
     thread_local std::vector<Enemy*> grid[GRID_COLS * GRID_ROWS];
@@ -62,6 +63,18 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
                     if (circleCircle(p.pos, p.radius, e->pos, e->radius)) {
                         e->hp -= p.damage;
+                        e->hitFlashTimer = 0.1f; // 触发闪白
+
+                        // 生成飘字
+                        auto dtHandle = damageTexts.acquire();
+                        if (auto* dmgTxt = damageTexts.get(dtHandle)) {
+                            // 为了避免飘字完全重叠，给 X 轴加个随机偏移
+                            float offsetX = static_cast<float>(rand() % 20 - 10);
+                            dmgTxt->pos = e->pos + sf::Vector2f(offsetX, -10.f);
+                            dmgTxt->vel = sf::Vector2f(0.f, -50.f); // 向上漂浮
+                            dmgTxt->damage = p.damage;
+                            dmgTxt->maxLifetime = dmgTxt->lifetime = 0.6f;
+                        }
                         --p.pierceCount;
 
                         if (e->hp <= 0.f) {

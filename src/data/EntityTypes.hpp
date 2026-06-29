@@ -12,6 +12,7 @@ struct Enemy {
     sf::Vector2f pos;
     sf::Vector2f vel; // 每帧计算，朝向玩家
     float hp = 0.f;
+    float hitFlashTimer = 0.f;
     float maxHp = 0.f;
     float speed = 0.f;
     float radius = 0.f;
@@ -48,6 +49,14 @@ struct Projectile {
 };
 
 // --- 经验宝石实例（存储在 Pool<XPGem> 中）---
+struct DamageText {
+    sf::Vector2f pos;
+    sf::Vector2f vel;
+    float damage = 0.f;
+    float lifetime = 0.f;
+    float maxLifetime = 0.f;
+};
+
 struct XPGem {
     sf::Vector2f pos;
     float value = 0.f;

@@ -3,12 +3,15 @@
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Text.hpp>
+#include <cstdio>
 
 WorldRenderer::WorldRenderer() { buildGrid(); }
 
 void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
                            const Pool<Enemy>& enemies, const Pool<Projectile>& projectiles,
-                           const Pool<XPGem>& gems) {
+                           const Pool<XPGem>& gems, const Pool<DamageText>& damageTexts,
+                           const sf::Font* font) {
     window.draw(m_grid);
 
     // 清空上一帧的批处理顶点
@@ -55,6 +58,9 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         default:
             color = sf::Color::Red;
         }
+        if (e.hitFlashTimer > 0.f) {
+            color = sf::Color::White; // 受击白光覆盖
+        }
         addQuad(e.pos, e.radius, color);
     });
 
@@ -70,6 +76,39 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
     // 将所有实体通过 1 次 Draw Call 提交给 GPU！
     window.draw(m_entityBatch);
+
+    // 绘制伤害飘字
+    if (font) {
+        sf::Text text(*font);
+        text.setCharacterSize(16);
+        text.setOutlineThickness(1.f);
+        text.setOutlineColor(sf::Color::Black);
+
+        char buf[16];
+        damageTexts.forEach([&](const DamageText& dt) {
+            std::snprintf(buf, sizeof(buf), "%.0f", dt.damage);
+            text.setString(buf);
+
+            // 随时间淡出
+            float alphaRatio = dt.lifetime / dt.maxLifetime;
+            sf::Color textColor = sf::Color::White;
+            if (dt.damage >= 20.f)
+                textColor = sf::Color::Yellow; // 暴击/高伤害变黄
+
+            textColor.a = static_cast<std::uint8_t>(255 * alphaRatio);
+            sf::Color outlineColor = sf::Color::Black;
+            outlineColor.a = textColor.a;
+
+            text.setFillColor(textColor);
+            text.setOutlineColor(outlineColor);
+
+            sf::FloatRect bounds = text.getLocalBounds();
+            text.setPosition(
+                sf::Vector2f(dt.pos.x - bounds.size.x / 2.f, dt.pos.y - bounds.size.y / 2.f));
+
+            window.draw(text);
+        });
+    }
 }
 
 void WorldRenderer::buildGrid() {

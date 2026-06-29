@@ -35,6 +35,7 @@ private:
     Pool<Enemy> m_enemies;
     Pool<Projectile> m_projectiles;
     Pool<XPGem> m_xpGems;
+    Pool<DamageText> m_damageTexts;
 
     // 玩家状态（单例）
     PlayerState m_player;
@@ -68,6 +69,7 @@ private:
     void updateEnemies(float dt);
     void updateProjectiles(float dt);
     void updateXPGems(float dt);
+    void updateDamageTexts(float dt);
     void updateCamera();
     void onLevelUp();
     void onDeath();
