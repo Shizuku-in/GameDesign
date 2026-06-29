@@ -10,7 +10,7 @@ cmake --build build                          # build
 ./build/game                                 # run
 ```
 
-On Windows (MSVC):
+Windows (MSVC):
 ```bash
 cmake -B build
 cmake --build build --config Release
@@ -18,201 +18,216 @@ cmake --build build --config Release
 ```
 
 ```bash
-cmake --build build --target format        # format in-place (all src/**/*.hpp src/**/*.cpp)
+cmake --build build --target format        # format in-place
 cmake --build build --target format-check  # check only (CI-friendly)
 ```
 
-Formatter rules are in `.clang-format` (based on WebKit style, 4-space indent, 100-col limit).
-Include order: project headers → SFML headers → system headers.
-Use `cmake --build build --target format` before committing — or enable the pre-commit hook: `git config core.hooksPath scripts`.
+Formatter: `.clang-format` (WebKit, 4-space, 100-col).
+Use `cmake --build build --target format` before committing.
 
 ## Project: Survivor-like (Vampire Survivors clone)
 
-2D top-down "bullet heaven" game. Player moves with WASD, weapons auto-attack nearest enemies, kill enemies → collect XP gems → level up → choose upgrades, survive as long as possible.
+2D top-down "bullet heaven". WASD move, weapons auto-fire, kill → XP gems → level up → choose upgrades, survive as long as possible.
 
-Design doc: `docs/design-doc.md`.
+Design doc: `docs/design-doc.md`. Resolution: 1920×1080, world 3840×2160.
 
 ## Directory Structure
 
 ```
 src/
 ├── main.cpp
-├── core/                       # Engine layer
-│   ├── Game.hpp / Game.cpp     # Game loop, scene management, resource loading
-│   ├── Scene.hpp / Scene.cpp   # Abstract scene base class
-│   ├── Pool.hpp                # Generic freelist object pool with generation-counted handles
-│   └── ResourceManager.hpp     # Resource cache template (shared_ptr-based)
-├── data/                       # Pure data definitions (all header-only)
-│   ├── Constants.hpp           # All tuning constants in Config:: namespace
-│   ├── EntityTypes.hpp         # Enemy, Projectile, XPGem plain structs
-│   ├── PlayerState.hpp         # Player singleton state struct
-│   └── Collision.hpp           # circleCircle() and distanceSq() inline functions
-├── systems/                    # Gameplay systems
-│   ├── WeaponDefs.hpp / .cpp   # Weapon definition table + level-scaling formula
-│   ├── WeaponSystem.hpp / .cpp # Weapon slot management + auto-attack + targeting
-│   ├── UpgradeDefs.hpp / .cpp  # Random upgrade generation + application
-│   └── HUD.hpp / .cpp          # HP/XP bars, level, timer, weapon list rendering
-└── scenes/                     # Game scenes
-    ├── PlayScene.hpp / .cpp    # Main gameplay scene (game loop integration)
-    ├── TitleScene.hpp / .cpp   # Title screen
-    └── GameOverScene.hpp / .cpp # Death screen with stats
+├── core/          Engine infrastructure
+│   ├── Game.hpp/.cpp          Game loop, scene mgmt, resource loading
+│   ├── Scene.hpp/.cpp         Abstract scene base (handleEvent/update/render)
+│   ├── Pool.hpp               Freelist object pool with generation-counted handles
+│   ├── ResourceManager.hpp    Resource cache template (shared_ptr-based)
+│   └── Random.hpp/.cpp        Mersenne Twister singleton (replaces std::rand)
+├── data/          Pure data definitions (header-only)
+│   ├── Constants.hpp          All tuning values + resource paths + colors
+│   ├── EntityTypes.hpp        Enemy, Projectile (with ProjMotion union), XPGem
+│   └── PlayerState.hpp        Player singleton state struct
+├── math/          Math utilities
+│   └── Collision.hpp          circleCircle() + distanceSq() inline functions
+├── audio/         Audio
+│   └── SoundPlayer.hpp/.cpp   sf::Sound pool × 24, named play methods, volume+interval in Constants
+├── graphics/      World-space rendering
+│   └── WorldRenderer.hpp/.cpp Grid background + entities + player drawing
+├── gameplay/      Game rules & data tables
+│   ├── WeaponDefs.hpp/.cpp    Weapon definition table + getWeaponStats() scaling formula
+│   ├── UpgradeDefs.hpp/.cpp   Random upgrade generation + application
+│   └── WeaponFactory.hpp      Factory: WeaponType → IWeaponBehavior
+├── systems/       Runtime gameplay systems
+│   ├── IWeaponBehavior.hpp    Strategy interface (fire / tickAoE)
+│   ├── WeaponBehaviors.hpp/.cpp 5 weapon behavior classes
+│   ├── WeaponSystem.hpp/.cpp 6-slot weapon manager, delegates to behaviors
+│   ├── CollisionSystem.hpp/.cpp Spatial-hash collision detection + cleanup
+│   └── SpawningSystem.hpp/.cpp Wave spawning, boss timer, difficulty scaling
+├── ui/            Screen-space UI
+│   ├── HUD.hpp/.cpp           HP/XP bars, level, timer, weapon list
+│   ├── PauseMenu.hpp/.cpp     Pause overlay (Resume / Quit)
+│   └── UpgradeUI.hpp/.cpp     Level-up choice overlay
+└── scenes/        Scene subclasses
+    ├── PlayScene.hpp/.cpp      Main game (orchestrates all systems)
+    ├── TitleScene.hpp/.cpp     Title screen
+    └── GameOverScene.hpp/.cpp  Death screen with stats
 ```
 
 ## Architecture
 
 ### Game Loop — Accumulator-Based Fixed Timestep
 
-`Game::run()` (`src/core/Game.cpp`) uses Glenn Fiedler's "Fix Your Timestep" pattern:
+`Game::run()` (`src/core/Game.cpp`): Glenn Fiedler "Fix Your Timestep".
 
-- **Fixed update step**: 1/60 s (`TIME_PER_FRAME`)
-- **Accumulator cap**: 1/15 s (`TIME_PER_FRAME_MAX`) — prevents spiral of death; at most 4 updates per render
-- **Render**: once per outer-loop iteration, no interpolation
-- **Framerate**: uncapped (`setFramerateLimit(0)`), timing is self-managed
-
-Each iteration: process events → accumulate frame time → drain accumulator with fixed-step updates → render once → deferred scene swap.
+- **Fixed update**: 1/60 s (`TIME_PER_FRAME`), constant `FIXED_DT` available in `Constants.hpp`
+- **Accumulator cap**: 1/15 s — at most 4 updates per render
+- **Framerate**: uncapped, self-managed timing
+- **Deferred scene swap**: at end of each outer-loop iteration
 
 ### Deferred Scene Switching
 
-`Game::changeScene()` stores the new scene in `m_pendingScene` rather than swapping immediately. The actual swap happens at the end of the outer-loop iteration in `run()`, when no scene code is on the call stack. This makes it safe to call `changeScene()` from inside `update()` or `handleEvent()`.
-
-The initial scene (TitleScene) is assigned directly to `m_scene` in the constructor — deferred swap is only for runtime transitions.
-
-### Scene System
-
-`Scene` (`src/core/Scene.hpp`) is an abstract base with three virtual methods:
-
-- `handleEvent(const sf::Event&)` — default no-op; override for input
-- `update(sf::Time dt)` — called at fixed 60 Hz
-- `render(sf::RenderWindow&)` — draw; the caller (`Game::render()`) handles `display()`
-
-Scenes receive a `Game&` reference for window access, font access, and scene switching. No onEnter/onExit lifecycle hooks.
+`Game::changeScene()` stores in `m_pendingScene`. Actual swap at loop end when no scene code is on the stack — safe to call from within `update()` / `handleEvent()`.
 
 ### Object Pool — Pool\<T\>
 
-`Pool<T>` (`src/core/Pool.hpp`) provides contiguous storage with freelist allocation and generation-counted handles (`{idx, gen}`). Key details:
+`Pool<T>` (`src/core/Pool.hpp`): contiguous freelist + generation handles (`{idx, gen}`).
 
-- `acquire()` → pops from freelist or grows, returns `Handle`
-- `release(Handle)` → validates generation, marks slot free
-- `get(Handle)` → returns `T*` or `nullptr` if handle is stale
-- `forEach(Fn)` → iterates all occupied slots, calls `fn(T&)`
-- `forEachHandle(Fn)` → iterates all occupied slots, calls `fn(Handle, T&)` — safe to call `release()` from inside the callback
-- No `alive` flags on entities — generation counters on slots serve that purpose
-- All entity types (Enemy, Projectile, XPGem) are plain structs stored in pools
+- `acquire()` → Handle (freelist pop or grow)
+- `release(Handle)` → validates gen, marks free
+- `forEach(fn)` → iterates occupied slots
+- `forEachHandle(fn)` → provides Handle, safe to `release()` inside callback
+- No `alive` flags — generation == 0 means free
 
-### Resource Manager
+### Random — Random
 
-`ResourceManager<T>` (`src/core/ResourceManager.hpp`) caches `std::shared_ptr<T>` in `std::unordered_map`. Used for `sf::Font` via `Game::getFonts()`. Font is loaded once in `Game` constructor (`"default"` → `assets/fonts/DejaVuSans.ttf`).
+`Random` (`src/core/Random.hpp`): static `std::mt19937` singleton.
 
-### PlayScene::update() Order
+- `Random::init()` — seed from `random_device`
+- `Random::getFloat()` / `getFloat(min,max)` / `getInt(min,max)`
+- `Random::getEngine()` — for `std::shuffle`
 
-Called at 60 Hz, each step in sequence:
+### PlayScene::update() Order (60 Hz)
 
-1. **handleInput()** — WASD/Arrow key polling via `sf::Keyboard::isKeyPressed()`
-2. **movePlayer(dt)** — apply velocity, clamp to world bounds, countdown invincibility
-3. **WeaponSystem::update()** — each weapon slot: cooldown → find nearest enemy → fire projectiles / tick AoE
-4. **updateEnemies(dt)** — each enemy moves toward player position
-5. **updateProjectiles(dt)** — regular: move by velocity; orbiting (orbitRadius>0): rotate around player; both: countdown lifetime
-6. **updateXPGems(dt)** — countdown magnet timer → accelerate toward player
-7. **checkCollisions()** — projectile↔enemy (damage + pierce), player↔enemy (damage + iframes), player↔gem (collect XP); then cleanup all dead entities via forEachHandle + release
-8. **updateSpawning(dt)** — wave timer → spawn weighted-random enemies at view edge; boss every 60s; difficulty ramps over time
-9. **updateCamera()** — center `sf::View` on player, clamp to world bounds
-10. **Death check** — if HP ≤ 0 → deferred switch to GameOverScene
-11. **Level-up check** — if XP ≥ threshold → pause game, generate 3 upgrade options
+1. handleInput() — WASD polling
+2. movePlayer(dt) — apply velocity, clamp world bounds, countdown invincibility
+3. WeaponSystem::update() — each slot: cooldown → behavior->fire() or tickAoE()
+4. updateEnemies(dt) — AI: move toward player; cull far-away enemies
+5. updateProjectiles(dt) — Linear (move by vel) or Orbit (rotate around player)
+6. updateXPGems(dt) — magnet timer → accelerate toward player
+7. CollisionSystem::processCollisions() — spatial-hash grid → projectile↔enemy, player↔enemy, player↔gem; cleanup dead entities
+8. SpawningSystem::update() — boss every 60s, wave timer, weighted random types, difficulty ramp
+9. updateCamera() — center view on player, clamp to world
+10. Death check → deferred switch to GameOverScene
+11. Level-up check → pause, generate 3 options
 
 ### Weapon System
 
-5 weapon types, enum-dispatched (no polymorphism):
+Strategy pattern: `IWeaponBehavior` interface + per-weapon classes.
 
-| Weapon | Behavior |
-|--------|----------|
-| MagicWand | Homing bolt at nearest enemy in range |
-| Knife | Fan of piercing knives toward nearest enemy |
-| Axe | Orbiting projectiles around player |
-| Fireball | Slow projectile, explodes on first hit |
-| Garlic | Persistent AoE damage (no projectiles) |
+| Weapon | Class | Behavior |
+|--------|-------|----------|
+| MagicWand | MagicWandBehavior | Homing bolt at nearest enemy in range |
+| Knife | KnifeBehavior | Fan of piercing knives toward nearest enemy |
+| Axe | AxeBehavior | Orbiting projectiles (ProjMotion::Orbit) |
+| Fireball | FireballBehavior | Slow projectile, explodes on first hit |
+| Garlic | GarlicBehavior | AoE tick damage (no projectiles) |
 
-Weapon stats scale with level (1–8): `cooldown *= 0.95^(N-1)`, `damage *= 1.30^(N-1)`, `pierce += (N-1)/3`, `projectileCount += (N-1)/2`.
+Adding a new weapon:
+1. Add `WeaponType` enum value in `gameplay/WeaponDefs.hpp`
+2. Add `WeaponDef` entry in `gameplay/WeaponDefs.cpp`
+3. Create behavior class in `systems/WeaponBehaviors.hpp/.cpp`
+4. Register in `gameplay/WeaponFactory.hpp` factory method
+
+Level scaling (1–8): `cooldown *= 0.95^(N-1)`, `damage *= 1.30^(N-1)`, `pierce += (N-1)/3`, `projectileCount += (N-1)/2`.
+
+### Projectile Motion
+
+`ProjMotion` enum + union in `EntityTypes.hpp`:
+
+```cpp
+enum class ProjMotion : uint8_t { Linear, Orbit };
+// Projectile has:
+ProjMotion motion;
+union { struct { float angle, radius, speed; } orbit; } state;
+```
+
+Update logic in `PlayScene::updateProjectiles()` switches on `motion`.
+
+### Collision System — Spatial Hashing
+
+`CollisionSystem::processCollisions()` builds a uniform grid (100px cells), inserts enemies, then checks only adjacent cells. O(N+M) instead of O(N×M).
 
 ### Upgrade System
 
-Level-up pauses the game, presents 3 random choices from three categories:
-- **NewWeapon** — if player has < 6 weapons and doesn't own this type
-- **WeaponUpgrade** — if player owns this weapon and level < maxLevel
-- **StatBoost** — always available (Vitality, Swiftness, Armor, Magnet, Greed)
-
-Player selects with arrow keys + Enter, or number keys 1–3 directly.
+Level-up pauses game, generates 3 random choices:
+- **NewWeapon** — if slots < 6 and not owned
+- **WeaponUpgrade** — if owned and level < max (shows stat diff)
+- **StatBoost** — Vitality, Swiftness, Armor, Magnet, Greed
 
 ### Rendering Pipeline
 
 ```
-window.setView(m_camera)     → draw world entities (world-space)
-  - Enemies: red circles (tinted by type)
-  - Projectiles: yellow circles
-  - XP gems: green circles
-  - Player: white circle (flashes when invincible)
-window.setView(defaultView)  → draw HUD (screen-space)
-if paused                    → draw upgrade overlay
+window.setView(m_camera)     → WorldRenderer: grid + enemies + projectiles + gems + player
+window.setView(defaultView)  → HUD: HP/XP bars, level, timer, weapon list
+if paused                    → UpgradeUI::draw() / PauseMenu::draw()
 ```
 
-World size: 1600×1200, viewport: 800×600, camera follows player.
+All UI coordinates use `VIEW_WIDTH`/`VIEW_HEIGHT` ratio-based positioning. Change only `Constants.hpp` to switch resolutions.
+
+### Sound System
+
+`SoundPlayer` (`src/audio/SoundPlayer.hpp`): 24-sound pool, round-robin. Config in `Constants.hpp`:
+
+```cpp
+SoundConfig { volume, interval }  // interval = min time between same sound (prevents stacking)
+```
+
+Named methods: `shoot()`, `hit()`, `kill()`, `hurt()`, `pickup()`, `levelup()`.
+
+BGM uses `sf::Music` directly in PlayScene constructor.
+
+### Resource Manager
+
+`ResourceManager<T>` caches `shared_ptr<T>`. Game owns `ResourceManager<sf::Font>` and `ResourceManager<sf::SoundBuffer>`. Access via `Game::getFonts()` / `Game::getSounds()`.
 
 ## Adding a New Scene
 
-1. Create `NewScene.hpp` / `NewScene.cpp` in `src/scenes/`
-2. Inherit from `Scene`, implement `update()` and `render()` (and optionally `handleEvent()`)
-3. Add `src/scenes/NewScene.cpp` to the `add_executable` list in `CMakeLists.txt`
+1. Create `NewScene.hpp/.cpp` in `src/scenes/`
+2. Inherit `Scene`, implement `update()` + `render()` (+ optional `handleEvent()`)
+3. Add `src/scenes/NewScene.cpp` to CMakeLists.txt
 4. Call `m_game.changeScene(std::make_unique<NewScene>(m_game))` to switch
-
-## Adding a New Weapon
-
-1. Add enum value to `WeaponType` in `src/systems/WeaponDefs.hpp`
-2. Add `WeaponDef` entry to `WEAPON_DEFS[]` in `src/systems/WeaponDefs.cpp`
-3. Add `case` to `fireWeapon()` switch in `src/systems/WeaponSystem.cpp`
-4. Implement the fire method (e.g., `fireNewWeapon()`)
-5. If it's an AoE weapon (no projectiles), set `isAOE = true` in the def and implement a tick method
 
 ## CMake Configuration
 
-- **C++17** required (`CMAKE_CXX_STANDARD 17`)
-- **Static linking**: `SFML_STATIC_LIBRARIES ON` before `find_package`
-- **SFML components**: `System Window Graphics`
-- **Warnings**: `-Wall -Wextra -Wpedantic` on Clang/GCC, `/W4` on MSVC
-- **POST_BUILD**: copies `assets/` next to the binary automatically
+- **C++17**, static SFML linking
+- **SFML components**: `System Window Graphics Audio`
+- **Warnings**: `-Wall -Wextra -Wpedantic`
+- **POST_BUILD**: copies `assets/` next to binary
 
 ## SFML 3.1 API Conventions
 
-**Event handling:**
 ```cpp
+// Events (std::optional)
 while (const std::optional event = window.pollEvent()) {
-    if (event->is<sf::Event::Closed>()) { /* ... */ }
-    if (const auto* kp = event->getIf<sf::Event::KeyPressed>()) {
-        kp->code == sf::Keyboard::Key::Escape;
-    }
-    if (const auto* resized = event->getIf<sf::Event::Resized>()) { /* ... */ }
+    if (event->is<sf::Event::Closed>()) { }
+    if (const auto* kp = event->getIf<sf::Event::KeyPressed>()) { kp->code; }
 }
-```
 
-**Window creation:**
-```cpp
+// Window
 sf::RenderWindow window(sf::VideoMode({w, h}), "Title", sf::Style::Default, sf::State::Windowed);
-```
 
-**Continuous input** (in `update()`, not `handleEvent()`):
-```cpp
+// Continuous input (in update(), not handleEvent())
 sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
+
+// sf::Text — NO default constructor. Must initialize: sf::Text(font, "", size)
+// sf::Sound — NO default constructor. Must initialize: sf::Sound(buffer)
+// sf::Music — setLooping(true) not setLoop(true)
 ```
-
-**sf::Text** has NO default constructor in SFML 3.1 — must initialize with `sf::Text(font, "", size)` in member initializer list, or store as `std::unique_ptr<sf::Text>`.
-
-**Colors**: `sf::Color::Red`, `sf::Color::Transparent`, etc.
-
-**Enums** are scoped: `sf::Keyboard::Key::Escape`, `sf::Style::Default`, `sf::State::Windowed`.
 
 ## Design Conventions
 
-- **Data-oriented**: entities are plain structs in contiguous pools; no Entity base class, no virtual dispatch
-- **Enum dispatch**: weapon behaviors use `switch` on `WeaponType` (fixed set, compiler jump-table optimization)
-- **No alive flags**: pool generation counters distinguish occupied/free slots
-- **Header-only where possible**: Pool, Constants, EntityTypes, PlayerState, Collision — no .cpp needed
-- **Zero heap allocation in hot paths**: pools pre-allocate; no `new`/`delete` during gameplay
+- **Data-oriented**: plain structs in pools, no Entity base class
+- **Strategy pattern for weapons**: `IWeaponBehavior` interface, factory-created per slot
+- **Tagged union for projectile motion**: `ProjMotion` enum + `union state`
+- **Constants in one file**: all tuning, paths, colors in `data/Constants.hpp`
+- **Zero heap allocation in hot paths**: pools pre-allocate
 - **Include order**: project headers → SFML headers → system headers
