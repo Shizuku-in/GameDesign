@@ -59,7 +59,7 @@ constexpr float ENEMY_SPAWN_WEIGHT[] = {1.f, 0.7f, 0.4f, 0.f}; // Boss 单独生
 constexpr float ENEMY_APPEAR_TIME[] = {0.f, 30.f, 60.f, -1.f}; // -1 = 不按权重生成
 
 // --- 资源路径 ---
-constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/DejaVuSans.ttf";
+constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf";
 constexpr const char* SOUND_SHOOT_PATH = "assets/sounds/shoot.wav";
 constexpr const char* SOUND_HIT_PATH = "assets/sounds/hit.wav";
 constexpr const char* SOUND_KILL_PATH = "assets/sounds/kill.wav";
