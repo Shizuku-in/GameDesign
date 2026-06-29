@@ -3,10 +3,10 @@
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "scenes/GameOverScene.hpp"
-#include "ui/PauseMenu.hpp"
 #include "scenes/TitleScene.hpp"
-#include "ui/UpgradeUI.hpp"
 #include "systems/CollisionSystem.hpp"
+#include "ui/PauseMenu.hpp"
+#include "ui/UpgradeUI.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>

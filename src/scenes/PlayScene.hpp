@@ -1,15 +1,15 @@
 #pragma once
 
+#include "audio/SoundPlayer.hpp"
 #include "core/Pool.hpp"
 #include "core/Scene.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
-#include "ui/HUD.hpp"
-#include "audio/SoundPlayer.hpp"
-#include "systems/SpawningSystem.hpp"
 #include "gameplay/UpgradeDefs.hpp"
-#include "systems/WeaponSystem.hpp"
 #include "graphics/WorldRenderer.hpp"
+#include "systems/SpawningSystem.hpp"
+#include "systems/WeaponSystem.hpp"
+#include "ui/HUD.hpp"
 
 #include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics/Font.hpp>

@@ -3,8 +3,8 @@
 #include "core/Pool.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
-#include "systems/IWeaponBehavior.hpp"
 #include "gameplay/WeaponDefs.hpp"
+#include "systems/IWeaponBehavior.hpp"
 
 #include <memory>
 #include <vector>

@@ -1,7 +1,7 @@
 #include "systems/CollisionSystem.hpp"
-#include "math/Collision.hpp"
-#include "data/Constants.hpp"
 #include "audio/SoundPlayer.hpp"
+#include "data/Constants.hpp"
+#include "math/Collision.hpp"
 #include <algorithm>
 #include <vector>
 

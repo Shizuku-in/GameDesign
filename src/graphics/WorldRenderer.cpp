@@ -11,43 +11,51 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
                            const Pool<XPGem>& gems) {
     window.draw(m_grid);
 
+    // 清空上一帧的批处理顶点
+    m_entityBatch.clear();
+
+    // 辅助函数：追加一个由 2 个三角形（6 个顶点）组成的矩形
+    auto addQuad = [&](sf::Vector2f center, float radius, sf::Color color) {
+        sf::Vertex tl{{center.x - radius, center.y - radius}, color};
+        sf::Vertex tr{{center.x + radius, center.y - radius}, color};
+        sf::Vertex bl{{center.x - radius, center.y + radius}, color};
+        sf::Vertex br{{center.x + radius, center.y + radius}, color};
+
+        m_entityBatch.append(tl);
+        m_entityBatch.append(tr);
+        m_entityBatch.append(bl);
+
+        m_entityBatch.append(tr);
+        m_entityBatch.append(br);
+        m_entityBatch.append(bl);
+    };
+
     // XP 宝石（绿色）
-    gems.forEach([&](const XPGem& g) {
-        sf::CircleShape shape(g.radius);
-        shape.setPosition({g.pos.x - g.radius, g.pos.y - g.radius});
-        shape.setFillColor(sf::Color::Green);
-        window.draw(shape);
-    });
+    gems.forEach([&](const XPGem& g) { addQuad(g.pos, g.radius, sf::Color::Green); });
 
     // 弹幕（黄色）
-    projectiles.forEach([&](const Projectile& p) {
-        sf::CircleShape shape(p.radius);
-        shape.setPosition({p.pos.x - p.radius, p.pos.y - p.radius});
-        shape.setFillColor(sf::Color::Yellow);
-        window.draw(shape);
-    });
+    projectiles.forEach([&](const Projectile& p) { addQuad(p.pos, p.radius, sf::Color::Yellow); });
 
     // 敌人（红色系）
     enemies.forEach([&](const Enemy& e) {
-        sf::CircleShape shape(e.radius);
-        shape.setPosition({e.pos.x - e.radius, e.pos.y - e.radius});
+        sf::Color color;
         switch (e.type) {
         case EnemyType::Basic:
-            shape.setFillColor(Config::COLOR_ENEMY_BASIC);
+            color = Config::COLOR_ENEMY_BASIC;
             break;
         case EnemyType::Fast:
-            shape.setFillColor(Config::COLOR_ENEMY_FAST);
+            color = Config::COLOR_ENEMY_FAST;
             break;
         case EnemyType::Tank:
-            shape.setFillColor(Config::COLOR_ENEMY_TANK);
+            color = Config::COLOR_ENEMY_TANK;
             break;
         case EnemyType::Boss:
-            shape.setFillColor(Config::COLOR_ENEMY_BOSS);
+            color = Config::COLOR_ENEMY_BOSS;
             break;
         default:
-            shape.setFillColor(sf::Color::Red);
+            color = sf::Color::Red;
         }
-        window.draw(shape);
+        addQuad(e.pos, e.radius, color);
     });
 
     // 玩家（白色，无敌时闪烁）
@@ -57,11 +65,11 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         visible = (flash % 2 == 0);
     }
     if (visible) {
-        sf::CircleShape shape(player.radius);
-        shape.setPosition({player.pos.x - player.radius, player.pos.y - player.radius});
-        shape.setFillColor(sf::Color::White);
-        window.draw(shape);
+        addQuad(player.pos, player.radius, sf::Color::White);
     }
+
+    // 将所有实体通过 1 次 Draw Call 提交给 GPU！
+    window.draw(m_entityBatch);
 }
 
 void WorldRenderer::buildGrid() {

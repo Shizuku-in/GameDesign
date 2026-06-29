@@ -18,5 +18,6 @@ public:
 
 private:
     sf::VertexArray m_grid{sf::PrimitiveType::Lines};
+    sf::VertexArray m_entityBatch{sf::PrimitiveType::Triangles};
     void buildGrid();
 };

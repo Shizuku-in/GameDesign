@@ -1,7 +1,7 @@
 #include "systems/WeaponBehaviors.hpp"
-#include "math/Collision.hpp"
 #include "data/Constants.hpp"
 #include "gameplay/WeaponFactory.hpp"
+#include "math/Collision.hpp"
 #include <cmath>
 #include <limits>
 
