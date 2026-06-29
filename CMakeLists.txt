@@ -52,7 +52,7 @@ add_custom_command(TARGET game POST_BUILD
 
 # --- Compiler warnings ---
 if(MSVC)
-    target_compile_options(game PRIVATE /W4)
+    target_compile_options(game PRIVATE /utf-8 /W4)
 else()
     target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
 endif()
