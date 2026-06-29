@@ -56,13 +56,44 @@ cmake --build build --config Release
     └── ResourceManager.hpp # Header-only resource cache
 ```
 
-## Controls (Demo)
+## Code Formatting
 
-| Key | Action |
+This project uses **clang-format** to enforce a consistent code style. Rules are in `.clang-format` at the repo root.
+
+### Install clang-format
+
+| Platform | Command |
 |---|---|
-| Arrow keys / WASD | Move the circle |
-| Escape | Quit |
+| macOS | `brew install clang-format` |
+| Linux | `sudo apt install clang-format` |
+| Windows | Download from [LLVM releases](https://github.com/llvm/llvm-project/releases) |
+
+macOS also bundles clang-format with Xcode CLI Tools (no extra install needed).
+
+### Format before committing
+
+```bash
+cmake --build build --target format        # format changed files in-place
+cmake --build build --target format-check  # check only (same as CI)
+```
+
+### Pre-commit hook (recommended)
+
+```bash
+git config core.hooksPath scripts
+```
+
+This runs the check automatically before every commit and blocks unformatted code.
+
+### Editor integration
+
+Most editors auto-detect `.clang-format` files:
+
+- **VS Code**: install "C/C++" extension → format on save (`"editor.formatOnSave": true`)
+- **CLion / IntelliJ**: enabled by default for C++ files
+- **Vim / Neovim**: `:!clang-format -i %`
+- **Emacs**: `clang-format-buffer` (via `clang-format.el`)
 
 ## License
 
-MIT
+[MIT](LICENSE)

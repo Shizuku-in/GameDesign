@@ -1,9 +1,11 @@
 #pragma once
 
-#include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
+#include <SFML/Window/Event.hpp>
 
-namespace sf { class RenderWindow; }
+namespace sf {
+class RenderWindow;
+}
 
 class Scene {
 public:

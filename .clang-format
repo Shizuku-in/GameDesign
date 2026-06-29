@@ -1,0 +1,40 @@
+# clang-format configuration for SFML 3.1 Game
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+BasedOnStyle: LLVM
+
+# C++ standard
+Standard: c++17
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+IndentCaseLabels: false
+IndentPPDirectives: None
+
+# Column limit
+ColumnLimit: 100
+
+# Pointers and references — keep with type
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Include sorting
+SortIncludes: true
+IncludeBlocks: Preserve
+IncludeCategories:
+  # Project headers
+  - Regex: '^".*"'
+    Priority: 1
+  # SFML headers
+  - Regex: '^<SFML/.*>'
+    Priority: 2
+  # Other C++/system headers
+  - Regex: '^<.*>'
+    Priority: 3
+
+# Misc
+AccessModifierOffset: -4
+
+ReflowComments: false

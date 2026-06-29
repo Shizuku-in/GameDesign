@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Pre-commit hook: check that all C++ source files are formatted with clang-format.
+#
+# Usage:
+#   ln -s ../../scripts/pre-commit .git/hooks/pre-commit   (from repo root)
+#
+# Or automatically with:
+#   git config core.hooksPath scripts
+
+set -euo pipefail
+
+# Find changed .hpp/.cpp files staged for commit
+staged=$(git diff --cached --name-only --diff-filter=ACM -- 'src/*.hpp' 'src/*.cpp')
+if [ -z "$staged" ]; then
+    exit 0
+fi
+
+# Locate clang-format (respects CMake variable, falls back to PATH search)
+CLANG_FORMAT="${CLANG_FORMAT:-}"
+if [ -z "$CLANG_FORMAT" ]; then
+    CLANG_FORMAT=$(command -v clang-format 2>/dev/null || true)
+fi
+# macOS Xcode fallback
+if [ -z "$CLANG_FORMAT" ] && command -v xcrun &>/dev/null; then
+    CLANG_FORMAT=$(xcrun --find clang-format 2>/dev/null || true)
+fi
+if [ -z "$CLANG_FORMAT" ]; then
+    echo "pre-commit: clang-format not found — skipping format check"
+    echo "  Install: brew install clang-format  /  apt install clang-format"
+    exit 0
+fi
+
+has_error=0
+while IFS= read -r file; do
+    if ! "$CLANG_FORMAT" --dry-run -Werror "$file" 2>/dev/null; then
+        echo "  clang-format would modify: $file"
+        has_error=1
+    fi
+done <<< "$staged"
+
+if [ $has_error -eq 1 ]; then
+    echo ""
+    echo "❌  Some files are not formatted. Run:"
+    echo "    cmake --build build --target format"
+    echo "    git add -u"
+    echo "    git commit ..."
+    exit 1
+fi
+
+echo "✅  All staged files are properly formatted."
+exit 0

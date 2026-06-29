@@ -5,17 +5,14 @@
 #include <string>
 #include <unordered_map>
 
-template <typename Resource>
-class ResourceManager {
+template <typename Resource> class ResourceManager {
 public:
     using Ptr = std::shared_ptr<Resource>;
 
     /// Load or retrieve a cached resource.
     /// On first access the resource is constructed from `args` and cached;
     /// subsequent calls return the cached instance.
-    template <typename... Args>
-    Ptr load(const std::string& key, Args&&... args)
-    {
+    template <typename... Args> Ptr load(const std::string& key, Args&&... args) {
         auto it = m_resources.find(key);
         if (it != m_resources.end())
             return it->second;
@@ -26,8 +23,7 @@ public:
     }
 
     /// Retrieve a resource by key. Throws if not found.
-    Ptr get(const std::string& key) const
-    {
+    Ptr get(const std::string& key) const {
         auto it = m_resources.find(key);
         if (it == m_resources.end())
             throw std::runtime_error("Resource not found: " + key);
@@ -35,22 +31,13 @@ public:
     }
 
     /// Check whether a key exists.
-    bool has(const std::string& key) const
-    {
-        return m_resources.find(key) != m_resources.end();
-    }
+    bool has(const std::string& key) const { return m_resources.find(key) != m_resources.end(); }
 
     /// Remove a single resource.
-    void remove(const std::string& key)
-    {
-        m_resources.erase(key);
-    }
+    void remove(const std::string& key) { m_resources.erase(key); }
 
     /// Remove all cached resources.
-    void clear()
-    {
-        m_resources.clear();
-    }
+    void clear() { m_resources.clear(); }
 
 private:
     std::unordered_map<std::string, Ptr> m_resources;

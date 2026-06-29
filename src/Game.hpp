@@ -26,18 +26,18 @@ private:
     void render();
     void handleWindowResize(const sf::Event::Resized& resizeEvent);
 
-    static constexpr unsigned int DEFAULT_WIDTH  = 800;
+    static constexpr unsigned int DEFAULT_WIDTH = 800;
     static constexpr unsigned int DEFAULT_HEIGHT = 600;
-    static constexpr const char*   TITLE         = "SFML 3.1 Game";
+    static constexpr const char* TITLE = "SFML 3.1 Game";
 
     // Fixed timestep: 60 updates per second
-    static constexpr sf::Time TIME_PER_FRAME     = sf::seconds(1.0f / 60.0f);
+    static constexpr sf::Time TIME_PER_FRAME = sf::seconds(1.0f / 60.0f);
     // Spiral-of-death cap: at most 4 updates per render
     static constexpr sf::Time TIME_PER_FRAME_MAX = sf::seconds(1.0f / 15.0f);
 
-    sf::RenderWindow          m_window;
-    std::unique_ptr<Scene>    m_scene;
-    sf::Clock                 m_clock;
+    sf::RenderWindow m_window;
+    std::unique_ptr<Scene> m_scene;
+    sf::Clock m_clock;
 
     bool m_running = true;
 };

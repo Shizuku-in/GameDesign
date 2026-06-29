@@ -17,7 +17,17 @@ cmake --build build --config Release
 .\build\Release\game.exe
 ```
 
-There are no tests or linters yet.
+```bash
+clang-format -i src/*.hpp src/*.cpp   # format all source files
+```
+Or via CMake (after configuring):
+```bash
+cmake --build build --target format        # format in-place
+cmake --build build --target format-check  # check only (CI-friendly)
+```
+
+Formatter rules are in `.clang-format` (based on WebKit style, 4-space indent, 100-col limit). Include order: project headers → SFML headers → system headers.
+Use `cmake --build build --target format` before committing — or enable the pre-commit hook: `git config core.hooksPath scripts`.
 
 ## Architecture
 

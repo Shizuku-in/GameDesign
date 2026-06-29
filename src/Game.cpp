@@ -5,19 +5,15 @@
 #include <SFML/Window/VideoMode.hpp>
 
 Game::Game()
-    : m_window(sf::VideoMode({DEFAULT_WIDTH, DEFAULT_HEIGHT}),
-               TITLE,
-               sf::Style::Default,
-               sf::State::Windowed)
-{
+    : m_window(sf::VideoMode({DEFAULT_WIDTH, DEFAULT_HEIGHT}), TITLE, sf::Style::Default,
+               sf::State::Windowed) {
     m_window.setFramerateLimit(0); // uncapped — we control timing ourselves
     changeScene(std::make_unique<GameScene>(*this));
 }
 
 Game::~Game() = default;
 
-int Game::run()
-{
+int Game::run() {
     m_clock.restart();
     sf::Time accumulator = sf::Time::Zero;
 
@@ -45,18 +41,11 @@ int Game::run()
     return 0;
 }
 
-void Game::changeScene(std::unique_ptr<Scene> scene)
-{
-    m_scene = std::move(scene);
-}
+void Game::changeScene(std::unique_ptr<Scene> scene) { m_scene = std::move(scene); }
 
-sf::RenderWindow& Game::getWindow()
-{
-    return m_window;
-}
+sf::RenderWindow& Game::getWindow() { return m_window; }
 
-void Game::processEvents()
-{
+void Game::processEvents() {
     while (const std::optional event = m_window.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
             m_window.close();
@@ -72,14 +61,12 @@ void Game::processEvents()
     }
 }
 
-void Game::update(sf::Time dt)
-{
+void Game::update(sf::Time dt) {
     if (m_scene)
         m_scene->update(dt);
 }
 
-void Game::render()
-{
+void Game::render() {
     m_window.clear();
 
     if (m_scene)
@@ -88,10 +75,8 @@ void Game::render()
     m_window.display();
 }
 
-void Game::handleWindowResize(const sf::Event::Resized& resizeEvent)
-{
+void Game::handleWindowResize(const sf::Event::Resized& resizeEvent) {
     // Keep the view stretched to match the new window size
-    m_window.setView(sf::View(sf::FloatRect(
-        {0.f, 0.f},
-        static_cast<sf::Vector2f>(resizeEvent.size))));
+    m_window.setView(
+        sf::View(sf::FloatRect({0.f, 0.f}, static_cast<sf::Vector2f>(resizeEvent.size))));
 }
