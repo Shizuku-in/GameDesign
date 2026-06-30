@@ -73,6 +73,10 @@ void PlayScene::handleEvent(const sf::Event& event) {
         // 升级暂停 — 选项选择
         if (m_paused) {
             int count = static_cast<int>(m_upgradeOptions.size());
+            if (count == 0) {
+                m_paused = false;
+                return;
+            }
             if (kp->code == Key::Up || kp->code == Key::W) {
                 m_selectedOption = (m_selectedOption - 1 + count) % count;
             } else if (kp->code == Key::Down || kp->code == Key::S) {

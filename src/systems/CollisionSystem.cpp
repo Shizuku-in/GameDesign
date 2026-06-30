@@ -97,7 +97,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                             sounds.hit();
                         }
 
-                        if (p.pierceCount < 0) {
+                        if (p.pierceCount <= 0) {
                             p.lifetime = 0.f;
                             goto NEXT_PROJECTILE; // 穿透耗尽，直接检测下一发弹幕
                         }
