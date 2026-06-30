@@ -30,7 +30,7 @@ public:
     }
 
     /// Check whether a key exists.
-    bool has(const std::string& key) const { return m_resources.find(key) != m_resources.end(); }
+    bool has(const std::string& key) const { return m_resources.contains(key); }
 
     /// Remove a single resource.
     void remove(const std::string& key) { m_resources.erase(key); }

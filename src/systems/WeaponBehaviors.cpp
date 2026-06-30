@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 
+using enum WeaponType;
+
 namespace {
 
 const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enemy>& enemies) {
@@ -24,7 +26,7 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
 
 bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
                              Pool<Projectile>& proj) {
-    auto stats = getWeaponStats(WeaponType::MagicWand, level);
+    auto stats = getWeaponStats(MagicWand, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
     if (!target)
@@ -54,7 +56,7 @@ bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& 
 
 bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
                          Pool<Projectile>& proj) {
-    auto stats = getWeaponStats(WeaponType::Knife, level);
+    auto stats = getWeaponStats(Knife, level);
 
     sf::Vector2f dir = {1.f, 0.f};
     const auto* target = findNearestEnemy(player.pos, Config::RANGE_UNLIMITED, enemies);
@@ -68,7 +70,7 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
     }
 
     int count = stats.projectileCount;
-    const auto& knifeDef = WEAPON_DEFS[static_cast<int>(WeaponType::Knife)];
+    const auto& knifeDef = WEAPON_DEFS[static_cast<int>(Knife)];
     float spread = (count - 1) * knifeDef.spread;
     float baseAngle = std::atan2(dir.y, dir.x);
     float startAngle = baseAngle - spread / 2.f;
@@ -97,8 +99,8 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
 
 bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enemies*/,
                        Pool<Projectile>& proj) {
-    auto stats = getWeaponStats(WeaponType::Axe, level);
-    const auto& axeDef = WEAPON_DEFS[static_cast<int>(WeaponType::Axe)];
+    auto stats = getWeaponStats(Axe, level);
+    const auto& axeDef = WEAPON_DEFS[static_cast<int>(Axe)];
 
     int count = stats.projectileCount;
     if (count <= 0)
@@ -138,7 +140,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
 
 bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
                             Pool<Projectile>& proj) {
-    auto stats = getWeaponStats(WeaponType::Fireball, level);
+    auto stats = getWeaponStats(Fireball, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
     if (!target)
@@ -168,7 +170,7 @@ bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& e
 }
 
 void GarlicBehavior::tickAoE(int level, const PlayerState& player, Pool<Enemy>& enemies) {
-    auto stats = getWeaponStats(WeaponType::Garlic, level);
+    auto stats = getWeaponStats(Garlic, level);
 
     enemies.forEach([&](Enemy& e) {
         if (circleCircle(player.pos, stats.aoeRadius, e.pos, e.radius)) {

@@ -49,7 +49,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
             std::fprintf(stderr, "[WARN] Enemy sprite load failed: %s (move=%d, damaged=%d)\n",
                          def.name, moveOk, damagedOk);
     }
-    m_spawning.setEnemySprites(m_spritesMove.data(), m_spritesDamaged.data());
+    m_spawning.setEnemySprites(m_spritesMove, m_spritesDamaged);
 
     // 加载角色精灵表 — 从 CharacterDef 读取路径
     const auto& charDef = CHARACTER_DEFS[0]; // 默认 Elf

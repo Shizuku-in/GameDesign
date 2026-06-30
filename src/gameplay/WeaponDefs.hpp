@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 
@@ -56,7 +57,32 @@ struct WeaponStats {
 };
 
 /// 计算指定武器在等级 L (L >= 1) 时的属性。
-WeaponStats getWeaponStats(WeaponType type, int level);
+constexpr float constpow(float base, int n) {
+    float r = 1.f;
+    for (int i = 0; i < n; ++i)
+        r *= base;
+    return r;
+}
+
+inline constexpr WeaponStats getWeaponStats(WeaponType type, int level) {
+    const auto& def = WEAPON_DEFS[static_cast<int>(type)];
+    int lvl = std::clamp(level, 1, def.maxLevel);
+    int n = lvl - 1; // 从基础等级起的升级次数
+
+    WeaponStats s{};
+    s.cooldown = def.baseCooldown * constpow(0.95f, n);
+    s.damage = def.baseDamage * constpow(1.30f, n);
+    s.projectileSpeed = def.projectileSpeed;
+    s.projectileLifetime = def.projectileLifetime;
+    s.projectileRadius = def.projectileRadius;
+    s.range = def.range;
+    s.projectileCount = def.baseProjectiles + n / 2;
+    s.pierce = def.basePierce + n / 3;
+    s.aoeRadius = (def.isAOE || def.aoeRadius > 0.f)
+                      ? def.aoeRadius * (1.0f + 0.1f * static_cast<float>(n))
+                      : 0.f;
+    return s;
+}
 
 /// 创建指定武器类型的行为实例。
 std::unique_ptr<IWeaponBehavior> createWeapon(WeaponType type);

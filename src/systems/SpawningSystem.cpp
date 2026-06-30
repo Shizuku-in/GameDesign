@@ -5,13 +5,14 @@
 #include "graphics/SpriteSheet.hpp"
 
 #include <cmath>
+#include <span>
 
 SpawningSystem::SpawningSystem() { reset(); }
 
-void SpawningSystem::setEnemySprites(const SpriteSheet* spritesMove,
-                                     const SpriteSheet* spritesDamaged) {
-    m_spritesMove = spritesMove;
-    m_spritesDamaged = spritesDamaged;
+void SpawningSystem::setEnemySprites(std::span<const SpriteSheet> spritesMove,
+                                     std::span<const SpriteSheet> spritesDamaged) {
+    m_spritesMove = spritesMove.data();
+    m_spritesDamaged = spritesDamaged.data();
 }
 
 void SpawningSystem::reset() {

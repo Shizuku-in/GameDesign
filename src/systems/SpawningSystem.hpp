@@ -4,6 +4,7 @@
 #include "data/EntityTypes.hpp"
 
 #include <SFML/System/Vector2.hpp>
+#include <span>
 
 struct SpriteSheet;
 
@@ -16,7 +17,8 @@ public:
     void update(float dt, float gameTime, sf::Vector2f playerPos, Pool<Enemy>& enemies);
 
     /// 设置敌人精灵表指针（PlayScene 加载后调用一次）。
-    void setEnemySprites(const SpriteSheet* spritesMove, const SpriteSheet* spritesDamaged);
+    void setEnemySprites(std::span<const SpriteSheet> spritesMove,
+                         std::span<const SpriteSheet> spritesDamaged);
 
     /// 新一局重置。
     void reset();

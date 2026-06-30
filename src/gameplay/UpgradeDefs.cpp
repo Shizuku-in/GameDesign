@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <cstdio>
 
+using enum UpgradeCategory;
+using enum WeaponType;
+
 // ===========================================================================
 // 辅助函数
 // ===========================================================================
@@ -46,18 +49,8 @@ std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player, co
 
 UpgradeDef makeStatBoost(const char* name, const char* desc, float hp, float speed, float armor,
                          float magnet, float xpMult) {
-    return {UpgradeCategory::StatBoost,
-            name,
-            desc,
-            detailStatBoost,
-            WeaponType::MagicWand,
-            hp,
-            speed,
-            armor,
-            magnet,
-            xpMult,
-            statAvailable,
-            applyStatBoost};
+    return {StatBoost, name,  desc,   detailStatBoost, MagicWand,     hp,
+            speed,     armor, magnet, xpMult,          statAvailable, applyStatBoost};
 }
 
 // --- NewWeapon ---
@@ -119,16 +112,15 @@ std::vector<UpgradeDef> buildUpgradeDefs() {
     d.push_back(makeStatBoost("Greed", "+15% XP gain", 0.f, 0.f, 0.f, 0.f, 0.15f));
 
     // --- 新武器 + 武器升级（从 WEAPON_DEFS 自动生成） ---
-    for (int i = 0; i < static_cast<int>(WeaponType::Count); ++i) {
+    for (int i = 0; i < static_cast<int>(Count); ++i) {
         const auto& wd = WEAPON_DEFS[i];
 
         // NewWeapon
-        d.push_back({UpgradeCategory::NewWeapon, wd.name, "New weapon", detailNewWeapon,
-                     static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, newWeaponAvailable,
-                     applyNewWeapon});
+        d.push_back({NewWeapon, wd.name, "New weapon", detailNewWeapon, static_cast<WeaponType>(i),
+                     0.f, 0.f, 0.f, 0.f, 0.f, newWeaponAvailable, applyNewWeapon});
 
         // WeaponUpgrade
-        d.push_back({UpgradeCategory::WeaponUpgrade, wd.name, "Upgrade weapon", detailWeaponUpgrade,
+        d.push_back({WeaponUpgrade, wd.name, "Upgrade weapon", detailWeaponUpgrade,
                      static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, nullptr,
                      applyWeaponUpgrade});
     }
@@ -156,7 +148,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
         const auto& def = defs[i];
 
         // 武器升级走专用路径（需要 getUpgradeableWeapons）
-        if (def.category == UpgradeCategory::WeaponUpgrade) {
+        if (def.category == WeaponUpgrade) {
             auto upgradeable = weapons.getUpgradeableWeapons();
             bool found = false;
             for (auto wt : upgradeable) {

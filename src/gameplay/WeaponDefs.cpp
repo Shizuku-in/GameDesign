@@ -1,9 +1,6 @@
 #include "gameplay/WeaponDefs.hpp"
 #include "systems/WeaponBehaviors.hpp"
 
-#include <algorithm>
-#include <cmath>
-
 const WeaponDef WEAPON_DEFS[] = {
     // MagicWand — 快速、低伤追踪弹
     {.type = WeaponType::MagicWand,
@@ -81,26 +78,6 @@ const WeaponDef WEAPON_DEFS[] = {
 
 static_assert(sizeof(WEAPON_DEFS) / sizeof(WEAPON_DEFS[0]) == static_cast<int>(WeaponType::Count),
               "WEAPON_DEFS must have one entry per WeaponType");
-
-WeaponStats getWeaponStats(WeaponType type, int level) {
-    const auto& def = WEAPON_DEFS[static_cast<int>(type)];
-    int lvl = std::clamp(level, 1, def.maxLevel);
-    int n = lvl - 1; // 从基础等级起的升级次数
-
-    WeaponStats s{};
-    s.cooldown = def.baseCooldown * std::pow(0.95f, static_cast<float>(n));
-    s.damage = def.baseDamage * std::pow(1.30f, static_cast<float>(n));
-    s.projectileSpeed = def.projectileSpeed;
-    s.projectileLifetime = def.projectileLifetime;
-    s.projectileRadius = def.projectileRadius;
-    s.range = def.range;
-    s.projectileCount = def.baseProjectiles + n / 2;
-    s.pierce = def.basePierce + n / 3;
-    s.aoeRadius = (def.isAOE || def.aoeRadius > 0.f)
-                      ? def.aoeRadius * (1.0f + 0.1f * static_cast<float>(n))
-                      : 0.f;
-    return s;
-}
 
 std::unique_ptr<IWeaponBehavior> createWeapon(WeaponType type) {
     auto idx = static_cast<std::size_t>(type);
