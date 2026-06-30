@@ -70,13 +70,13 @@ constexpr float BGM_VOLUME = 50.f;
 
 // --- 资源路径 ---
 constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf";
-constexpr const char* SOUND_SHOOT_PATH = "assets/sounds/shoot.wav";
-constexpr const char* SOUND_HIT_PATH = "assets/sounds/hit.wav";
-constexpr const char* SOUND_KILL_PATH = "assets/sounds/kill.wav";
-constexpr const char* SOUND_HURT_PATH = "assets/sounds/hurt.wav";
-constexpr const char* SOUND_PICKUP_PATH = "assets/sounds/pickup.wav";
-constexpr const char* SOUND_LEVELUP_PATH = "assets/sounds/levelup.wav";
-constexpr const char* BGM_PLAY_SCENE_PATH = "assets/sounds/BGM/stone fortress.ogg";
+constexpr const char* SOUND_SHOOT_PATH = "assets/sounds/sfx/shoot.wav";
+constexpr const char* SOUND_HIT_PATH = "assets/sounds/sfx/hit.wav";
+constexpr const char* SOUND_KILL_PATH = "assets/sounds/sfx/kill.wav";
+constexpr const char* SOUND_HURT_PATH = "assets/sounds/sfx/hurt.wav";
+constexpr const char* SOUND_PICKUP_PATH = "assets/sounds/sfx/pickup.wav";
+constexpr const char* SOUND_LEVELUP_PATH = "assets/sounds/sfx/levelup.wav";
+constexpr const char* BGM_PLAY_SCENE_PATH = "assets/sounds/bgm/stone fortress.ogg";
 
 // --- 音效配置 ---
 struct SoundConfig {
