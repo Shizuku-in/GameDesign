@@ -91,7 +91,7 @@ void PlayScene::handleEvent(const sf::Event& event) {
 
         // 升级暂停 — 选项选择
         if (m_paused) {
-            int count = std::ssize(m_upgradeOptions);
+            auto count = std::ssize(m_upgradeOptions);
             if (count == 0) {
                 m_paused = false;
                 return;

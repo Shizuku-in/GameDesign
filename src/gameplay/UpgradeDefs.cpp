@@ -171,7 +171,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
 
     std::shuffle(pool.begin(), pool.end(), Random::getEngine());
 
-    int count = std::min(3L, std::ssize(pool));
+    auto count = std::min(std::ptrdiff_t{3}, std::ssize(pool));
     return std::vector<UpgradeOption>(pool.begin(), pool.begin() + count);
 }
 
