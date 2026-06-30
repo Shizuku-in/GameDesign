@@ -5,6 +5,7 @@
 #include "core/Scene.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
+#include "gameplay/MapDefs.hpp"
 #include "gameplay/UpgradeDefs.hpp"
 #include "graphics/SpriteSheet.hpp"
 #include "graphics/WorldRenderer.hpp"
@@ -42,6 +43,9 @@ private:
 
     // 玩家状态（单例）
     PlayerState m_player;
+
+    // 地图配置
+    const MapDef* m_map = nullptr;
 
     // 子系统
     WeaponSystem m_weapons;

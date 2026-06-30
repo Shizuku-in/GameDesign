@@ -7,11 +7,15 @@
 #include <span>
 
 struct SpriteSheet;
+struct MapDef;
 
 /// 敌人生成 + 波次管理 + 难度递增。拥有生成状态。
 class SpawningSystem {
 public:
     SpawningSystem();
+
+    /// 设置地图配置（PlayScene 构造时调用一次）。
+    void setMap(const MapDef& map);
 
     /// 每帧调用。gameTime = 累计游戏时间，playerPos = 玩家位置。
     void update(float dt, float gameTime, sf::Vector2f playerPos, Pool<Enemy>& enemies);
@@ -26,6 +30,8 @@ public:
 private:
     void spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Enemy>& enemies);
     sf::Vector2f randomSpawnPosition(sf::Vector2f playerPos) const;
+
+    const MapDef* m_map = nullptr;
 
     float m_spawnTimer = 0.f;
     float m_spawnInterval = 0.f;

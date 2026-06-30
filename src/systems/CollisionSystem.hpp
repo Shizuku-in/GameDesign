@@ -13,6 +13,6 @@ namespace CollisionSystem {
 /// 修改 player (hp/xp)、三个池、score，在命中/击杀/拾取/受伤时播放音效。
 void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& projectiles,
                        Pool<XPGem>& gems, Pool<DamageText>& damageTexts, int& score,
-                       SoundPlayer& sounds);
+                       SoundPlayer& sounds, float worldWidth, float worldHeight);
 
 } // namespace CollisionSystem

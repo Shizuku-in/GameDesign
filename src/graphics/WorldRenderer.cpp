@@ -8,7 +8,11 @@
 #include <SFML/Graphics/Text.hpp>
 #include <format>
 
-WorldRenderer::WorldRenderer() { buildGrid(); }
+void WorldRenderer::init(float worldWidth, float worldHeight) {
+    m_worldWidth = worldWidth;
+    m_worldHeight = worldHeight;
+    buildGrid();
+}
 
 void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
                            const Pool<Enemy>& enemies, const Pool<Projectile>& projectiles,
@@ -147,8 +151,8 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
 void WorldRenderer::buildGrid() {
     constexpr float CELL = Config::VIEW_WIDTH / 24.f; // 约 80px @1920
-    constexpr float W = Config::WORLD_WIDTH;
-    constexpr float H = Config::WORLD_HEIGHT;
+    float W = m_worldWidth;
+    float H = m_worldHeight;
     sf::Color lineColor(50, 50, 50);
 
     m_grid.clear();

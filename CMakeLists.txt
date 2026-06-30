@@ -26,6 +26,7 @@ add_executable(game
     src/gameplay/WeaponDefs.cpp
     src/gameplay/EnemyDefs.cpp
     src/gameplay/CharacterDefs.cpp
+    src/gameplay/MapDefs.cpp
     src/systems/WeaponSystem.cpp
     src/systems/WeaponBehaviors.cpp
     src/gameplay/UpgradeDefs.cpp

@@ -8,7 +8,7 @@ struct SpriteSheet;
 
 /// 玩家状态 — 单例，不存入对象池。
 struct PlayerState {
-    sf::Vector2f pos{Config::WORLD_WIDTH / 2.f, Config::WORLD_HEIGHT / 2.f};
+    sf::Vector2f pos; // 由 PlayScene 根据地图设置初始位置
     sf::Vector2f vel; // 输入方向（已归一化），每帧计算
 
     float speed = 0.f;

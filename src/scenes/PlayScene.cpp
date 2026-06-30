@@ -22,6 +22,11 @@
 // 构造
 // ---------------------------------------------------------------------------
 PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
+    m_map = &MAP_DEFS[0]; // 默认森林地图
+    m_spawning.setMap(*m_map);
+    m_worldRenderer.init(m_map->worldWidth, m_map->worldHeight);
+    m_player.pos = {m_map->worldWidth / 2.f, m_map->worldHeight / 2.f};
+
     m_camera = sf::View(sf::FloatRect({0.f, 0.f}, {Config::VIEW_WIDTH, Config::VIEW_HEIGHT}));
     m_camera.setCenter(m_player.pos);
 
@@ -70,12 +75,12 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_player.currentSprite = m_player.spriteIdle;
 
     // BGM
-    if (m_bgm.openFromFile(Config::BGM_PLAY_SCENE_PATH)) {
+    if (m_bgm.openFromFile(m_map->bgmPath)) {
         m_bgm.setLooping(true);
         m_bgm.setVolume(Config::BGM_VOLUME);
         m_bgm.play();
     } else {
-        std::fprintf(stderr, "[WARN] BGM load failed: %s\n", Config::BGM_PLAY_SCENE_PATH);
+        std::fprintf(stderr, "[WARN] BGM load failed: %s\n", m_map->bgmPath);
     }
 }
 
@@ -164,7 +169,7 @@ void PlayScene::update(sf::Time dt) {
 
     // 碰撞 + 清理
     CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_damageTexts,
-                                       m_score, m_sounds);
+                                       m_score, m_sounds, m_map->worldWidth, m_map->worldHeight);
 
     // 生成
     m_spawning.update(dtSec, m_gameTime, m_player.pos, m_enemies);
@@ -242,10 +247,10 @@ void PlayScene::movePlayer(float dt) {
         m_player.pos.x = m_player.radius;
     if (m_player.pos.y < m_player.radius)
         m_player.pos.y = m_player.radius;
-    if (m_player.pos.x > Config::WORLD_WIDTH - m_player.radius)
-        m_player.pos.x = Config::WORLD_WIDTH - m_player.radius;
-    if (m_player.pos.y > Config::WORLD_HEIGHT - m_player.radius)
-        m_player.pos.y = Config::WORLD_HEIGHT - m_player.radius;
+    if (m_player.pos.x > m_map->worldWidth - m_player.radius)
+        m_player.pos.x = m_map->worldWidth - m_player.radius;
+    if (m_player.pos.y > m_map->worldHeight - m_player.radius)
+        m_player.pos.y = m_map->worldHeight - m_player.radius;
 
     if (m_player.invincibilityTimer > 0.f)
         m_player.invincibilityTimer -= dt;
@@ -312,8 +317,8 @@ void PlayScene::updateEnemies(float dt) {
     // 清理远离世界的敌人
     float margin = Config::VIEW_WIDTH * Config::ENEMY_CULL_MARGIN;
     m_enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
-        if (e.pos.x < -margin || e.pos.x > Config::WORLD_WIDTH + margin || e.pos.y < -margin ||
-            e.pos.y > Config::WORLD_HEIGHT + margin) {
+        if (e.pos.x < -margin || e.pos.x > m_map->worldWidth + margin || e.pos.y < -margin ||
+            e.pos.y > m_map->worldHeight + margin) {
             m_enemies.release(h);
         }
     });
@@ -383,10 +388,10 @@ void PlayScene::updateCamera() {
         center.x = halfW;
     if (center.y < halfH)
         center.y = halfH;
-    if (center.x > Config::WORLD_WIDTH - halfW)
-        center.x = Config::WORLD_WIDTH - halfW;
-    if (center.y > Config::WORLD_HEIGHT - halfH)
-        center.y = Config::WORLD_HEIGHT - halfH;
+    if (center.x > m_map->worldWidth - halfW)
+        center.x = m_map->worldWidth - halfW;
+    if (center.y > m_map->worldHeight - halfH)
+        center.y = m_map->worldHeight - halfH;
 
     m_camera.setCenter(center);
 }

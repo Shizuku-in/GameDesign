@@ -2,12 +2,16 @@
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "gameplay/EnemyDefs.hpp"
+#include "gameplay/MapDefs.hpp"
 #include "graphics/SpriteSheet.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <span>
 
 SpawningSystem::SpawningSystem() { reset(); }
+
+void SpawningSystem::setMap(const MapDef& map) { m_map = &map; }
 
 void SpawningSystem::setEnemySprites(std::span<const SpriteSheet> spritesMove,
                                      std::span<const SpriteSheet> spritesDamaged) {
@@ -17,29 +21,34 @@ void SpawningSystem::setEnemySprites(std::span<const SpriteSheet> spritesMove,
 
 void SpawningSystem::reset() {
     m_spawnTimer = 0.f;
-    m_spawnInterval = Config::ENEMY_BASE_SPAWN_INTERVAL;
-    m_enemiesPerWave = Config::ENEMIES_PER_WAVE_BASE;
     m_difficultyTimer = 0.f;
-    m_bossTimer = Config::ENEMY_BOSS_INTERVAL; // 首个 Boss
+    if (m_map) {
+        m_spawnInterval = m_map->baseSpawnInterval;
+        m_enemiesPerWave = m_map->baseEnemiesPerWave;
+        m_bossTimer = m_map->bossInterval;
+    }
 }
 
 void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
                             Pool<Enemy>& enemies) {
+    if (!m_map)
+        return;
+
     m_spawnTimer -= dt;
     m_difficultyTimer += dt;
     m_bossTimer -= dt;
 
-    // 每 60 秒生成 Boss
+    // Boss 定时生成
     if (m_bossTimer <= 0.f) {
         spawnEnemy(EnemyType::Boss, playerPos, enemies);
-        m_bossTimer = Config::ENEMY_BOSS_INTERVAL;
+        m_bossTimer = m_map->bossInterval;
     }
 
     if (m_spawnTimer > 0.f)
         return;
 
-    // 敌人数上限保护帧率
-    if (enemies.activeCount() >= Config::ENEMY_MAX_COUNT)
+    // 敌人数上限保护帧率（M14 修复：逐个检查）
+    if (enemies.activeCount() >= m_map->maxEnemies)
         return;
 
     // 根据已过时间解锁敌人类型
@@ -49,7 +58,13 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
             activeTypes = t + 1;
     }
 
-    for (int i = 0; i < m_enemiesPerWave; ++i) {
+    // 每波上限（M15 修复：maxEnemiesPerWave 限制波次大小）
+    int waveCount = std::min(m_enemiesPerWave, m_map->maxEnemiesPerWave);
+    for (int i = 0; i < waveCount; ++i) {
+        // 逐个检查上限，防止波次超出
+        if (enemies.activeCount() >= m_map->maxEnemies)
+            break;
+
         float totalWeight = 0.f;
         for (int t = 0; t < activeTypes; ++t) {
             if (ENEMY_DEFS[t].spawnWeight > 0.f)
@@ -72,14 +87,13 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
     }
 
     // 难度递增
-    m_spawnInterval =
-        Config::ENEMY_BASE_SPAWN_INTERVAL - m_difficultyTimer * Config::ENEMY_DIFFICULTY_SCALE;
-    if (m_spawnInterval < Config::ENEMY_MIN_SPAWN_INTERVAL)
-        m_spawnInterval = Config::ENEMY_MIN_SPAWN_INTERVAL;
+    m_spawnInterval = m_map->baseSpawnInterval - m_difficultyTimer * m_map->difficultyScale;
+    if (m_spawnInterval < m_map->minSpawnInterval)
+        m_spawnInterval = m_map->minSpawnInterval;
 
     m_spawnTimer = m_spawnInterval;
-    m_enemiesPerWave = Config::ENEMIES_PER_WAVE_BASE +
-                       static_cast<int>(m_difficultyTimer / Config::ENEMY_DIFFICULTY_WAVE_INTERVAL);
+    m_enemiesPerWave =
+        m_map->baseEnemiesPerWave + static_cast<int>(m_difficultyTimer / m_map->waveInterval);
 }
 
 void SpawningSystem::spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Enemy>& enemies) {
@@ -107,6 +121,6 @@ void SpawningSystem::spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Ene
 
 sf::Vector2f SpawningSystem::randomSpawnPosition(sf::Vector2f playerPos) const {
     float angle = Random::getFloat() * Config::TAU;
-    float dist = Config::ENEMY_SPAWN_DISTANCE + Random::getFloat() * Config::ENEMY_SPAWN_JITTER;
+    float dist = m_map->spawnDistance + Random::getFloat() * m_map->spawnJitter;
     return playerPos + sf::Vector2f(std::cos(angle) * dist, std::sin(angle) * dist);
 }

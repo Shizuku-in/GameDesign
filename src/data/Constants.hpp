@@ -5,25 +5,13 @@
 
 namespace Config {
 
-// --- 世界 ---
-constexpr float WORLD_WIDTH = 3840.f;
-constexpr float WORLD_HEIGHT = 2160.f;
-
 // --- 玩家（通用，非按角色） ---
 constexpr float PLAYER_IFRAMES = 0.5f; // 受击后无敌时间（秒）
 constexpr int PLAYER_MAX_WEAPONS = 6;
 constexpr float PLAYER_MAX_ARMOR = 0.5f; // 护甲上限 50%
 
-// --- 敌人 ---
-constexpr float ENEMY_SPAWN_DISTANCE = 1200.f; // 生成时距玩家的最小距离
-constexpr float ENEMY_BASE_SPAWN_INTERVAL = 3.f;
-constexpr float ENEMY_MIN_SPAWN_INTERVAL = 0.5f;
-constexpr int ENEMIES_PER_WAVE_BASE = 3;
-constexpr float ENEMY_BOSS_INTERVAL = 60.f;      // Boss 生成间隔（秒）
-constexpr int ENEMY_MAX_COUNT = 500;             // 敌人数上限
-constexpr float ENEMY_DIFFICULTY_SCALE = 0.005f; // 难度递增系数
-constexpr float ENEMY_SPAWN_JITTER = 200.f;      // 生成位置随机抖动范围
-constexpr float ENEMY_CULL_MARGIN = 0.35f;       // 清理边距（VIEW_WIDTH 比例）
+// --- 敌人（通用，非按地图） ---
+constexpr float ENEMY_CULL_MARGIN = 0.35f; // 清理边距（VIEW_WIDTH 比例）
 
 // --- 经验 ---
 constexpr float XP_BASE_THRESHOLD = 10.f;
@@ -45,10 +33,9 @@ constexpr float TAU = 2.f * PI;
 
 // --- 敌人（非按类型的通用常数）---
 // 各类型具体属性见 gameplay/EnemyDefs.hpp — ENEMY_DEFS[] 表
-constexpr float ENEMY_ANIM_FRAME_DURATION = 0.12f;     // 精灵动画帧间隔
-constexpr float PLAYER_ANIM_FRAME_DURATION = 0.12f;    // 玩家动画帧间隔
-constexpr float ENEMY_HIT_FLASH_DURATION = 0.1f;       // 受击闪白时长
-constexpr float ENEMY_DIFFICULTY_WAVE_INTERVAL = 10.f; // 波次递增间隔系数
+constexpr float ENEMY_ANIM_FRAME_DURATION = 0.12f;  // 精灵动画帧间隔
+constexpr float PLAYER_ANIM_FRAME_DURATION = 0.12f; // 玩家动画帧间隔
+constexpr float ENEMY_HIT_FLASH_DURATION = 0.1f;    // 受击闪白时长
 
 // --- 伤害飘字 ---
 constexpr float DMGTEXT_VELOCITY_Y = -50.f;
@@ -67,7 +54,6 @@ constexpr const char* SOUND_KILL_PATH = "assets/sounds/sfx/kill.wav";
 constexpr const char* SOUND_HURT_PATH = "assets/sounds/sfx/hurt.wav";
 constexpr const char* SOUND_PICKUP_PATH = "assets/sounds/sfx/pickup.wav";
 constexpr const char* SOUND_LEVELUP_PATH = "assets/sounds/sfx/levelup.wav";
-constexpr const char* BGM_PLAY_SCENE_PATH = "assets/sounds/bgm/stone fortress.ogg";
 
 // --- 音效配置 ---
 struct SoundConfig {
