@@ -7,7 +7,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include <cstdio>
+#include <format>
 
 namespace {
 constexpr float VW = Config::VIEW_WIDTH;
@@ -33,25 +33,18 @@ GameOverScene::GameOverScene(Game& game, int score, int level, float survivalTim
     m_titleText.setFillColor(sf::Color::Red);
     m_titleText.setPosition({VW * 0.33f, VH * 0.10f});
 
-    char buf[128];
-
-    std::snprintf(buf, sizeof(buf), "Enemies defeated: %d", m_score);
-    m_scoreText.setString(buf);
+    m_scoreText.setString(std::format("Enemies defeated: {}", m_score));
     m_scoreText.setCharacterSize(fs(0.026f));
     m_scoreText.setFillColor(sf::Color::White);
     m_scoreText.setPosition({VW * 0.33f, VH * 0.22f});
 
-    std::snprintf(buf, sizeof(buf), "Level reached: %d", m_level);
-    m_levelText.setString(buf);
+    m_levelText.setString(std::format("Level reached: {}", m_level));
     m_levelText.setCharacterSize(fs(0.026f));
     m_levelText.setFillColor(sf::Color::White);
     m_levelText.setPosition({VW * 0.35f, VH * 0.27f});
 
     int totalSec = static_cast<int>(m_survivalTime);
-    int min = totalSec / 60;
-    int sec = totalSec % 60;
-    std::snprintf(buf, sizeof(buf), "Survived: %02d:%02d", min, sec);
-    m_timeText.setString(buf);
+    m_timeText.setString(std::format("Survived: {:02d}:{:02d}", totalSec / 60, totalSec % 60));
     m_timeText.setCharacterSize(fs(0.026f));
     m_timeText.setFillColor(sf::Color::White);
     m_timeText.setPosition({VW * 0.37f, VH * 0.32f});

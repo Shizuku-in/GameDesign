@@ -6,7 +6,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
-#include <cstdio>
+#include <format>
 
 WorldRenderer::WorldRenderer() { buildGrid(); }
 
@@ -120,10 +120,8 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         text.setOutlineThickness(1.f);
         text.setOutlineColor(sf::Color::Black);
 
-        char buf[16];
         damageTexts.forEach([&](const DamageText& dt) {
-            std::snprintf(buf, sizeof(buf), "%.0f", dt.damage);
-            text.setString(buf);
+            text.setString(std::format("{:.0f}", dt.damage));
 
             // 随时间淡出
             float alphaRatio = dt.lifetime / dt.maxLifetime;

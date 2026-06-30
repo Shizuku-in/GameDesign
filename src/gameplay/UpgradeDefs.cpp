@@ -4,7 +4,7 @@
 #include "gameplay/WeaponDefs.hpp"
 
 #include <algorithm>
-#include <cstdio>
+#include <format>
 
 using enum UpgradeCategory;
 using enum WeaponType;
@@ -31,20 +31,17 @@ void applyStatBoost(PlayerState& player, WeaponSystem&, const UpgradeDef& def) {
 }
 
 std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player, const WeaponSystem&) {
-    char buf[128];
     if (def.hpBonus > 0.f)
-        std::snprintf(buf, sizeof(buf), "Current Max HP: %.0f", player.maxHp);
-    else if (def.speedBonus > 0.f)
-        std::snprintf(buf, sizeof(buf), "Current speed: %.0f", player.speed);
-    else if (def.armorBonus > 0.f)
-        std::snprintf(buf, sizeof(buf), "Current armor: %.0f%%", player.armor * 100.f);
-    else if (def.magnetBonus > 0.f)
-        std::snprintf(buf, sizeof(buf), "Current range: %.0f", player.magnetRange);
-    else if (def.xpMultiplierBonus > 0.f)
-        std::snprintf(buf, sizeof(buf), "Current XP mult: %.0f%%", player.xpMultiplier * 100.f);
-    else
-        return "";
-    return buf;
+        return std::format("Current Max HP: {:.0f}", player.maxHp);
+    if (def.speedBonus > 0.f)
+        return std::format("Current speed: {:.0f}", player.speed);
+    if (def.armorBonus > 0.f)
+        return std::format("Current armor: {:.0f}%", player.armor * 100.f);
+    if (def.magnetBonus > 0.f)
+        return std::format("Current range: {:.0f}", player.magnetRange);
+    if (def.xpMultiplierBonus > 0.f)
+        return std::format("Current XP mult: {:.0f}%", player.xpMultiplier * 100.f);
+    return "";
 }
 
 UpgradeDef makeStatBoost(const char* name, const char* desc, float hp, float speed, float armor,
@@ -85,18 +82,14 @@ std::string detailWeaponUpgrade(const UpgradeDef& def, const PlayerState&,
     auto nxt = getWeaponStats(def.weaponType, curLvl + 1);
     const auto& wd = WEAPON_DEFS[static_cast<int>(def.weaponType)];
 
-    char buf[128];
     if (wd.isAOE) {
-        std::snprintf(buf, sizeof(buf), "Dmg %.0f->%.0f | AoE %.0f->%.0f | CD %.2f->%.2fs",
-                      cur.damage, nxt.damage, cur.aoeRadius, nxt.aoeRadius, cur.cooldown,
-                      nxt.cooldown);
-    } else {
-        std::snprintf(buf, sizeof(buf),
-                      "Dmg %.0f->%.0f | CD %.2f->%.2fs | Proj %d->%d | Pierce %d->%d", cur.damage,
-                      nxt.damage, cur.cooldown, nxt.cooldown, cur.projectileCount,
-                      nxt.projectileCount, cur.pierce, nxt.pierce);
+        return std::format("Dmg {:.0f}->{:.0f} | AoE {:.0f}->{:.0f} | CD {:.2f}->{:.2f}s",
+                           cur.damage, nxt.damage, cur.aoeRadius, nxt.aoeRadius, cur.cooldown,
+                           nxt.cooldown);
     }
-    return buf;
+    return std::format("Dmg {:.0f}->{:.0f} | CD {:.2f}->{:.2f}s | Proj {}->{} | Pierce {}->{}",
+                       cur.damage, nxt.damage, cur.cooldown, nxt.cooldown, cur.projectileCount,
+                       nxt.projectileCount, cur.pierce, nxt.pierce);
 }
 
 // 构建完整升级表

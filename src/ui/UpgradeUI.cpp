@@ -5,6 +5,8 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Text.hpp>
 
+#include <format>
+
 namespace {
 constexpr float VW = Config::VIEW_WIDTH;
 constexpr float VH = Config::VIEW_HEIGHT;
@@ -43,7 +45,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
         txt.setPosition({VW * 0.25f, y});
 
         std::string prefix = (i == selected) ? "> " : "  ";
-        txt.setString(prefix + opt.name + "  [" + std::to_string(i + 1) + "]");
+        txt.setString(std::format("{}{}  [{}]", prefix, opt.name, i + 1));
         txt.setFillColor(i == selected ? Config::COLOR_TEXT_SELECTED : Config::COLOR_TEXT_DEFAULT);
         window.draw(txt);
 

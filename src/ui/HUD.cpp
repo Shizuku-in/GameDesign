@@ -5,7 +5,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include <cstdio>
+#include <format>
 #include <string>
 
 namespace {
@@ -60,34 +60,28 @@ HUD::HUD(const sf::Font& font)
 }
 
 void HUD::update(const PlayerState& player, const WeaponSystem& weapons, float gameTime) {
-    char buf[64];
-
     // HP
     float hpFrac = player.hp / player.maxHp;
     if (hpFrac < 0.f)
         hpFrac = 0.f;
     m_hpBarFill.setSize({VW * 0.25f * hpFrac, VH * 0.017f});
-    std::snprintf(buf, sizeof(buf), "HP %d/%d", static_cast<int>(player.hp),
-                  static_cast<int>(player.maxHp));
-    m_hpLabel.setString(buf);
+    m_hpLabel.setString(
+        std::format("HP {}/{}", static_cast<int>(player.hp), static_cast<int>(player.maxHp)));
 
     // XP
     float xpFrac = player.xp / player.xpToNext;
     if (xpFrac > 1.f)
         xpFrac = 1.f;
     m_xpBarFill.setSize({VW * 0.98f * xpFrac, VH * 0.013f});
-    std::snprintf(buf, sizeof(buf), "XP %d/%d", static_cast<int>(player.xp),
-                  static_cast<int>(player.xpToNext));
-    m_xpLabel.setString(buf);
+    m_xpLabel.setString(
+        std::format("XP {}/{}", static_cast<int>(player.xp), static_cast<int>(player.xpToNext)));
 
     // 等级
-    std::snprintf(buf, sizeof(buf), "Lv.%d", player.level);
-    m_levelText.setString(buf);
+    m_levelText.setString(std::format("Lv.{}", player.level));
 
     // 计时器（分:秒）
     int totalSec = static_cast<int>(gameTime);
-    std::snprintf(buf, sizeof(buf), "%02d:%02d", totalSec / 60, totalSec % 60);
-    m_timerText.setString(buf);
+    m_timerText.setString(std::format("{:02d}:{:02d}", totalSec / 60, totalSec % 60));
 
     // 武器（多行）
     std::string weaponStr;
@@ -96,8 +90,7 @@ void HUD::update(const PlayerState& player, const WeaponSystem& weapons, float g
         int lvl = weapons.getLevel(wt);
         if (lvl > 0) {
             const auto& def = WEAPON_DEFS[i];
-            std::snprintf(buf, sizeof(buf), "%s Lv.%d\n", def.name, lvl);
-            weaponStr += buf;
+            weaponStr += std::format("{} Lv.{}\n", def.name, lvl);
         }
     }
     m_weaponList.setString(weaponStr);
