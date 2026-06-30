@@ -11,31 +11,30 @@ namespace CollisionSystem {
 
 namespace {
 constexpr float CELL_SIZE = 100.f;
-
-int g_gridCols = 0;
-int g_gridRows = 0;
-static std::vector<std::vector<Enemy*>> grid; // 动态网格，按世界尺寸调整
-
-int getCellIndex(sf::Vector2f pos) {
-    int cx = static_cast<int>(pos.x / CELL_SIZE);
-    int cy = static_cast<int>(pos.y / CELL_SIZE);
-    cx = std::clamp(cx, 0, g_gridCols - 1);
-    cy = std::clamp(cy, 0, g_gridRows - 1);
-    return cy * g_gridCols + cx;
-}
 } // namespace
 
 void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& projectiles,
                        Pool<XPGem>& gems, Pool<DamageText>& damageTexts, int& score,
                        SoundPlayer& sounds, float worldWidth, float worldHeight) {
+    // 静态状态：跨帧复用，仅此函数可见
+    static int gridCols = 0;
+    static int gridRows = 0;
+    static std::vector<std::vector<Enemy*>> grid;
+
     // 动态调整网格尺寸
     int cols = static_cast<int>(worldWidth / CELL_SIZE) + 1;
     int rows = static_cast<int>(worldHeight / CELL_SIZE) + 1;
-    if (cols != g_gridCols || rows != g_gridRows) {
-        g_gridCols = cols;
-        g_gridRows = rows;
+    if (cols != gridCols || rows != gridRows) {
+        gridCols = cols;
+        gridRows = rows;
         grid.resize(static_cast<std::size_t>(cols * rows));
     }
+
+    auto getCellIndex = [&](sf::Vector2f pos) {
+        int cx = std::clamp(static_cast<int>(pos.x / CELL_SIZE), 0, gridCols - 1);
+        int cy = std::clamp(static_cast<int>(pos.y / CELL_SIZE), 0, gridRows - 1);
+        return cy * gridCols + cx;
+    };
 
     // 缓存最大敌人半径 — ENEMY_DEFS 在运行时不变，只需计算一次
     static const float maxEnemyRadius = [] {
@@ -64,17 +63,17 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
         // 计算弹幕可能触及的格子范围（考虑最大敌人半径，防止边缘漏判）
         float searchRadius = p.radius + maxEnemyRadius;
         int minCx =
-            std::clamp(static_cast<int>((p.pos.x - searchRadius) / CELL_SIZE), 0, g_gridCols - 1);
+            std::clamp(static_cast<int>((p.pos.x - searchRadius) / CELL_SIZE), 0, gridCols - 1);
         int maxCx =
-            std::clamp(static_cast<int>((p.pos.x + searchRadius) / CELL_SIZE), 0, g_gridCols - 1);
+            std::clamp(static_cast<int>((p.pos.x + searchRadius) / CELL_SIZE), 0, gridCols - 1);
         int minCy =
-            std::clamp(static_cast<int>((p.pos.y - searchRadius) / CELL_SIZE), 0, g_gridRows - 1);
+            std::clamp(static_cast<int>((p.pos.y - searchRadius) / CELL_SIZE), 0, gridRows - 1);
         int maxCy =
-            std::clamp(static_cast<int>((p.pos.y + searchRadius) / CELL_SIZE), 0, g_gridRows - 1);
+            std::clamp(static_cast<int>((p.pos.y + searchRadius) / CELL_SIZE), 0, gridRows - 1);
 
         for (int cy = minCy; cy <= maxCy; ++cy) {
             for (int cx = minCx; cx <= maxCx; ++cx) {
-                int cellIdx = cy * g_gridCols + cx;
+                int cellIdx = cy * gridCols + cx;
                 for (Enemy* e : grid[cellIdx]) {
                     if (e->hp <= 0.f) [[unlikely]]
                         continue;
@@ -99,19 +98,19 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                             float explosionSearch = p.aoeRadius + maxEnemyRadius;
                             int eMinCx = std::clamp(
                                 static_cast<int>((hitPos.x - explosionSearch) / CELL_SIZE), 0,
-                                g_gridCols - 1);
+                                gridCols - 1);
                             int eMaxCx = std::clamp(
                                 static_cast<int>((hitPos.x + explosionSearch) / CELL_SIZE), 0,
-                                g_gridCols - 1);
+                                gridCols - 1);
                             int eMinCy = std::clamp(
                                 static_cast<int>((hitPos.y - explosionSearch) / CELL_SIZE), 0,
-                                g_gridRows - 1);
+                                gridRows - 1);
                             int eMaxCy = std::clamp(
                                 static_cast<int>((hitPos.y + explosionSearch) / CELL_SIZE), 0,
-                                g_gridRows - 1);
+                                gridRows - 1);
                             for (int ey = eMinCy; ey <= eMaxCy; ++ey) {
                                 for (int ex = eMinCx; ex <= eMaxCx; ++ex) {
-                                    for (Enemy* oe : grid[ey * g_gridCols + ex]) {
+                                    for (Enemy* oe : grid[ey * gridCols + ex]) {
                                         if (oe == e || oe->hp <= 0.f) [[unlikely]]
                                             continue;
                                         if (circleCircle(hitPos, p.aoeRadius, oe->pos, oe->radius))
@@ -168,17 +167,17 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
         float searchRadius = player.radius + maxEnemyRadius;
         int minCx = std::clamp(static_cast<int>((player.pos.x - searchRadius) / CELL_SIZE), 0,
-                               g_gridCols - 1);
+                               gridCols - 1);
         int maxCx = std::clamp(static_cast<int>((player.pos.x + searchRadius) / CELL_SIZE), 0,
-                               g_gridCols - 1);
+                               gridCols - 1);
         int minCy = std::clamp(static_cast<int>((player.pos.y - searchRadius) / CELL_SIZE), 0,
-                               g_gridRows - 1);
+                               gridRows - 1);
         int maxCy = std::clamp(static_cast<int>((player.pos.y + searchRadius) / CELL_SIZE), 0,
-                               g_gridRows - 1);
+                               gridRows - 1);
 
         for (int cy = minCy; cy <= maxCy; ++cy) {
             for (int cx = minCx; cx <= maxCx; ++cx) {
-                int cellIdx = cy * g_gridCols + cx;
+                int cellIdx = cy * gridCols + cx;
                 for (Enemy* e : grid[cellIdx]) {
                     if (e->hp <= 0.f) [[unlikely]]
                         continue;
