@@ -53,6 +53,7 @@ constexpr float TAU = 2.f * PI;
 // --- 敌人（非按类型的通用常数）---
 // 各类型具体属性见 gameplay/EnemyDefs.hpp — ENEMY_DEFS[] 表
 constexpr float ENEMY_ANIM_FRAME_DURATION = 0.12f;     // 精灵动画帧间隔
+constexpr float PLAYER_ANIM_FRAME_DURATION = 0.12f;    // 玩家动画帧间隔
 constexpr float ENEMY_HIT_FLASH_DURATION = 0.1f;       // 受击闪白时长
 constexpr float ENEMY_DIFFICULTY_WAVE_INTERVAL = 10.f; // 波次递增间隔系数
 

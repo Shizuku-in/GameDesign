@@ -56,6 +56,10 @@ private:
     std::array<SpriteSheet, kEnemyTypeCount> m_spritesMove;
     std::array<SpriteSheet, kEnemyTypeCount> m_spritesDamaged;
 
+    // 角色精灵表（按方向索引：forward, back, left, right, idle）
+    static constexpr std::size_t kPlayerDirCount = 5;
+    std::array<SpriteSheet, kPlayerDirCount> m_playerSprites;
+
     // 相机
     sf::View m_camera;
     const sf::Font* m_font = nullptr;
@@ -79,6 +83,7 @@ private:
     void updateXPGems(float dt);
     void updateDamageTexts(float dt);
     void updateCamera();
+    void updatePlayerAnimation(float dt);
     void onLevelUp();
     void onDeath();
 };

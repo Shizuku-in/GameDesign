@@ -2,6 +2,7 @@
 #include "core/Game.hpp"
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
+#include "gameplay/CharacterDefs.hpp"
 #include "gameplay/EnemyDefs.hpp"
 #include "graphics/SpriteSheet.hpp"
 #include "scenes/GameOverScene.hpp"
@@ -49,6 +50,22 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
                          def.name, moveOk, damagedOk);
     }
     m_spawning.setEnemySprites(m_spritesMove.data(), m_spritesDamaged.data());
+
+    // 加载角色精灵表 — 从 CharacterDef 读取路径
+    const auto& charDef = CHARACTER_DEFS[0]; // 默认 Elf
+    const char* dirPaths[kPlayerDirCount] = {charDef.spriteForward, charDef.spriteBack,
+                                             charDef.spriteLeft, charDef.spriteRight,
+                                             charDef.spriteIdle};
+    for (std::size_t i = 0; i < kPlayerDirCount; ++i) {
+        if (!m_playerSprites[i].loadFromFile(dirPaths[i], charDef.frameWidth, charDef.frameHeight))
+            std::fprintf(stderr, "[WARN] Player sprite load failed: %s\n", dirPaths[i]);
+    }
+    m_player.spriteForward = &m_playerSprites[0];
+    m_player.spriteBack = &m_playerSprites[1];
+    m_player.spriteLeft = &m_playerSprites[2];
+    m_player.spriteRight = &m_playerSprites[3];
+    m_player.spriteIdle = &m_playerSprites[4];
+    m_player.currentSprite = m_player.spriteIdle;
 
     // BGM
     if (m_bgm.openFromFile(Config::BGM_PLAY_SCENE_PATH)) {
@@ -132,6 +149,7 @@ void PlayScene::update(sf::Time dt) {
     // 输入 + 移动
     handleInput();
     movePlayer(dtSec);
+    updatePlayerAnimation(dtSec);
 
     // 武器
     m_weapons.update(dtSec, m_player, m_enemies, m_projectiles, m_sounds);
@@ -229,6 +247,32 @@ void PlayScene::movePlayer(float dt) {
 
     if (m_player.invincibilityTimer > 0.f)
         m_player.invincibilityTimer -= dt;
+}
+
+void PlayScene::updatePlayerAnimation(float dt) {
+    // 根据移动方向选择精灵表
+    const SpriteSheet* target = m_player.spriteIdle;
+    if (m_player.vel.y < 0.f)
+        target = m_player.spriteBack;
+    else if (m_player.vel.y > 0.f)
+        target = m_player.spriteForward;
+    else if (m_player.vel.x < 0.f)
+        target = m_player.spriteLeft;
+    else if (m_player.vel.x > 0.f)
+        target = m_player.spriteRight;
+
+    if (target != m_player.currentSprite) {
+        m_player.currentSprite = target;
+        m_player.animFrame = 0;
+        m_player.animTimer = 0.f;
+    }
+
+    m_player.animTimer += dt;
+    if (m_player.currentSprite && m_player.currentSprite->frameCount > 0 &&
+        m_player.animTimer >= Config::PLAYER_ANIM_FRAME_DURATION) {
+        m_player.animTimer -= Config::PLAYER_ANIM_FRAME_DURATION;
+        m_player.animFrame = (m_player.animFrame + 1) % m_player.currentSprite->frameCount;
+    }
 }
 
 void PlayScene::updateEnemies(float dt) {

@@ -4,6 +4,8 @@
 
 #include <SFML/System/Vector2.hpp>
 
+struct SpriteSheet;
+
 /// 玩家状态 — 单例，不存入对象池。
 struct PlayerState {
     sf::Vector2f pos{Config::WORLD_WIDTH / 2.f, Config::WORLD_HEIGHT / 2.f};
@@ -23,4 +25,14 @@ struct PlayerState {
     float xpToNext = Config::XP_BASE_THRESHOLD;
 
     float invincibilityTimer = 0.f; // > 0 表示无敌，不受伤害
+
+    // 角色精灵动画（由 PlayScene 赋值，WorldRenderer 读取）
+    const SpriteSheet* spriteForward = nullptr; // 朝下
+    const SpriteSheet* spriteBack = nullptr;    // 朝上
+    const SpriteSheet* spriteLeft = nullptr;
+    const SpriteSheet* spriteRight = nullptr;
+    const SpriteSheet* spriteIdle = nullptr;    // 待机
+    const SpriteSheet* currentSprite = nullptr; // 当前方向（每帧更新）
+    int animFrame = 0;
+    float animTimer = 0.f;
 };

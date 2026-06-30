@@ -51,14 +51,15 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         }
     });
 
-    // 玩家（白色，无敌时闪烁）
-    bool visible = true;
-    if (player.invincibilityTimer > 0.f) {
-        int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
-        visible = (flash % 2 == 0);
-    }
-    if (visible) {
-        addQuad(player.pos, player.radius, sf::Color::White);
+    // 玩家精灵（在精灵层绘制，此处仅处理无精灵的后备情况）
+    if (!player.currentSprite) {
+        bool visible = true;
+        if (player.invincibilityTimer > 0.f) {
+            int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
+            visible = (flash % 2 == 0);
+        }
+        if (visible)
+            addQuad(player.pos, player.radius, sf::Color::White);
     }
 
     // 将所有实体通过 1 次 Draw Call 提交给 GPU！
@@ -90,6 +91,26 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
             window.draw(enemySprite);
         });
+    }
+
+    // 绘制玩家精灵
+    if (player.currentSprite && m_cachedSpriteSheet) {
+        bool visible = true;
+        if (player.invincibilityTimer > 0.f) {
+            int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
+            visible = (flash % 2 == 0);
+        }
+        if (visible) {
+            const auto* ss = player.currentSprite;
+            sf::Sprite playerSprite(m_cachedSpriteSheet->texture);
+            playerSprite.setTexture(ss->texture);
+            playerSprite.setTextureRect(sf::IntRect({player.animFrame * ss->frameWidth, 0},
+                                                    {ss->frameWidth, ss->frameHeight}));
+            playerSprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
+                                    static_cast<float>(ss->frameHeight) / 2.f});
+            playerSprite.setPosition(player.pos);
+            window.draw(playerSprite);
+        }
     }
 
     // 绘制伤害飘字
