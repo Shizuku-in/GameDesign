@@ -9,14 +9,10 @@ namespace Config {
 constexpr float WORLD_WIDTH = 3840.f;
 constexpr float WORLD_HEIGHT = 2160.f;
 
-// --- 玩家 ---
-constexpr float PLAYER_RADIUS = 16.f;
-constexpr float PLAYER_SPEED = 220.f;
-constexpr float PLAYER_MAX_HP = 100.f;
-constexpr float PLAYER_ARMOR = 0.f;    // 伤害减免 0–1
-constexpr float PLAYER_MAGNET = 80.f;  // 宝石拾取范围
+// --- 玩家（通用，非按角色） ---
 constexpr float PLAYER_IFRAMES = 0.5f; // 受击后无敌时间（秒）
 constexpr int PLAYER_MAX_WEAPONS = 6;
+constexpr float PLAYER_MAX_ARMOR = 0.5f; // 护甲上限 50%
 
 // --- 敌人 ---
 constexpr float ENEMY_SPAWN_DISTANCE = 1200.f; // 生成时距玩家的最小距离
@@ -62,9 +58,6 @@ constexpr float DMGTEXT_VELOCITY_Y = -50.f;
 constexpr float DMGTEXT_LIFETIME = 0.6f;
 constexpr float DMGTEXT_Y_OFFSET = -10.f;
 constexpr float DMGTEXT_X_SPREAD = 20.f;
-
-// --- 玩家 ---
-constexpr float PLAYER_MAX_ARMOR = 0.5f; // 护甲上限 50%
 
 // --- 音频 ---
 constexpr float BGM_VOLUME = 50.f;

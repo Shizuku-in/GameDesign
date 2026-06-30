@@ -11,14 +11,25 @@ struct PlayerState {
     sf::Vector2f pos{Config::WORLD_WIDTH / 2.f, Config::WORLD_HEIGHT / 2.f};
     sf::Vector2f vel; // 输入方向（已归一化），每帧计算
 
-    float speed = Config::PLAYER_SPEED;
-    float hp = Config::PLAYER_MAX_HP;
-    float maxHp = Config::PLAYER_MAX_HP;
-    float radius = Config::PLAYER_RADIUS;
+    float speed = 0.f;
+    float baseSpeed = 0.f;
+    float hp = 0.f;
+    float maxHp = 0.f;
+    float radius = 0.f;
 
-    float armor = Config::PLAYER_ARMOR;        // 伤害减免 0–1
-    float magnetRange = Config::PLAYER_MAGNET; // 宝石拾取范围
+    float armor = 0.f;
+    float magnetRange = 0.f;
     float xpMultiplier = 1.0f;
+
+    /// 从角色定义初始化属性（覆盖默认值）。
+    void initFromCharacter(float charHp, float charSpeed, float charRadius, float charArmor,
+                           float charMagnet) {
+        hp = maxHp = charHp;
+        speed = baseSpeed = charSpeed;
+        radius = charRadius;
+        armor = charArmor;
+        magnetRange = charMagnet;
+    }
 
     int level = 1;
     float xp = 0.f;

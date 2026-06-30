@@ -19,7 +19,7 @@ bool statAvailable(const PlayerState&, const WeaponSystem&) { return true; }
 void applyStatBoost(PlayerState& player, WeaponSystem&, const UpgradeDef& def) {
     player.maxHp += def.hpBonus;
     player.hp += def.hpBonus;
-    player.speed += Config::PLAYER_SPEED * def.speedBonus; // 基于基础速度，非复利
+    player.speed += player.baseSpeed * def.speedBonus; // 基于基础速度，非复利
     player.armor += def.armorBonus;
     if (player.armor > Config::PLAYER_MAX_ARMOR)
         player.armor = Config::PLAYER_MAX_ARMOR;
