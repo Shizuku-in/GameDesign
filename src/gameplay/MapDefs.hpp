@@ -5,15 +5,14 @@
 /// 地图类型枚举——按添加顺序排列。
 enum class MapType : std::uint8_t { Forest, Count };
 
-/// 地图定义——世界尺寸 + 生成参数 + 资源路径，集中管理。
+/// 地图定义——生成参数 + 资源路径，集中管理。
+/// 世界尺寸从 TMX 文件自动读取，无需手动指定。
 struct MapDef {
     MapType type;
     const char* name;
     const char* bgmPath;
-
-    // 世界尺寸
-    float worldWidth;
-    float worldHeight;
+    const char* tilemapPath; // TMX 文件路径
+    const char* tilesetPath; // tileset 纹理路径
 
     // 生成参数
     float spawnDistance;     // 敌人生成距玩家距离

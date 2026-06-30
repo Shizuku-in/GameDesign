@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(game VERSION 0.1.0 LANGUAGES CXX)
+project(game VERSION 0.1.0 LANGUAGES CXX C)
 
 # --- C++ standard (SFML 3 requires >= C++17) ---
 set(CMAKE_CXX_STANDARD 20)
@@ -16,6 +16,25 @@ endif()
 
 # --- Locate SFML 3.1 ---
 find_package(SFML 3.1 COMPONENTS System Window Graphics Audio REQUIRED)
+
+# --- tmxlite (Tiled map parser, bundled) ---
+set(TMXLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tmxlite/tmxlite)
+add_library(tmxlite STATIC
+    ${TMXLITE_DIR}/src/FreeFuncs.cpp
+    ${TMXLITE_DIR}/src/ImageLayer.cpp
+    ${TMXLITE_DIR}/src/LayerGroup.cpp
+    ${TMXLITE_DIR}/src/Map.cpp
+    ${TMXLITE_DIR}/src/Object.cpp
+    ${TMXLITE_DIR}/src/ObjectGroup.cpp
+    ${TMXLITE_DIR}/src/ObjectTypes.cpp
+    ${TMXLITE_DIR}/src/Property.cpp
+    ${TMXLITE_DIR}/src/TileLayer.cpp
+    ${TMXLITE_DIR}/src/Tileset.cpp
+    ${TMXLITE_DIR}/src/detail/pugixml.cpp
+    ${TMXLITE_DIR}/src/miniz.c
+)
+target_include_directories(tmxlite PUBLIC ${TMXLITE_DIR}/include)
+target_compile_options(tmxlite PRIVATE -w) # 抑制第三方库警告
 
 # --- Source files ---
 add_executable(game
@@ -35,6 +54,7 @@ add_executable(game
     src/systems/SpawningSystem.cpp
     src/audio/SoundPlayer.cpp
     src/graphics/WorldRenderer.cpp
+    src/graphics/TilemapRenderer.cpp
     src/scenes/PlayScene.cpp
     src/scenes/TitleScene.cpp
     src/scenes/GameOverScene.cpp
@@ -42,11 +62,11 @@ add_executable(game
     src/ui/PauseMenu.cpp
 )
 
-# --- Include path for header-only resources ---
+# --- Include path ---
 target_include_directories(game PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # --- Link SFML (Graphics transitively links Window + System + platform deps) ---
-target_link_libraries(game PRIVATE SFML::Graphics SFML::Audio)
+target_link_libraries(game PRIVATE SFML::Graphics SFML::Audio tmxlite)
 
 # --- Copy assets next to the binary on every build ---
 add_custom_command(TARGET game POST_BUILD

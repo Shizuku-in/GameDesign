@@ -9,22 +9,15 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 
-/// 世界空间渲染：网格背景 + 实体 + 玩家。
+/// 世界空间渲染：实体 + 玩家（地面由 TilemapRenderer 负责）。
 class WorldRenderer {
 public:
-    WorldRenderer() = default;
-    void init(float worldWidth, float worldHeight);
-
-    /// 在世界空间绘制全部内容（需先 setView 到相机）。
+    /// 在世界空间绘制全部实体（需先 setView 到相机）。
     void render(sf::RenderWindow& window, const PlayerState& player, const Pool<Enemy>& enemies,
                 const Pool<Projectile>& projectiles, const Pool<XPGem>& gems,
                 const Pool<DamageText>& damageTexts, const sf::Font* font);
 
 private:
-    sf::VertexArray m_grid{sf::PrimitiveType::Lines};
     sf::VertexArray m_entityBatch{sf::PrimitiveType::Triangles};
     const SpriteSheet* m_cachedSpriteSheet = nullptr; // 缓存，避免每帧遍历查找
-    float m_worldWidth = 0.f;
-    float m_worldHeight = 0.f;
-    void buildGrid();
 };

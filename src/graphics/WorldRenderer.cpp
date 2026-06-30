@@ -8,18 +8,10 @@
 #include <SFML/Graphics/Text.hpp>
 #include <format>
 
-void WorldRenderer::init(float worldWidth, float worldHeight) {
-    m_worldWidth = worldWidth;
-    m_worldHeight = worldHeight;
-    buildGrid();
-}
-
 void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
                            const Pool<Enemy>& enemies, const Pool<Projectile>& projectiles,
                            const Pool<XPGem>& gems, const Pool<DamageText>& damageTexts,
                            const sf::Font* font) {
-    window.draw(m_grid);
-
     // 清空上一帧的批处理顶点
     m_entityBatch.clear();
 
@@ -146,30 +138,5 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
             window.draw(text);
         });
-    }
-}
-
-void WorldRenderer::buildGrid() {
-    constexpr float CELL = Config::VIEW_WIDTH / 24.f; // 约 80px @1920
-    float W = m_worldWidth;
-    float H = m_worldHeight;
-    sf::Color lineColor(50, 50, 50);
-
-    m_grid.clear();
-
-    auto addVertex = [&](float x, float y) {
-        sf::Vertex v;
-        v.position = {x, y};
-        v.color = lineColor;
-        m_grid.append(v);
-    };
-
-    for (float x = 0.f; x <= W; x += CELL) {
-        addVertex(x, 0.f);
-        addVertex(x, H);
-    }
-    for (float y = 0.f; y <= H; y += CELL) {
-        addVertex(0.f, y);
-        addVertex(W, y);
     }
 }

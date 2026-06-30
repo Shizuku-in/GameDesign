@@ -8,6 +8,7 @@
 #include "gameplay/MapDefs.hpp"
 #include "gameplay/UpgradeDefs.hpp"
 #include "graphics/SpriteSheet.hpp"
+#include "graphics/TilemapRenderer.hpp"
 #include "graphics/WorldRenderer.hpp"
 #include "systems/SpawningSystem.hpp"
 #include "systems/WeaponSystem.hpp"
@@ -46,6 +47,8 @@ private:
 
     // 地图配置
     const MapDef* m_map = nullptr;
+    float m_worldWidth = 0.f; // 从 TMX 自动读取
+    float m_worldHeight = 0.f;
 
     // 子系统
     WeaponSystem m_weapons;
@@ -53,6 +56,7 @@ private:
     SoundPlayer m_sounds;
     sf::Music m_bgm;
     WorldRenderer m_worldRenderer;
+    TilemapRenderer m_tilemap;
     std::unique_ptr<HUD> m_hud;
 
     // 敌人精灵表（按 EnemyType 索引）

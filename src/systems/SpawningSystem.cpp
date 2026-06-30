@@ -47,7 +47,7 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
     if (m_spawnTimer > 0.f)
         return;
 
-    // 敌人数上限保护帧率（M14 修复：逐个检查）
+    // 敌人数上限保护帧率
     if (enemies.activeCount() >= m_map->maxEnemies)
         return;
 
@@ -58,7 +58,7 @@ void SpawningSystem::update(float dt, float gameTime, sf::Vector2f playerPos,
             activeTypes = t + 1;
     }
 
-    // 每波上限（M15 修复：maxEnemiesPerWave 限制波次大小）
+    // 每波上限
     int waveCount = std::min(m_enemiesPerWave, m_map->maxEnemiesPerWave);
     for (int i = 0; i < waveCount; ++i) {
         // 逐个检查上限，防止波次超出
