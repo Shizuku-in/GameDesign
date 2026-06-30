@@ -112,6 +112,7 @@ void SpawningSystem::spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Ene
     e->radius = def.radius;
     e->damage = def.damage;
     e->xpValue = def.xpValue;
+    e->killed = false;
     e->type = type;
     e->spriteScale = def.spriteScale;
     e->spriteMove = m_spritesMove ? &m_spritesMove[t] : nullptr;

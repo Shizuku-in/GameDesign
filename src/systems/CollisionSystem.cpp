@@ -118,6 +118,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                                             oe->hp -= p.damage;
                                             oe->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
                                             if (oe->hp <= 0.f) [[unlikely]] {
+                                                oe->killed = true;
                                                 auto h = gems.acquire();
                                                 if (auto* g = gems.get(h)) {
                                                     g->pos = oe->pos;
@@ -136,6 +137,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                         --p.pierceCount;
 
                         if (e->hp <= 0.f) [[unlikely]] {
+                            e->killed = true;
                             auto handle = gems.acquire();
                             auto* g = gems.get(handle);
                             if (g) {
@@ -208,8 +210,21 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
     // 清理
     enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
-        if (e.hp <= 0.f)
+        if (e.hp <= 0.f) {
+            // 未结算的死亡（如大蒜 AoE 击杀）：补发掉落
+            if (!e.killed) {
+                auto gemHandle = gems.acquire();
+                if (auto* g = gems.get(gemHandle)) {
+                    g->pos = e.pos;
+                    g->value = e.xpValue;
+                    g->radius = 5.f;
+                    g->magnetTimer = Config::XP_GEM_MAGNET_DELAY;
+                }
+                ++score;
+                sounds.kill();
+            }
             enemies.release(h);
+        }
     });
     projectiles.forEachHandle([&](Pool<Projectile>::Handle h, Projectile& p) {
         if (p.lifetime <= 0.f)
