@@ -137,7 +137,7 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
     const auto& defs = getUpgradeDefs();
     std::vector<UpgradeOption> pool;
 
-    for (int i = 0; i < static_cast<int>(defs.size()); ++i) {
+    for (int i = 0; i < std::ssize(defs); ++i) {
         const auto& def = defs[i];
 
         // 武器升级走专用路径（需要 getUpgradeableWeapons）
@@ -171,12 +171,12 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
 
     std::shuffle(pool.begin(), pool.end(), Random::getEngine());
 
-    int count = std::min(3, static_cast<int>(pool.size()));
+    int count = std::min(3L, std::ssize(pool));
     return std::vector<UpgradeOption>(pool.begin(), pool.begin() + count);
 }
 
 void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOption& option) {
-    if (option.defIndex < 0 || option.defIndex >= static_cast<int>(getUpgradeDefs().size()))
+    if (option.defIndex < 0 || option.defIndex >= std::ssize(getUpgradeDefs()))
         return;
 
     const auto& def = getUpgradeDefs()[option.defIndex];

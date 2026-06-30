@@ -31,7 +31,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
     title.setPosition({VW * 0.4f, VH * 0.09f});
     window.draw(title);
 
-    int count = static_cast<int>(options.size());
+    int count = std::ssize(options);
     float yBase = VH * 0.16f;
     float yStep = VH * 0.08f;
 
