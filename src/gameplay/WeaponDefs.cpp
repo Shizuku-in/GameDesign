@@ -1,19 +1,25 @@
 #include "gameplay/WeaponDefs.hpp"
+#include "systems/WeaponBehaviors.hpp"
 
 #include <algorithm>
 #include <cmath>
 
 const WeaponDef WEAPON_DEFS[] = {
     // MagicWand — 快速、低伤追踪弹
-    {WeaponType::MagicWand, "Magic Wand", 0.8f, 10.f, 500.f, 1.2f, 4.f, 500.f, 1, 0, 8, false, 0.f},
+    {WeaponType::MagicWand, "Magic Wand", 0.8f, 10.f, 500.f, 1.2f, 4.f, 500.f, 1, 0, 8, false, 0.f,
+     []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<MagicWandBehavior>(); }},
     // Knife — 向敌人方向发射，高速穿透
-    {WeaponType::Knife, "Knife", 1.0f, 8.f, 600.f, 1.0f, 3.f, 0.f, 1, 3, 8, false, 0.f},
+    {WeaponType::Knife, "Knife", 1.0f, 8.f, 600.f, 1.0f, 3.f, 0.f, 1, 3, 8, false, 0.f,
+     []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<KnifeBehavior>(); }},
     // Axe — 环绕玩家旋转
-    {WeaponType::Axe, "Axe", 2.0f, 25.f, 0.f, 4.0f, 8.f, 0.f, 1, 99, 8, false, 0.f},
+    {WeaponType::Axe, "Axe", 2.0f, 25.f, 0.f, 4.0f, 8.f, 0.f, 1, 99, 8, false, 0.f,
+     []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<AxeBehavior>(); }},
     // Fireball — 慢速火球，首次命中爆炸（AoE）
-    {WeaponType::Fireball, "Fireball", 1.5f, 20.f, 250.f, 1.5f, 6.f, 400.f, 1, 0, 8, false, 60.f},
+    {WeaponType::Fireball, "Fireball", 1.5f, 20.f, 250.f, 1.5f, 6.f, 400.f, 1, 0, 8, false, 60.f,
+     []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<FireballBehavior>(); }},
     // Garlic — 持续 AoE，无弹幕，每帧对范围内敌人造成伤害
-    {WeaponType::Garlic, "Garlic", 0.5f, 5.f, 0.f, 0.f, 0.f, 0.f, 0, 0, 8, true, 80.f},
+    {WeaponType::Garlic, "Garlic", 0.5f, 5.f, 0.f, 0.f, 0.f, 0.f, 0, 0, 8, true, 80.f,
+     []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<GarlicBehavior>(); }},
 };
 
 static_assert(sizeof(WEAPON_DEFS) / sizeof(WEAPON_DEFS[0]) == static_cast<int>(WeaponType::Count),
@@ -37,4 +43,11 @@ WeaponStats getWeaponStats(WeaponType type, int level) {
                       ? def.aoeRadius * (1.0f + 0.1f * static_cast<float>(n))
                       : 0.f;
     return s;
+}
+
+std::unique_ptr<IWeaponBehavior> createWeapon(WeaponType type) {
+    auto idx = static_cast<std::size_t>(type);
+    if (idx >= static_cast<std::size_t>(WeaponType::Count))
+        return nullptr;
+    return WEAPON_DEFS[idx].create();
 }

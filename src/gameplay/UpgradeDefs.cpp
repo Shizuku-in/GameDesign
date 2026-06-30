@@ -1,99 +1,189 @@
 #include "gameplay/UpgradeDefs.hpp"
 
 #include "core/Random.hpp"
+#include "gameplay/WeaponDefs.hpp"
+
 #include <algorithm>
 #include <cstdio>
 
-// 属性提升定义
-struct StatBoostDef {
-    const char* name;
-    const char* description;
-    float hp;
-    float speed;
-    float armor;
-    float magnet;
-    float xpMult;
-};
+// ===========================================================================
+// 辅助函数
+// ===========================================================================
 
-static const StatBoostDef STAT_BOOSTS[] = {
-    {"Vitality", "+20 Max HP, heal 20", 20.f, 0.f, 0.f, 0.f, 0.f},
-    {"Swiftness", "+10% movement speed", 0.f, 0.10f, 0.f, 0.f, 0.f},
-    {"Armor", "+5% damage reduction (max 50%)", 0.f, 0.f, 0.05f, 0.f, 0.f},
-    {"Magnet", "+30 pickup range", 0.f, 0.f, 0.f, 30.f, 0.f},
-    {"Greed", "+15% XP gain", 0.f, 0.f, 0.f, 0.f, 0.15f},
-};
+namespace {
 
-std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
-                                            const WeaponSystem& weapons) {
-    std::vector<UpgradeOption> pool;
+// --- StatBoost ---
+
+bool statAvailable(const PlayerState&, const WeaponSystem&) { return true; }
+
+void applyStatBoost(PlayerState& player, WeaponSystem&, const UpgradeDef& def) {
+    player.maxHp += def.hpBonus;
+    player.hp += def.hpBonus;
+    player.speed += Config::PLAYER_SPEED * def.speedBonus; // 基于基础速度，非复利
+    player.armor += def.armorBonus;
+    if (player.armor > Config::PLAYER_MAX_ARMOR)
+        player.armor = Config::PLAYER_MAX_ARMOR;
+    player.magnetRange += def.magnetBonus;
+    player.xpMultiplier += def.xpMultiplierBonus;
+}
+
+std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player, const WeaponSystem&) {
     char buf[128];
+    if (def.hpBonus > 0.f)
+        std::snprintf(buf, sizeof(buf), "Current Max HP: %.0f", player.maxHp);
+    else if (def.speedBonus > 0.f)
+        std::snprintf(buf, sizeof(buf), "Current speed: %.0f", player.speed);
+    else if (def.armorBonus > 0.f)
+        std::snprintf(buf, sizeof(buf), "Current armor: %.0f%%", player.armor * 100.f);
+    else if (def.magnetBonus > 0.f)
+        std::snprintf(buf, sizeof(buf), "Current range: %.0f", player.magnetRange);
+    else if (def.xpMultiplierBonus > 0.f)
+        std::snprintf(buf, sizeof(buf), "Current XP mult: %.0f%%", player.xpMultiplier * 100.f);
+    else
+        return "";
+    return buf;
+}
 
-    // 1. 新武器（未拥有且槽位有空余）
-    if (!weapons.isFull()) {
-        for (int i = 0; i < static_cast<int>(WeaponType::Count); ++i) {
-            auto wt = static_cast<WeaponType>(i);
-            if (!weapons.hasWeapon(wt)) {
-                const auto& def = WEAPON_DEFS[i];
-                UpgradeOption opt{};
-                opt.category = UpgradeCategory::NewWeapon;
-                opt.name = def.name;
-                opt.description = "New weapon";
-                opt.detail = def.isAOE ? "AoE aura, no projectiles" : "Auto-targeting projectile";
-                opt.weaponType = wt;
-                pool.push_back(opt);
+UpgradeDef makeStatBoost(const char* name, const char* desc, float hp, float speed, float armor,
+                         float magnet, float xpMult) {
+    return {UpgradeCategory::StatBoost,
+            name,
+            desc,
+            detailStatBoost,
+            WeaponType::MagicWand,
+            hp,
+            speed,
+            armor,
+            magnet,
+            xpMult,
+            statAvailable,
+            applyStatBoost};
+}
+
+// --- NewWeapon ---
+
+bool newWeaponAvailable(const PlayerState&, const WeaponSystem& weapons) {
+    return !weapons.isFull();
+}
+
+void applyNewWeapon(PlayerState&, WeaponSystem& weapons, const UpgradeDef& def) {
+    weapons.addWeapon(def.weaponType);
+}
+
+std::string detailNewWeapon(const UpgradeDef& def, const PlayerState&, const WeaponSystem&) {
+    const auto& wd = WEAPON_DEFS[static_cast<int>(def.weaponType)];
+    if (wd.isAOE)
+        return "AoE aura, no projectiles";
+    if (wd.aoeRadius > 0.f)
+        return "Projectile, explodes on hit";
+    return "Auto-targeting projectile";
+}
+
+// --- WeaponUpgrade ---
+
+void applyWeaponUpgrade(PlayerState&, WeaponSystem& weapons, const UpgradeDef& def) {
+    weapons.upgradeWeapon(def.weaponType);
+}
+
+std::string detailWeaponUpgrade(const UpgradeDef& def, const PlayerState&,
+                                const WeaponSystem& weapons) {
+    int curLvl = weapons.getLevel(def.weaponType);
+    auto cur = getWeaponStats(def.weaponType, curLvl);
+    auto nxt = getWeaponStats(def.weaponType, curLvl + 1);
+    const auto& wd = WEAPON_DEFS[static_cast<int>(def.weaponType)];
+
+    char buf[128];
+    if (wd.isAOE) {
+        std::snprintf(buf, sizeof(buf), "Dmg %.0f->%.0f | AoE %.0f->%.0f | CD %.2f->%.2fs",
+                      cur.damage, nxt.damage, cur.aoeRadius, nxt.aoeRadius, cur.cooldown,
+                      nxt.cooldown);
+    } else {
+        std::snprintf(buf, sizeof(buf),
+                      "Dmg %.0f->%.0f | CD %.2f->%.2fs | Proj %d->%d | Pierce %d->%d", cur.damage,
+                      nxt.damage, cur.cooldown, nxt.cooldown, cur.projectileCount,
+                      nxt.projectileCount, cur.pierce, nxt.pierce);
+    }
+    return buf;
+}
+
+// 构建完整升级表
+std::vector<UpgradeDef> buildUpgradeDefs() {
+    std::vector<UpgradeDef> d;
+
+    // --- 属性提升（5 项） ---
+    d.push_back(makeStatBoost("Vitality", "+20 Max HP, heal 20", 20.f, 0.f, 0.f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Swiftness", "+10% movement speed", 0.f, 0.10f, 0.f, 0.f, 0.f));
+    d.push_back(
+        makeStatBoost("Armor", "+5% damage reduction (max 50%)", 0.f, 0.f, 0.05f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Magnet", "+30 pickup range", 0.f, 0.f, 0.f, 30.f, 0.f));
+    d.push_back(makeStatBoost("Greed", "+15% XP gain", 0.f, 0.f, 0.f, 0.f, 0.15f));
+
+    // --- 新武器 + 武器升级（从 WEAPON_DEFS 自动生成） ---
+    for (int i = 0; i < static_cast<int>(WeaponType::Count); ++i) {
+        const auto& wd = WEAPON_DEFS[i];
+
+        // NewWeapon
+        d.push_back({UpgradeCategory::NewWeapon, wd.name, "New weapon", detailNewWeapon,
+                     static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, newWeaponAvailable,
+                     applyNewWeapon});
+
+        // WeaponUpgrade
+        d.push_back({UpgradeCategory::WeaponUpgrade, wd.name, "Upgrade weapon", detailWeaponUpgrade,
+                     static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, nullptr,
+                     applyWeaponUpgrade});
+    }
+
+    return d;
+}
+
+const std::vector<UpgradeDef>& getUpgradeDefs() {
+    static const std::vector<UpgradeDef> defs = buildUpgradeDefs();
+    return defs;
+}
+
+} // namespace
+
+// ===========================================================================
+// 运行时逻辑
+// ===========================================================================
+
+std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
+                                            const WeaponSystem& weapons) {
+    const auto& defs = getUpgradeDefs();
+    std::vector<UpgradeOption> pool;
+
+    for (int i = 0; i < static_cast<int>(defs.size()); ++i) {
+        const auto& def = defs[i];
+
+        // 武器升级走专用路径（需要 getUpgradeableWeapons）
+        if (def.category == UpgradeCategory::WeaponUpgrade) {
+            auto upgradeable = weapons.getUpgradeableWeapons();
+            bool found = false;
+            for (auto wt : upgradeable) {
+                if (wt == def.weaponType) {
+                    found = true;
+                    break;
+                }
             }
+            if (!found)
+                continue;
+        } else if (def.available && !def.available(player, weapons)) {
+            continue;
         }
-    }
-
-    // 2. 可升级的已拥有武器
-    auto upgradeable = weapons.getUpgradeableWeapons();
-    for (auto wt : upgradeable) {
-        const auto& def = WEAPON_DEFS[static_cast<int>(wt)];
-        int curLvl = weapons.getLevel(wt);
-        auto cur = getWeaponStats(wt, curLvl);
-        auto nxt = getWeaponStats(wt, curLvl + 1);
 
         UpgradeOption opt{};
-        opt.category = UpgradeCategory::WeaponUpgrade;
+        opt.category = def.category;
         opt.name = def.name;
-        opt.weaponType = wt;
+        opt.description = def.desc;
+        opt.weaponType = def.weaponType;
+        opt.defIndex = i;
 
-        std::snprintf(buf, sizeof(buf), "Lv.%d -> Lv.%d", curLvl, curLvl + 1);
-        opt.description = buf;
+        if (def.detailFn)
+            opt.detail = def.detailFn(def, player, weapons);
 
-        if (def.isAOE) {
-            std::snprintf(buf, sizeof(buf), "Dmg %.0f->%.0f | AoE %.0f->%.0f | CD %.2f->%.2fs",
-                          cur.damage, nxt.damage, cur.aoeRadius, nxt.aoeRadius, cur.cooldown,
-                          nxt.cooldown);
-        } else {
-            std::snprintf(buf, sizeof(buf),
-                          "Dmg %.0f->%.0f | CD %.2f->%.2fs | Proj %d->%d | Pierce %d->%d",
-                          cur.damage, nxt.damage, cur.cooldown, nxt.cooldown, cur.projectileCount,
-                          nxt.projectileCount, cur.pierce, nxt.pierce);
-        }
-        opt.detail = buf;
         pool.push_back(opt);
     }
 
-    // 3. 属性提升（始终可选）
-    for (const auto& sb : STAT_BOOSTS) {
-        UpgradeOption opt{};
-        opt.category = UpgradeCategory::StatBoost;
-        opt.name = sb.name;
-        std::snprintf(buf, sizeof(buf), "%s (currently %.0f)", sb.description,
-                      sb.hp > 0.f ? 0.f // placeholder — actual stat in player unused
-                                  : 0.f);
-        opt.description = sb.description;
-        opt.detail = "";
-        opt.hpBonus = sb.hp;
-        opt.speedBonus = sb.speed;
-        opt.armorBonus = sb.armor;
-        opt.magnetBonus = sb.magnet;
-        opt.xpMultiplierBonus = sb.xpMult;
-        pool.push_back(opt);
-    }
-
-    // 随机打乱，取最多 3 个
     std::shuffle(pool.begin(), pool.end(), Random::getEngine());
 
     int count = std::min(3, static_cast<int>(pool.size()));
@@ -101,26 +191,12 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& /*player*/,
 }
 
 void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOption& option) {
-    switch (option.category) {
-    case UpgradeCategory::NewWeapon:
-        weapons.addWeapon(option.weaponType);
-        break;
+    if (option.defIndex < 0 || option.defIndex >= static_cast<int>(getUpgradeDefs().size()))
+        return;
 
-    case UpgradeCategory::WeaponUpgrade:
-        weapons.upgradeWeapon(option.weaponType);
-        break;
-
-    case UpgradeCategory::StatBoost:
-        player.maxHp += option.hpBonus;
-        player.hp += option.hpBonus; // 同时回复等量 HP
-        player.speed += player.speed * option.speedBonus;
-        player.armor += option.armorBonus;
-        if (player.armor > Config::PLAYER_MAX_ARMOR)
-            player.armor = Config::PLAYER_MAX_ARMOR;
-        player.magnetRange += option.magnetBonus;
-        player.xpMultiplier += option.xpMultiplierBonus;
-        break;
-    }
+    const auto& def = getUpgradeDefs()[option.defIndex];
+    if (def.apply)
+        def.apply(player, weapons, def);
 
     // 升级后：HP 钳制到最大值
     if (player.hp > player.maxHp)

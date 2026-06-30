@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+
+class IWeaponBehavior;
 
 enum class WeaponType : std::uint8_t {
     MagicWand,
@@ -11,8 +14,10 @@ enum class WeaponType : std::uint8_t {
     Count
 };
 
-/// 1 级时的武器属性常量。
+/// 1 级时的武器属性常量 + 工厂函数。
 struct WeaponDef {
+    using CreateFn = std::unique_ptr<IWeaponBehavior> (*)();
+
     WeaponType type;
     const char* name;
     float baseCooldown; // 攻击间隔（秒）
@@ -26,6 +31,7 @@ struct WeaponDef {
     int maxLevel;             // 最高等级（通常为 8）
     bool isAOE;               // 大蒜类：不生成弹幕，每帧对范围内敌人造成伤害
     float aoeRadius;          // 仅 isAOE 时有效
+    CreateFn create;          // 工厂函数：创建对应的行为实例
 };
 
 extern const WeaponDef WEAPON_DEFS[];
@@ -45,3 +51,6 @@ struct WeaponStats {
 
 /// 计算指定武器在等级 L (L >= 1) 时的属性。
 WeaponStats getWeaponStats(WeaponType type, int level);
+
+/// 创建指定武器类型的行为实例。
+std::unique_ptr<IWeaponBehavior> createWeapon(WeaponType type);

@@ -1,6 +1,6 @@
 #include "systems/WeaponSystem.hpp"
 #include "audio/SoundPlayer.hpp"
-#include "gameplay/WeaponFactory.hpp"
+#include "gameplay/WeaponDefs.hpp"
 #include "math/Collision.hpp"
 
 #include <cmath>
@@ -15,7 +15,7 @@ bool WeaponSystem::addWeapon(WeaponType type) {
         return false;
     for (auto& slot : m_slots) {
         if (slot.level == 0) {
-            auto newBehavior = WeaponFactory::create(type);
+            auto newBehavior = createWeapon(type);
             if (!newBehavior)
                 return false;
 

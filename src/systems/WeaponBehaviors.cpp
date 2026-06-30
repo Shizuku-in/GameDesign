@@ -1,6 +1,5 @@
 #include "systems/WeaponBehaviors.hpp"
 #include "data/Constants.hpp"
-#include "gameplay/WeaponFactory.hpp"
 #include "math/Collision.hpp"
 #include <cmath>
 #include <limits>
@@ -22,21 +21,6 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
 }
 
 } // namespace
-
-const std::array<WeaponFactory::FactoryFn, WeaponFactory::kCount> WeaponFactory::s_factories = {
-    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<MagicWandBehavior>(); },
-    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<KnifeBehavior>(); },
-    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<AxeBehavior>(); },
-    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<FireballBehavior>(); },
-    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<GarlicBehavior>(); },
-};
-
-std::unique_ptr<IWeaponBehavior> WeaponFactory::create(WeaponType type) {
-    auto idx = static_cast<std::size_t>(type);
-    if (idx >= kCount)
-        return nullptr;
-    return s_factories[idx]();
-}
 
 bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
                              Pool<Projectile>& proj) {
