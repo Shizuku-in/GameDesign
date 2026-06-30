@@ -1,8 +1,10 @@
 #include "graphics/WorldRenderer.hpp"
 #include "data/Constants.hpp"
+#include "graphics/SpriteSheet.hpp"
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <cstdio>
 
@@ -39,29 +41,14 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
     // 弹幕（黄色）
     projectiles.forEach([&](const Projectile& p) { addQuad(p.pos, p.radius, sf::Color::Yellow); });
 
-    // 敌人（红色系）
+    // 无精灵表的敌人回退为颜色方块
     enemies.forEach([&](const Enemy& e) {
-        sf::Color color;
-        switch (e.type) {
-        case EnemyType::Basic:
-            color = Config::COLOR_ENEMY_BASIC;
-            break;
-        case EnemyType::Fast:
-            color = Config::COLOR_ENEMY_FAST;
-            break;
-        case EnemyType::Tank:
-            color = Config::COLOR_ENEMY_TANK;
-            break;
-        case EnemyType::Boss:
-            color = Config::COLOR_ENEMY_BOSS;
-            break;
-        default:
-            color = sf::Color::Red;
+        if (!e.currentSprite) {
+            sf::Color color = sf::Color::Red;
+            if (e.hitFlashTimer > 0.f)
+                color = sf::Color::White;
+            addQuad(e.pos, e.radius, color);
         }
-        if (e.hitFlashTimer > 0.f) {
-            color = sf::Color::White; // 受击白光覆盖
-        }
-        addQuad(e.pos, e.radius, color);
     });
 
     // 玩家（白色，无敌时闪烁）
@@ -76,6 +63,34 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
     // 将所有实体通过 1 次 Draw Call 提交给 GPU！
     window.draw(m_entityBatch);
+
+    // 绘制敌人精灵
+    // 缓存任意有效精灵表来构造 sf::Sprite（SFML 3.x 无默认构造）
+    if (!m_cachedSpriteSheet) {
+        enemies.forEach([&](const Enemy& e) {
+            if (!m_cachedSpriteSheet && e.currentSprite)
+                m_cachedSpriteSheet = e.currentSprite;
+        });
+    }
+    if (m_cachedSpriteSheet) {
+        sf::Sprite enemySprite(m_cachedSpriteSheet->texture);
+        enemies.forEach([&](const Enemy& e) {
+            const auto* ss = e.currentSprite;
+            if (!ss)
+                return;
+
+            enemySprite.setTexture(ss->texture);
+            enemySprite.setTextureRect(
+                sf::IntRect({e.animFrame * ss->frameWidth, 0}, {ss->frameWidth, ss->frameHeight}));
+            enemySprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
+                                   static_cast<float>(ss->frameHeight) / 2.f});
+            enemySprite.setPosition(e.pos);
+
+            enemySprite.setScale({e.spriteScale, e.spriteScale});
+
+            window.draw(enemySprite);
+        });
+    }
 
     // 绘制伤害飘字
     if (font) {

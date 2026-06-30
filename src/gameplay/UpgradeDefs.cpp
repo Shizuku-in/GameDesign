@@ -115,8 +115,8 @@ void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOptio
         player.hp += option.hpBonus; // 同时回复等量 HP
         player.speed += player.speed * option.speedBonus;
         player.armor += option.armorBonus;
-        if (player.armor > 0.5f)
-            player.armor = 0.5f; // 上限 50%
+        if (player.armor > Config::PLAYER_MAX_ARMOR)
+            player.armor = Config::PLAYER_MAX_ARMOR;
         player.magnetRange += option.magnetBonus;
         player.xpMultiplier += option.xpMultiplierBonus;
         break;

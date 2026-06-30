@@ -1,6 +1,8 @@
 #include "systems/CollisionSystem.hpp"
 #include "audio/SoundPlayer.hpp"
+#include "core/Random.hpp"
 #include "data/Constants.hpp"
+#include "gameplay/EnemyDefs.hpp"
 #include "math/Collision.hpp"
 #include <algorithm>
 #include <vector>
@@ -11,10 +13,6 @@ namespace {
 constexpr float CELL_SIZE = 100.f;
 constexpr int GRID_COLS = static_cast<int>(Config::WORLD_WIDTH / CELL_SIZE) + 1;
 constexpr int GRID_ROWS = static_cast<int>(Config::WORLD_HEIGHT / CELL_SIZE) + 1;
-
-// 从 Constants 获取最大敌人半径（使用 C++14 constexpr std::max 支持）
-constexpr float MAX_ENEMY_RADIUS = std::max({Config::ENEMY_RADIUS[0], Config::ENEMY_RADIUS[1],
-                                             Config::ENEMY_RADIUS[2], Config::ENEMY_RADIUS[3]});
 
 int getCellIndex(sf::Vector2f pos) {
     int cx = static_cast<int>(pos.x / CELL_SIZE);
@@ -31,6 +29,14 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
     // 使用 thread_local 以保证线程安全，同时复用 std::vector 的 capacity
     // 避免如果直接放在栈上每帧触发 800+ 次析构和堆内存分配带来的极差性能
     thread_local std::vector<Enemy*> grid[GRID_COLS * GRID_ROWS];
+    // 缓存最大敌人半径 — ENEMY_DEFS 在运行时不变，只需计算一次
+    static const float maxEnemyRadius = [] {
+        float m = 0.f;
+        for (int i = 0; i < static_cast<int>(EnemyType::Count); ++i)
+            if (ENEMY_DEFS[i].radius > m)
+                m = ENEMY_DEFS[i].radius;
+        return m;
+    }();
 
     // 1. 构建空间哈希网格 (O(N))
     for (auto& cell : grid) {
@@ -48,7 +54,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
             return;
 
         // 计算弹幕可能触及的格子范围（考虑最大敌人半径，防止边缘漏判）
-        float searchRadius = p.radius + MAX_ENEMY_RADIUS;
+        float searchRadius = p.radius + maxEnemyRadius;
         int minCx = std::max(0, static_cast<int>((p.pos.x - searchRadius) / CELL_SIZE));
         int maxCx = std::min(GRID_COLS - 1, static_cast<int>((p.pos.x + searchRadius) / CELL_SIZE));
         int minCy = std::max(0, static_cast<int>((p.pos.y - searchRadius) / CELL_SIZE));
@@ -63,17 +69,16 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
                     if (circleCircle(p.pos, p.radius, e->pos, e->radius)) {
                         e->hp -= p.damage;
-                        e->hitFlashTimer = 0.1f; // 触发闪白
+                        e->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
 
                         // 生成飘字
                         auto dtHandle = damageTexts.acquire();
                         if (auto* dmgTxt = damageTexts.get(dtHandle)) {
-                            // 为了避免飘字完全重叠，给 X 轴加个随机偏移
-                            float offsetX = static_cast<float>(rand() % 20 - 10);
-                            dmgTxt->pos = e->pos + sf::Vector2f(offsetX, -10.f);
-                            dmgTxt->vel = sf::Vector2f(0.f, -50.f); // 向上漂浮
+                            float offsetX = (Random::getFloat() - 0.5f) * Config::DMGTEXT_X_SPREAD;
+                            dmgTxt->pos = e->pos + sf::Vector2f(offsetX, Config::DMGTEXT_Y_OFFSET);
+                            dmgTxt->vel = sf::Vector2f(0.f, Config::DMGTEXT_VELOCITY_Y);
                             dmgTxt->damage = p.damage;
-                            dmgTxt->maxLifetime = dmgTxt->lifetime = 0.6f;
+                            dmgTxt->maxLifetime = dmgTxt->lifetime = Config::DMGTEXT_LIFETIME;
                         }
                         --p.pierceCount;
 
@@ -107,7 +112,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
     if (player.invincibilityTimer <= 0.f) {
         bool tookDamage = false;
 
-        float searchRadius = player.radius + MAX_ENEMY_RADIUS;
+        float searchRadius = player.radius + maxEnemyRadius;
         int minCx = std::max(0, static_cast<int>((player.pos.x - searchRadius) / CELL_SIZE));
         int maxCx =
             std::min(GRID_COLS - 1, static_cast<int>((player.pos.x + searchRadius) / CELL_SIZE));

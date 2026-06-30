@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/ResourceManager.hpp"
+#include "data/Constants.hpp"
 
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Graphics/Font.hpp>
@@ -32,8 +33,8 @@ private:
     void render();
     void handleWindowResize(const sf::Event::Resized& resizeEvent);
 
-    static constexpr unsigned int DEFAULT_WIDTH = 1920;
-    static constexpr unsigned int DEFAULT_HEIGHT = 1080;
+    static constexpr unsigned int DEFAULT_WIDTH = static_cast<unsigned int>(Config::VIEW_WIDTH);
+    static constexpr unsigned int DEFAULT_HEIGHT = static_cast<unsigned int>(Config::VIEW_HEIGHT);
     static constexpr const char* TITLE = "SFML 3.1 Game";
 
     // 固定时间步：每秒 60 次更新

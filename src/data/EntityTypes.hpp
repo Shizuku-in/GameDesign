@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+struct SpriteSheet;
+
 // --- 敌人类型 ---
 enum class EnemyType : std::uint8_t { Basic, Fast, Tank, Boss, Count };
 
@@ -19,6 +21,14 @@ struct Enemy {
     float damage = 0.f; // 接触伤害（每秒）
     float xpValue = 0.f;
     EnemyType type = EnemyType::Basic;
+    float spriteScale = 1.0f; // 精灵绘制缩放
+
+    // 精灵动画
+    const SpriteSheet* spriteMove = nullptr;    // 移动动画精灵表
+    const SpriteSheet* spriteDamaged = nullptr; // 受击动画精灵表
+    const SpriteSheet* currentSprite = nullptr; // 当前使用的精灵表（每帧更新）
+    float animTimer = 0.f;                      // 帧计时器
+    int animFrame = 0;                          // 当前帧索引
 };
 
 // --- 弹幕运动类型 ---

@@ -2,6 +2,8 @@
 #include "core/Game.hpp"
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
+#include "gameplay/EnemyDefs.hpp"
+#include "graphics/SpriteSheet.hpp"
 #include "scenes/GameOverScene.hpp"
 #include "scenes/TitleScene.hpp"
 #include "systems/CollisionSystem.hpp"
@@ -13,6 +15,7 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include <cmath>
+#include <cstdio>
 
 // ---------------------------------------------------------------------------
 // 构造
@@ -34,11 +37,26 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_xpGems.reserve(Config::POOL_XPGEMS_CAPACITY);
     m_damageTexts.reserve(Config::POOL_DAMAGETEXTS_CAPACITY);
 
+    // 加载敌人精灵表 — 从 EnemyDef 读取路径
+    for (int i = 0; i < static_cast<int>(EnemyType::Count); ++i) {
+        const auto& def = ENEMY_DEFS[i];
+        bool moveOk =
+            m_spritesMove[i].loadFromFile(def.spriteMovePath, def.frameWidth, def.frameHeight);
+        bool damagedOk =
+            m_spritesDamaged[i].loadFromFile(def.spriteDamagedPath, def.frameWidth, def.frameHeight);
+        if (!moveOk || !damagedOk)
+            std::fprintf(stderr, "[WARN] Enemy sprite load failed: %s (move=%d, damaged=%d)\n",
+                         def.name, moveOk, damagedOk);
+    }
+    m_spawning.setEnemySprites(m_spritesMove.data(), m_spritesDamaged.data());
+
     // BGM
     if (m_bgm.openFromFile(Config::BGM_PLAY_SCENE_PATH)) {
         m_bgm.setLooping(true);
-        m_bgm.setVolume(50.f);
+        m_bgm.setVolume(Config::BGM_VOLUME);
         m_bgm.play();
+    } else {
+        std::fprintf(stderr, "[WARN] BGM load failed: %s\n", Config::BGM_PLAY_SCENE_PATH);
     }
 }
 
@@ -210,12 +228,14 @@ void PlayScene::movePlayer(float dt) {
 }
 
 void PlayScene::updateEnemies(float dt) {
+
     m_enemies.forEach([dt](Enemy& e) {
         if (e.hitFlashTimer > 0.f) {
             e.hitFlashTimer -= dt;
         }
     });
     m_enemies.forEach([&](Enemy& e) {
+        // AI 移动：朝向玩家
         sf::Vector2f dir = m_player.pos - e.pos;
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         if (len > 0.f) {
@@ -223,6 +243,20 @@ void PlayScene::updateEnemies(float dt) {
             dir.y /= len;
         }
         e.pos += dir * e.speed * dt;
+
+        // 精灵动画
+        const SpriteSheet* target = (e.hitFlashTimer > 0.f) ? e.spriteDamaged : e.spriteMove;
+        if (target && target != e.currentSprite) {
+            e.currentSprite = target;
+            e.animFrame = 0;
+            e.animTimer = 0.f;
+        }
+        e.animTimer += dt;
+        if (e.currentSprite && e.currentSprite->frameCount > 0 &&
+            e.animTimer >= Config::ENEMY_ANIM_FRAME_DURATION) {
+            e.animTimer -= Config::ENEMY_ANIM_FRAME_DURATION;
+            e.animFrame = (e.animFrame + 1) % e.currentSprite->frameCount;
+        }
     });
 
     // 清理远离世界的敌人

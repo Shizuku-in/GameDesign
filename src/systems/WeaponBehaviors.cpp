@@ -7,8 +7,6 @@
 
 namespace {
 
-constexpr float PI = 3.14159265f;
-
 const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enemy>& enemies) {
     const Enemy* best = nullptr;
     float bestDistSq = maxRange > 0.f ? maxRange * maxRange : std::numeric_limits<float>::max();
@@ -25,21 +23,19 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
 
 } // namespace
 
+const std::array<WeaponFactory::FactoryFn, WeaponFactory::kCount> WeaponFactory::s_factories = {
+    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<MagicWandBehavior>(); },
+    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<KnifeBehavior>(); },
+    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<AxeBehavior>(); },
+    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<FireballBehavior>(); },
+    []() -> std::unique_ptr<IWeaponBehavior> { return std::make_unique<GarlicBehavior>(); },
+};
+
 std::unique_ptr<IWeaponBehavior> WeaponFactory::create(WeaponType type) {
-    switch (type) {
-    case WeaponType::MagicWand:
-        return std::make_unique<MagicWandBehavior>();
-    case WeaponType::Knife:
-        return std::make_unique<KnifeBehavior>();
-    case WeaponType::Axe:
-        return std::make_unique<AxeBehavior>();
-    case WeaponType::Fireball:
-        return std::make_unique<FireballBehavior>();
-    case WeaponType::Garlic:
-        return std::make_unique<GarlicBehavior>();
-    default:
+    auto idx = static_cast<std::size_t>(type);
+    if (idx >= kCount)
         return nullptr;
-    }
+    return s_factories[idx]();
 }
 
 bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enemies,
@@ -122,7 +118,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
     if (count <= 0)
         return false;
 
-    float angleStep = 2.f * PI / static_cast<float>(count);
+    float angleStep = Config::TAU / static_cast<float>(count);
     bool anySpawned = false;
 
     for (int i = 0; i < count; ++i) {
@@ -149,7 +145,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
 
     // 推进基准角度供下次发射（实现无缝衔接）
     m_orbitBaseAngle =
-        std::fmod(m_orbitBaseAngle + stats.cooldown * Config::AXE_ORBIT_SPEED, 2.f * PI);
+        std::fmod(m_orbitBaseAngle + stats.cooldown * Config::AXE_ORBIT_SPEED, Config::TAU);
 
     return anySpawned;
 }

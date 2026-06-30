@@ -6,6 +6,7 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 #include "gameplay/UpgradeDefs.hpp"
+#include "graphics/SpriteSheet.hpp"
 #include "graphics/WorldRenderer.hpp"
 #include "systems/SpawningSystem.hpp"
 #include "systems/WeaponSystem.hpp"
@@ -14,6 +15,8 @@
 #include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/View.hpp>
+
+#include <array>
 
 #include <memory>
 #include <vector>
@@ -47,6 +50,11 @@ private:
     sf::Music m_bgm;
     WorldRenderer m_worldRenderer;
     std::unique_ptr<HUD> m_hud;
+
+    // 敌人精灵表（按 EnemyType 索引）
+    static constexpr std::size_t kEnemyTypeCount = static_cast<std::size_t>(EnemyType::Count);
+    std::array<SpriteSheet, kEnemyTypeCount> m_spritesMove;
+    std::array<SpriteSheet, kEnemyTypeCount> m_spritesDamaged;
 
     // 相机
     sf::View m_camera;

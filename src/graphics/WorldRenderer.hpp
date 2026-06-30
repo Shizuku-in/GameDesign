@@ -3,6 +3,7 @@
 #include "core/Pool.hpp"
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
+#include "graphics/SpriteSheet.hpp"
 
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -21,5 +22,6 @@ public:
 private:
     sf::VertexArray m_grid{sf::PrimitiveType::Lines};
     sf::VertexArray m_entityBatch{sf::PrimitiveType::Triangles};
+    const SpriteSheet* m_cachedSpriteSheet = nullptr; // 缓存，避免每帧遍历查找
     void buildGrid();
 };

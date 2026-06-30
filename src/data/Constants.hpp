@@ -46,17 +46,27 @@ constexpr float KNIFE_SPREAD = 0.15f;    // 飞刀散布角（弧度）
 constexpr float AXE_ORBIT_RADIUS = 60.f; // 斧头轨道半径
 constexpr float AXE_ORBIT_SPEED = 3.0f;  // 斧头轨道角速度（弧度/秒）
 
-// --- 敌人类型属性表 ---
-// 按 EnemyType 枚举顺序: Basic, Fast, Tank, Boss
-constexpr float ENEMY_HP[] = {20.f, 10.f, 80.f, 300.f};
-constexpr float ENEMY_SPEED[] = {80.f, 160.f, 50.f, 60.f};
-constexpr float ENEMY_DAMAGE[] = {10.f, 8.f, 20.f, 30.f};
-constexpr float ENEMY_RADIUS[] = {14.f, 10.f, 22.f, 32.f};
-constexpr float ENEMY_XP[] = {1.f, 2.f, 5.f, 50.f};
-constexpr float ENEMY_SPAWN_WEIGHT[] = {1.f, 0.7f, 0.4f, 0.f}; // Boss 单独生成
+// --- 数学 ---
+constexpr float PI = 3.14159265f;
+constexpr float TAU = 2.f * PI;
 
-// --- 敌人类型出现时间（秒）---
-constexpr float ENEMY_APPEAR_TIME[] = {0.f, 30.f, 60.f, -1.f}; // -1 = 不按权重生成
+// --- 敌人（非按类型的通用常数）---
+// 各类型具体属性见 gameplay/EnemyDefs.hpp — ENEMY_DEFS[] 表
+constexpr float ENEMY_ANIM_FRAME_DURATION = 0.12f;     // 精灵动画帧间隔
+constexpr float ENEMY_HIT_FLASH_DURATION = 0.1f;       // 受击闪白时长
+constexpr float ENEMY_DIFFICULTY_WAVE_INTERVAL = 10.f; // 波次递增间隔系数
+
+// --- 伤害飘字 ---
+constexpr float DMGTEXT_VELOCITY_Y = -50.f;
+constexpr float DMGTEXT_LIFETIME = 0.6f;
+constexpr float DMGTEXT_Y_OFFSET = -10.f;
+constexpr float DMGTEXT_X_SPREAD = 20.f;
+
+// --- 玩家 ---
+constexpr float PLAYER_MAX_ARMOR = 0.5f; // 护甲上限 50%
+
+// --- 音频 ---
+constexpr float BGM_VOLUME = 50.f;
 
 // --- 资源路径 ---
 constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf";
@@ -101,10 +111,5 @@ inline const sf::Color COLOR_TEXT_DIM(150, 150, 150);
 inline const sf::Color COLOR_TEXT_SUCCESS(140, 200, 140);
 inline const sf::Color COLOR_UI_HP_BG(60, 0, 0);
 inline const sf::Color COLOR_UI_XP_BG(60, 60, 0);
-
-inline const sf::Color COLOR_ENEMY_BASIC(sf::Color::Red);
-inline const sf::Color COLOR_ENEMY_FAST(255, 100, 100);
-inline const sf::Color COLOR_ENEMY_TANK(180, 0, 0);
-inline const sf::Color COLOR_ENEMY_BOSS(255, 0, 100);
 
 } // namespace Config
