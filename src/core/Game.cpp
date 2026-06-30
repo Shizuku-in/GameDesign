@@ -101,8 +101,8 @@ void Game::render() {
     m_window.display();
 }
 
-void Game::handleWindowResize(const sf::Event::Resized& resizeEvent) {
-    // Keep the view stretched to match the new window size
-    m_window.setView(
-        sf::View(sf::FloatRect({0.f, 0.f}, static_cast<sf::Vector2f>(resizeEvent.size))));
+void Game::handleWindowResize(const sf::Event::Resized& /*resizeEvent*/) {
+    // 保留默认视图为初始分辨率，不随窗口缩放
+    // UI 坐标全部基于 VIEW_WIDTH/VIEW_HEIGHT，缩放会导致布局错乱。
+    // 世界相机由 PlayScene 每帧显式设置，不受影响。
 }
