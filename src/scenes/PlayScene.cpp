@@ -42,8 +42,8 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
         const auto& def = ENEMY_DEFS[i];
         bool moveOk =
             m_spritesMove[i].loadFromFile(def.spriteMovePath, def.frameWidth, def.frameHeight);
-        bool damagedOk =
-            m_spritesDamaged[i].loadFromFile(def.spriteDamagedPath, def.frameWidth, def.frameHeight);
+        bool damagedOk = m_spritesDamaged[i].loadFromFile(def.spriteDamagedPath, def.frameWidth,
+                                                          def.frameHeight);
         if (!moveOk || !damagedOk)
             std::fprintf(stderr, "[WARN] Enemy sprite load failed: %s (move=%d, damaged=%d)\n",
                          def.name, moveOk, damagedOk);

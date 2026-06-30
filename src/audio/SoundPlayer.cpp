@@ -2,6 +2,8 @@
 
 #include "data/Constants.hpp"
 
+#include <cstdio>
+
 SoundPlayer::SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds) {
     auto load = [&](const char* key) -> sf::SoundBuffer* {
         auto ptr = sounds.get(key);
@@ -28,6 +30,10 @@ void SoundPlayer::update(float dt) {
         m_hitTimer -= dt;
     if (m_shootTimer > 0.f)
         m_shootTimer -= dt;
+    if (m_hurtTimer > 0.f)
+        m_hurtTimer -= dt;
+    if (m_pickupTimer > 0.f)
+        m_pickupTimer -= dt;
 }
 
 void SoundPlayer::play(const sf::SoundBuffer* buf, float volume) {
@@ -43,6 +49,8 @@ void SoundPlayer::play(const sf::SoundBuffer* buf, float volume) {
             return;
         }
     }
+    std::fprintf(stderr, "[WARN] SoundPlayer: pool exhausted (%zu slots), sound dropped\n",
+                 Config::POOL_SOUNDS_CAPACITY);
 }
 
 void SoundPlayer::shoot() {
@@ -63,6 +71,16 @@ void SoundPlayer::kill() {
     m_killTimer = Config::SOUND_CFG_KILL.interval;
     play(m_kill, Config::SOUND_CFG_KILL.volume);
 }
-void SoundPlayer::hurt() { play(m_hurt, Config::SOUND_CFG_HURT.volume); }
-void SoundPlayer::pickup() { play(m_pickup, Config::SOUND_CFG_PICKUP.volume); }
+void SoundPlayer::hurt() {
+    if (m_hurtTimer > 0.f)
+        return;
+    m_hurtTimer = Config::SOUND_CFG_HURT.interval;
+    play(m_hurt, Config::SOUND_CFG_HURT.volume);
+}
+void SoundPlayer::pickup() {
+    if (m_pickupTimer > 0.f)
+        return;
+    m_pickupTimer = Config::SOUND_CFG_PICKUP.interval;
+    play(m_pickup, Config::SOUND_CFG_PICKUP.volume);
+}
 void SoundPlayer::levelup() { play(m_levelup, Config::SOUND_CFG_LEVELUP.volume); }

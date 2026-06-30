@@ -41,4 +41,6 @@ private:
     float m_killTimer = 0.f;
     float m_hitTimer = 0.f;
     float m_shootTimer = 0.f;
+    float m_hurtTimer = 0.f;
+    float m_pickupTimer = 0.f;
 };

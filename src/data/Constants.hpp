@@ -87,8 +87,8 @@ struct SoundConfig {
 constexpr SoundConfig SOUND_CFG_SHOOT{50.f, 0.08f};
 constexpr SoundConfig SOUND_CFG_HIT{45.f, 0.05f};
 constexpr SoundConfig SOUND_CFG_KILL{55.f, 0.10f};
-constexpr SoundConfig SOUND_CFG_HURT{70.f, 0.f};
-constexpr SoundConfig SOUND_CFG_PICKUP{40.f, 0.f};
+constexpr SoundConfig SOUND_CFG_HURT{70.f, 0.25f};
+constexpr SoundConfig SOUND_CFG_PICKUP{40.f, 0.10f};
 constexpr SoundConfig SOUND_CFG_LEVELUP{65.f, 0.f};
 
 // --- 对象池预分配 ---
