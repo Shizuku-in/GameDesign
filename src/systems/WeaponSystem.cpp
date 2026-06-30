@@ -110,11 +110,11 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
         const auto& def = WEAPON_DEFS[static_cast<int>(slot.type)];
         slot.cooldown -= dt;
 
-        // AoE 武器冷却完毕时每帧造成伤害
+        // AoE 武器冷却完毕时每帧造成伤害（while 确保 lag 时不丢失 tick）
         if (def.isAOE) {
-            if (slot.cooldown <= 0.f) {
-                auto stats = getWeaponStats(slot.type, slot.level);
-                slot.cooldown = stats.cooldown;
+            auto stats = getWeaponStats(slot.type, slot.level);
+            while (slot.cooldown <= 0.f) {
+                slot.cooldown += stats.cooldown;
                 if (slot.behavior) {
                     slot.behavior->tickAoE(slot.level, player, enemies);
                 }
