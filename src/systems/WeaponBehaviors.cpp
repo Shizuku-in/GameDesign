@@ -68,7 +68,8 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
     }
 
     int count = stats.projectileCount;
-    float spread = (count - 1) * Config::KNIFE_SPREAD;
+    const auto& knifeDef = WEAPON_DEFS[static_cast<int>(WeaponType::Knife)];
+    float spread = (count - 1) * knifeDef.spread;
     float baseAngle = std::atan2(dir.y, dir.x);
     float startAngle = baseAngle - spread / 2.f;
     bool anySpawned = false;
@@ -97,6 +98,7 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
 bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enemies*/,
                        Pool<Projectile>& proj) {
     auto stats = getWeaponStats(WeaponType::Axe, level);
+    const auto& axeDef = WEAPON_DEFS[static_cast<int>(WeaponType::Axe)];
 
     int count = stats.projectileCount;
     if (count <= 0)
@@ -115,8 +117,8 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
 
         p->motion = ProjMotion::Orbit;
         p->state.orbit.angle = angle;
-        p->state.orbit.radius = Config::AXE_ORBIT_RADIUS;
-        p->state.orbit.speed = Config::AXE_ORBIT_SPEED;
+        p->state.orbit.radius = axeDef.orbitRadius;
+        p->state.orbit.speed = axeDef.orbitSpeed;
         p->pos =
             player.pos + sf::Vector2f(std::cos(angle), std::sin(angle)) * p->state.orbit.radius;
         p->damage = stats.damage;
@@ -129,7 +131,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
 
     // 推进基准角度供下次发射（实现无缝衔接）
     m_orbitBaseAngle =
-        std::fmod(m_orbitBaseAngle + stats.cooldown * Config::AXE_ORBIT_SPEED, Config::TAU);
+        std::fmod(m_orbitBaseAngle + stats.cooldown * axeDef.orbitSpeed, Config::TAU);
 
     return anySpawned;
 }

@@ -37,10 +37,7 @@ constexpr float VIEW_HEIGHT = 1080.f;
 constexpr float FIXED_DT = 1.f / 60.f; // 固定时间步
 
 // --- 武器 ---
-constexpr float RANGE_UNLIMITED = 0.f;   // 表示无射程限制
-constexpr float KNIFE_SPREAD = 0.15f;    // 飞刀散布角（弧度）
-constexpr float AXE_ORBIT_RADIUS = 60.f; // 斧头轨道半径
-constexpr float AXE_ORBIT_SPEED = 3.0f;  // 斧头轨道角速度（弧度/秒）
+constexpr float RANGE_UNLIMITED = 0.f; // 表示无射程限制
 
 // --- 数学 ---
 constexpr float PI = 3.14159265f;

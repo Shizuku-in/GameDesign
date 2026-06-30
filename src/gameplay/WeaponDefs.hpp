@@ -31,7 +31,13 @@ struct WeaponDef {
     int maxLevel;             // 最高等级（通常为 8）
     bool isAOE;               // 大蒜类：不生成弹幕，每帧对范围内敌人造成伤害
     float aoeRadius;          // 仅 isAOE 时有效
-    CreateFn create;          // 工厂函数：创建对应的行为实例
+
+    // 武器专属参数（不随等级缩放）
+    float spread;      // 多弹幕散布角（弧度，Knife 用）
+    float orbitRadius; // 轨道半径（Axe 用）
+    float orbitSpeed;  // 轨道角速度（弧度/秒，Axe 用）
+
+    CreateFn create; // 工厂函数：创建对应的行为实例
 };
 
 extern const WeaponDef WEAPON_DEFS[];
