@@ -77,6 +77,8 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                 for (Enemy* e : grid[cellIdx]) {
                     if (e->hp <= 0.f) [[unlikely]]
                         continue;
+                    if (e->hitFlashTimer > 0.f) // 受击硬直中，防止同一弹幕重复伤害
+                        continue;
 
                     if (circleCircle(p.pos, p.radius, e->pos, e->radius)) [[unlikely]] {
                         const sf::Vector2f hitPos = p.pos; // 爆炸以命中点为中心

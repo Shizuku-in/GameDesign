@@ -13,6 +13,8 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
     float bestDistSq = maxRange > 0.f ? maxRange * maxRange : std::numeric_limits<float>::max();
 
     enemies.forEach([&](const Enemy& e) {
+        if (e.hp <= 0.f) // 忽略已被击杀但尚未清理的敌人
+            return;
         float d2 = distanceSq(from, e.pos);
         if (d2 < bestDistSq) {
             bestDistSq = d2;
