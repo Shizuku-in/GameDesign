@@ -42,7 +42,8 @@ struct Projectile {
     float speed = 0.f;
     float lifetime = 0.f; // 剩余存活时间（秒）
     float radius = 0.f;
-    int pierceCount = 0; // 剩余穿透数（0 = 命中即消失）
+    float aoeRadius = 0.f; // 爆炸半径（> 0 时命中触发范围伤害）
+    int pierceCount = 0;   // 剩余穿透数（0 = 命中即消失）
 
     // 运动逻辑分支
     ProjMotion motion = ProjMotion::Linear;

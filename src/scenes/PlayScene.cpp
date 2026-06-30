@@ -314,7 +314,10 @@ void PlayScene::updateXPGems(float dt) {
             return;
         }
         sf::Vector2f dir = m_player.pos - g.pos;
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        float lenSq = dir.x * dir.x + dir.y * dir.y;
+        if (lenSq > m_player.magnetRange * m_player.magnetRange)
+            return;
+        float len = std::sqrt(lenSq);
         if (len > 0.f) {
             dir.x /= len;
             dir.y /= len;

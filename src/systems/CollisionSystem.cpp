@@ -68,6 +68,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                         continue;
 
                     if (circleCircle(p.pos, p.radius, e->pos, e->radius)) {
+                        const sf::Vector2f hitPos = p.pos; // 爆炸以命中点为中心
                         e->hp -= p.damage;
                         e->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
 
@@ -80,6 +81,45 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                             dmgTxt->damage = p.damage;
                             dmgTxt->maxLifetime = dmgTxt->lifetime = Config::DMGTEXT_LIFETIME;
                         }
+
+                        // AoE 爆炸：对范围内所有敌人造成伤害
+                        if (p.aoeRadius > 0.f) {
+                            float explosionSearch = p.aoeRadius + maxEnemyRadius;
+                            int eMinCx = std::max(
+                                0, static_cast<int>((hitPos.x - explosionSearch) / CELL_SIZE));
+                            int eMaxCx = std::min(
+                                GRID_COLS - 1,
+                                static_cast<int>((hitPos.x + explosionSearch) / CELL_SIZE));
+                            int eMinCy = std::max(
+                                0, static_cast<int>((hitPos.y - explosionSearch) / CELL_SIZE));
+                            int eMaxCy = std::min(
+                                GRID_ROWS - 1,
+                                static_cast<int>((hitPos.y + explosionSearch) / CELL_SIZE));
+                            for (int ey = eMinCy; ey <= eMaxCy; ++ey) {
+                                for (int ex = eMinCx; ex <= eMaxCx; ++ex) {
+                                    for (Enemy* oe : grid[ey * GRID_COLS + ex]) {
+                                        if (oe == e || oe->hp <= 0.f)
+                                            continue;
+                                        if (circleCircle(hitPos, p.aoeRadius, oe->pos,
+                                                         oe->radius)) {
+                                            oe->hp -= p.damage;
+                                            oe->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
+                                            if (oe->hp <= 0.f) {
+                                                auto h = gems.acquire();
+                                                if (auto* g = gems.get(h)) {
+                                                    g->pos = oe->pos;
+                                                    g->value = oe->xpValue;
+                                                    g->radius = 5.f;
+                                                    g->magnetTimer = Config::XP_GEM_MAGNET_DELAY;
+                                                }
+                                                ++score;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         --p.pierceCount;
 
                         if (e->hp <= 0.f) {

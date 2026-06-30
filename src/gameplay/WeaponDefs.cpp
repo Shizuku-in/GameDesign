@@ -33,6 +33,8 @@ WeaponStats getWeaponStats(WeaponType type, int level) {
     s.range = def.range;
     s.projectileCount = def.baseProjectiles + n / 2;
     s.pierce = def.basePierce + n / 3;
-    s.aoeRadius = def.isAOE ? def.aoeRadius * (1.0f + 0.1f * static_cast<float>(n)) : 0.f;
+    s.aoeRadius = (def.isAOE || def.aoeRadius > 0.f)
+                      ? def.aoeRadius * (1.0f + 0.1f * static_cast<float>(n))
+                      : 0.f;
     return s;
 }

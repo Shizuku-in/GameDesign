@@ -176,6 +176,7 @@ bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& e
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
     p->pierceCount = 0; // 火球首次命中即消失
+    p->aoeRadius = stats.aoeRadius;
     p->motion = ProjMotion::Linear;
     return true;
 }
