@@ -1,6 +1,6 @@
 # Survivor-like
 
-A Vampire Survivors-style "bullet heaven" 2D game built with SFML 3.1 and modern CMake.
+A Vampire Survivors-style "bullet heaven" 2D game built with SFML 3.1 and modern CMake (C++20).
 
 Move with WASD, weapons auto-fire at the nearest enemies, collect XP gems, level up, choose upgrades — survive as long as you can.
 
@@ -8,7 +8,12 @@ Move with WASD, weapons auto-fire at the nearest enemies, collect XP gems, level
 
 - **CMake** >= 3.16
 - **SFML** >= 3.1 (headers + static libraries)
-- A C++17 compiler (Clang, GCC, or MSVC)
+- A C++20 compiler (GCC 13+, Clang 17+, MSVC 2022+)
+- **tmxlite** — bundled in `third_party/`, clone with:
+  ```bash
+  mkdir -p third_party && cd third_party
+  git clone https://github.com/fallahn/tmxlite.git
+  ```
 
 ### Installing SFML 3.1
 
@@ -25,16 +30,19 @@ sudo apt install libsfml-dev
 **Windows:**
 Download from [sfml-dev.org](https://www.sfml-dev.org/download.php) and set `CMAKE_PREFIX_PATH` to the install location.
 
+### Map Editor (optional)
+
+Maps are created with [Tiled](https://www.mapeditor.org/):
+```bash
+sudo apt install tiled   # Linux
+brew install tiled       # macOS
+```
+
 ## Build & Run
 
 ```bash
-# Configure
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-# Build
 cmake --build build
-
-# Run
 ./build/game
 ```
 
@@ -45,90 +53,99 @@ cmake --build build --config Release
 .\build\Release\game.exe
 ```
 
-Assets (`fonts/`) are automatically copied to the build directory via CMake POST_BUILD.
+Assets are automatically copied to the build directory via CMake `POST_BUILD`.
 
 ## Controls
 
 | Key | Action |
 |-----|--------|
-| WASD / Arrow keys | Move |
+| WASD | Move |
 | Arrow keys / 1–3 | Select upgrade (level-up screen) |
 | Enter / Space | Confirm upgrade / Start game |
-| Escape | Quit |
+| Escape | Pause / Quit to title |
 
 ## Project Structure
 
 ```
 ├── CMakeLists.txt
 ├── README.md
-├── CLAUDE.md                # Architecture & coding conventions
-├── .clang-format            # Code style rules (WebKit-based)
+├── README-zh.md
+├── CLAUDE.md                 # Architecture & coding conventions
+├── .clang-format             # Code style rules (WebKit-based)
 ├── assets/
-│   └── fonts/
-│       └── DejaVuSans.ttf   # UI font
-├── docs/
-│   ├── design-doc.md        # Full game design document
-│   └── wsl-setup-guide.md
-├── scripts/
-│   └── pre-commit           # Git hook for clang-format
+│   ├── fonts/                # UI font
+│   ├── sounds/
+│   │   ├── bgm/              # Music (.ogg)
+│   │   └── sfx/              # Sound effects (.wav)
+│   ├── sprites/
+│   │   ├── character/elf/    # Player sprites (idle/movement/portrait/skill)
+│   │   └── enemies/          # Enemy sprite sheets
+│   ├── tilesets/             # Tile images for maps
+│   └── maps/                 # Tiled .tmx files
+├── third_party/
+│   └── tmxlite/              # Tiled map parser (bundled)
 └── src/
     ├── main.cpp
-    ├── core/                # Engine layer
-    │   ├── Game.hpp/.cpp        # Game loop, scene management, font loading
-    │   ├── Scene.hpp/.cpp       # Abstract scene base class
-    │   ├── Pool.hpp             # Generic object pool (freelist + generation handles)
-    │   └── ResourceManager.hpp  # Resource cache template
-    ├── data/                # Pure data definitions (header-only)
-    │   ├── Constants.hpp        # All tuning values
-    │   ├── EntityTypes.hpp      # Enemy, Projectile, XPGem structs
-    │   ├── PlayerState.hpp      # Player state struct
-    │   └── Collision.hpp        # Circle-circle collision helpers
-    ├── systems/             # Gameplay systems
-    │   ├── WeaponDefs.hpp/.cpp  # Weapon table + level-scaling
-    │   ├── WeaponSystem.hpp/.cpp# Auto-attack + targeting + projectile spawning
-    │   ├── UpgradeDefs.hpp/.cpp # Random upgrade generation & application
-    │   └── HUD.hpp/.cpp         # HP/XP bars, level, timer, weapon list
-    └── scenes/              # Game scenes
-        ├── PlayScene.hpp/.cpp   # Main gameplay loop
-        ├── TitleScene.hpp/.cpp  # Title screen
-        └── GameOverScene.hpp/.cpp # Death/score screen
+    ├── core/                 # Engine layer
+    │   ├── Game.hpp/.cpp         # Game loop, scene management, resource loading
+    │   ├── Scene.hpp/.cpp        # Abstract scene base class
+    │   ├── Pool.hpp              # Generic object pool (freelist + generation handles)
+    │   ├── ResourceManager.hpp   # Resource cache template
+    │   └── Random.hpp/.cpp       # Mersenne Twister singleton
+    ├── data/                 # Pure data definitions
+    │   ├── Constants.hpp         # Universal tuning values + colors
+    │   ├── EntityTypes.hpp       # Enemy, Projectile, XPGem, DamageText structs
+    │   └── PlayerState.hpp       # Player state struct
+    ├── math/                 # Math utilities
+    │   └── Collision.hpp         # constexpr circle-circle collision
+    ├── audio/                # Audio
+    │   └── SoundPlayer.hpp/.cpp  # sf::Sound pool with interval protection
+    ├── graphics/             # Renderers
+    │   ├── SpriteSheet.hpp       # Sprite sheet loader
+    │   ├── TilemapRenderer.hpp/.cpp  # Tiled TMX → VertexArray tile rendering
+    │   └── WorldRenderer.hpp/.cpp  # Entity + damage text rendering
+    ├── gameplay/             # Data-driven definition tables
+    │   ├── WeaponDefs.hpp/.cpp   # Weapon table + level scaling + factory
+    │   ├── EnemyDefs.hpp/.cpp    # Enemy table
+    │   ├── CharacterDefs.hpp/.cpp   # Character table (stats + sprites)
+    │   ├── MapDefs.hpp/.cpp      # Map table (spawn params + tile paths)
+    │   └── UpgradeDefs.hpp/.cpp  # Upgrade table + random generation
+    ├── systems/              # Runtime gameplay systems
+    │   ├── IWeaponBehavior.hpp   # Strategy interface (fire / tickAoE)
+    │   ├── WeaponBehaviors.hpp/.cpp  # 5 weapon behavior classes
+    │   ├── WeaponSystem.hpp/.cpp # 6-slot weapon manager
+    │   ├── CollisionSystem.hpp/.cpp  # Spatial-hash collision + cleanup
+    │   └── SpawningSystem.hpp/.cpp   # Wave spawning + difficulty scaling
+    ├── ui/                   # Screen-space UI
+    │   ├── HUD.hpp/.cpp          # HP/XP bars, level, timer, weapon list
+    │   ├── PauseMenu.hpp/.cpp    # Pause overlay
+    │   └── UpgradeUI.hpp/.cpp    # Level-up choice overlay
+    └── scenes/               # Game scenes
+        ├── PlayScene.hpp/.cpp      # Main gameplay loop
+        ├── TitleScene.hpp/.cpp     # Title screen
+        └── GameOverScene.hpp/.cpp  # Death/score screen
 ```
+
+## Adding Content (Data-Driven)
+
+All game content follows the same table-driven pattern. Each only needs 2–3 steps:
+
+| Content | Steps |
+|---------|-------|
+| New weapon | enum → WeaponDef entry → behavior class |
+| New enemy | enum → EnemyDef entry |
+| New character | enum → CharacterDef entry (stats + sprites) |
+| New map | enum → MapDef entry → create .tmx in Tiled |
+| New stat boost | one row in UpgradeDef table |
 
 ## Code Formatting
 
-This project uses **clang-format** to enforce a consistent code style. Rules are in `.clang-format` at the repo root.
-
-### Install clang-format
-
-| Platform | Command |
-|---|---|
-| macOS | `brew install clang-format` |
-| Linux | `sudo apt install clang-format` |
-| Windows | Download from [LLVM releases](https://github.com/llvm/llvm-project/releases) |
-
-### Format before committing
-
 ```bash
-cmake --build build --target format        # format all source files in-place
-cmake --build build --target format-check  # check only (same as CI)
+cmake --build build --target format        # format all source files
+cmake --build build --target format-check  # check only (CI)
 ```
 
-### Pre-commit hook (recommended)
-
-```bash
-git config core.hooksPath scripts
-```
-
-This runs the check automatically before every commit and blocks unformatted code.
-
-### Editor integration
-
-Most editors auto-detect `.clang-format` files:
-
-- **VS Code**: install "C/C++" extension → format on save (`"editor.formatOnSave": true`)
-- **CLion / IntelliJ**: enabled by default for C++ files
-- **Vim / Neovim**: `:!clang-format -i %`
-- **Emacs**: `clang-format-buffer` (via `clang-format.el`)
+Style: `.clang-format` (WebKit, 4-space, 100-column).
 
 ## License
 
