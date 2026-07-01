@@ -27,7 +27,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
     if (cols != gridCols || rows != gridRows) {
         gridCols = cols;
         gridRows = rows;
-        grid.resize(static_cast<std::size_t>(cols * rows));
+        grid.resize(static_cast<std::size_t>(cols) * static_cast<std::size_t>(rows));
     }
 
     auto getCellIndex = [&](sf::Vector2f pos) {

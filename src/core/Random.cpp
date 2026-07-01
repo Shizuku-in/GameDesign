@@ -1,6 +1,6 @@
 #include "core/Random.hpp"
 
-std::mt19937 Random::m_s_engine;
+std::mt19937 Random::m_s_engine(std::random_device{}());
 
 void Random::init(unsigned int seed) { m_s_engine.seed(seed); }
 

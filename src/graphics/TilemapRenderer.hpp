@@ -16,7 +16,7 @@ class Map;
 } // namespace tmx
 
 /// 对象形状类型，与 tmxlite::Object::Shape 一一对应。
-enum class ObjectShape : int { Rectangle = 0, Ellipse, Point, Polygon, Polyline, Text };
+enum class ObjectShape : std::uint8_t { Rectangle = 0, Ellipse, Point, Polygon, Polyline, Text };
 
 /// 对象层解析结果，供碰撞 / 生成等系统读取。
 struct MapObject {
