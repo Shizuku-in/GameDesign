@@ -28,6 +28,8 @@ private:
     int m_mapWidth = 0; // 瓦片数
     int m_mapHeight = 0;
     int m_tilesetCols = 0;
+    int m_tilesetRows = 0;
+    std::uint32_t m_firstGid = 1;
 
     void buildVertices(const std::vector<std::uint32_t>& tiles);
 };

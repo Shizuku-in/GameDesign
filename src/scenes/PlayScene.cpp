@@ -24,9 +24,15 @@
 PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_map = &MAP_DEFS[0]; // 默认森林地图
     m_spawning.setMap(*m_map);
-    m_tilemap.loadFromFile(m_map->tilemapPath, m_map->tilesetPath);
-    m_worldWidth = m_tilemap.getWidth();
-    m_worldHeight = m_tilemap.getHeight();
+    if (!m_tilemap.loadFromFile(m_map->tilemapPath, m_map->tilesetPath)) {
+        std::fprintf(stderr,
+                     "[ERROR] PlayScene: failed to load tilemap, using fallback world size\n");
+        m_worldWidth = Config::VIEW_WIDTH * 2.f;
+        m_worldHeight = Config::VIEW_HEIGHT * 2.f;
+    } else {
+        m_worldWidth = m_tilemap.getWidth();
+        m_worldHeight = m_tilemap.getHeight();
+    }
     m_player.pos = {m_worldWidth / 2.f, m_worldHeight / 2.f};
 
     m_camera = sf::View(sf::FloatRect({0.f, 0.f}, {Config::VIEW_WIDTH, Config::VIEW_HEIGHT}));
