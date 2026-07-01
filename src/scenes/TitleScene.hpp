@@ -3,7 +3,11 @@
 #include "core/Scene.hpp"
 
 #include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/Texture.hpp>
+
+#include <optional>
 
 class Game;
 
@@ -19,7 +23,10 @@ private:
     Game& m_game;
     const sf::Font* m_font = nullptr;
 
-    sf::Text m_titleText;
+    sf::Texture m_logoTexture;
+    std::optional<sf::Sprite> m_logoSprite;
     sf::Text m_startText;
     sf::Text m_controlsText;
+
+    float m_elapsed = 0.f; // 用于呼吸灯动画
 };

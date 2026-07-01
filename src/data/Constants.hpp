@@ -52,6 +52,7 @@ constexpr float BGM_VOLUME = 50.f;
 
 // --- 资源路径 ---
 constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf";
+constexpr const char* LOGO_PATH = "assets/pictures/logo.png";
 
 // --- 音效定义（数据驱动：一行一个音效的全部信息）---
 enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
