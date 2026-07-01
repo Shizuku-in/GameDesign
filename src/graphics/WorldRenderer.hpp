@@ -5,9 +5,12 @@
 #include "data/PlayerState.hpp"
 #include "graphics/SpriteSheet.hpp"
 
-#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+
+#include <optional>
 
 /// 世界空间渲染：实体 + 玩家（地面由 TilemapRenderer 负责）。
 class WorldRenderer {
@@ -20,4 +23,8 @@ public:
 private:
     sf::VertexArray m_entityBatch{sf::PrimitiveType::Triangles};
     const SpriteSheet* m_cachedSpriteSheet = nullptr; // 缓存，避免每帧遍历查找
+
+    // 复用成员，避免每帧构造/析构（SFML 3 无默认构造，用 optional 延迟初始化）
+    std::optional<sf::Sprite> m_sprite;
+    std::optional<sf::Text> m_text;
 };

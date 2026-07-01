@@ -2,10 +2,7 @@
 #include "data/Constants.hpp"
 #include "graphics/SpriteSheet.hpp"
 
-#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Text.hpp>
 #include <format>
 
 void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
@@ -73,23 +70,25 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         });
     }
     if (m_cachedSpriteSheet != nullptr) {
-        sf::Sprite enemySprite(m_cachedSpriteSheet->texture);
+        if (!m_sprite.has_value()) {
+            m_sprite.emplace(m_cachedSpriteSheet->texture);
+        }
         enemies.forEach([&](const Enemy& e) {
             const auto* ss = e.currentSprite;
             if (!ss) {
                 return;
             }
 
-            enemySprite.setTexture(ss->texture);
-            enemySprite.setTextureRect(
+            auto& sprite = *m_sprite;
+            sprite.setTexture(ss->texture);
+            sprite.setTextureRect(
                 sf::IntRect({e.animFrame * ss->frameWidth, 0}, {ss->frameWidth, ss->frameHeight}));
-            enemySprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
-                                   static_cast<float>(ss->frameHeight) / 2.f});
-            enemySprite.setPosition(e.pos);
+            sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
+                              static_cast<float>(ss->frameHeight) / 2.f});
+            sprite.setPosition(e.pos);
+            sprite.setScale({e.spriteScale, e.spriteScale});
 
-            enemySprite.setScale({e.spriteScale, e.spriteScale});
-
-            window.draw(enemySprite);
+            window.draw(sprite);
         });
     }
 
@@ -102,24 +101,31 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         }
         if (visible) {
             const auto* ss = player.currentSprite;
-            sf::Sprite playerSprite(m_cachedSpriteSheet->texture);
-            playerSprite.setTexture(ss->texture);
-            playerSprite.setTextureRect(sf::IntRect({player.animFrame * ss->frameWidth, 0},
-                                                    {ss->frameWidth, ss->frameHeight}));
-            playerSprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
-                                    static_cast<float>(ss->frameHeight) / 2.f});
-            playerSprite.setPosition(player.pos);
-            window.draw(playerSprite);
+            if (!m_sprite.has_value()) {
+                m_sprite.emplace(m_cachedSpriteSheet->texture);
+            }
+            auto& sprite = *m_sprite;
+            sprite.setTexture(ss->texture);
+            sprite.setTextureRect(sf::IntRect({player.animFrame * ss->frameWidth, 0},
+                                              {ss->frameWidth, ss->frameHeight}));
+            sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
+                              static_cast<float>(ss->frameHeight) / 2.f});
+            sprite.setPosition(player.pos);
+            sprite.setScale({1.f, 1.f});
+            window.draw(sprite);
         }
     }
 
     // 绘制伤害飘字
     if (font != nullptr) {
-        sf::Text text(*font);
-        text.setCharacterSize(16);
-        text.setOutlineThickness(1.f);
-        text.setOutlineColor(sf::Color::Black);
+        if (!m_text.has_value()) {
+            m_text.emplace(*font);
+            m_text->setCharacterSize(16);
+            m_text->setOutlineThickness(1.f);
+            m_text->setOutlineColor(sf::Color::Black);
+        }
 
+        auto& text = *m_text;
         damageTexts.forEach([&](const DamageText& dt) {
             text.setString(std::format("{:.0f}", dt.damage));
 
