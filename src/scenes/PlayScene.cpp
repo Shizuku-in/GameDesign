@@ -45,8 +45,6 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
         m_hud = std::make_unique<HUD>(*m_font);
     }
 
-    Random::init();
-
     // 预分配
     m_enemies.reserve(Config::POOL_ENEMIES_CAPACITY);
     m_projectiles.reserve(Config::POOL_PROJECTILES_CAPACITY);
