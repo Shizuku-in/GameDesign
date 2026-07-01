@@ -72,16 +72,6 @@ bool WeaponSystem::isFull() const {
     return true;
 }
 
-int WeaponSystem::emptySlotCount() const {
-    int n = 0;
-    for (const auto& slot : m_slots) {
-        if (slot.level == 0) {
-            ++n;
-        }
-    }
-    return n;
-}
-
 std::vector<WeaponType> WeaponSystem::getUpgradeableWeapons() const {
     std::vector<WeaponType> result;
     for (const auto& slot : m_slots) {

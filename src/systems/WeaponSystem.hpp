@@ -24,7 +24,6 @@ public:
     [[nodiscard]] bool hasWeapon(WeaponType type) const;
     [[nodiscard]] int getLevel(WeaponType type) const;
     [[nodiscard]] bool isFull() const;
-    [[nodiscard]] int emptySlotCount() const;
     [[nodiscard]] std::vector<WeaponType> getUpgradeableWeapons() const;
 
     // --- 主更新（60 Hz 调用）---

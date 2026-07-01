@@ -305,12 +305,12 @@ void PlayScene::updatePlayerAnimation(float dt) {
 
 void PlayScene::updateEnemies(float dt) {
 
-    m_enemies.forEach([dt](Enemy& e) {
+    m_enemies.forEach([&](Enemy& e) {
+        // 闪白计时器
         if (e.hitFlashTimer > 0.f) {
             e.hitFlashTimer -= dt;
         }
-    });
-    m_enemies.forEach([&](Enemy& e) {
+
         // AI 移动：朝向玩家
         sf::Vector2f dir = m_player.pos - e.pos;
         float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
