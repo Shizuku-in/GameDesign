@@ -15,6 +15,8 @@ const EnemyDef ENEMY_DEFS[] = {
         .appearTime = 0.f,
         .spriteMovePath = "assets/sprites/enemies/enemies-skeleton1_movement.png",
         .spriteDamagedPath = "assets/sprites/enemies/enemies-skeleton1_take_damage.png",
+        .frameWidth = 32,
+        .frameHeight = 32,
     },
 
     // Fast — 骷髅疾行者
@@ -31,6 +33,8 @@ const EnemyDef ENEMY_DEFS[] = {
         .appearTime = 30.f,
         .spriteMovePath = "assets/sprites/enemies/enemies-skeleton2_movement.png",
         .spriteDamagedPath = "assets/sprites/enemies/enemies-skeleton2_take_damage.png",
+        .frameWidth = 32,
+        .frameHeight = 32,
     },
 
     // Tank — 吸血鬼
@@ -47,6 +51,8 @@ const EnemyDef ENEMY_DEFS[] = {
         .appearTime = 60.f,
         .spriteMovePath = "assets/sprites/enemies/enemies-vampire_movement.png",
         .spriteDamagedPath = "assets/sprites/enemies/enemies-vampire_take_damage.png",
+        .frameWidth = 32,
+        .frameHeight = 32,
     },
 
     // Boss — 吸血鬼领主
@@ -63,6 +69,8 @@ const EnemyDef ENEMY_DEFS[] = {
         .appearTime = -1.f,
         .spriteMovePath = "assets/sprites/enemies/enemies-vampire_movement.png",
         .spriteDamagedPath = "assets/sprites/enemies/enemies-vampire_take_damage.png",
+        .frameWidth = 32,
+        .frameHeight = 32,
     },
 };
 

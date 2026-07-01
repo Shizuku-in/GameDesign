@@ -18,8 +18,8 @@ struct EnemyDef {
     // 精灵表
     const char* spriteMovePath;
     const char* spriteDamagedPath;
-    int frameWidth = 32;
-    int frameHeight = 32;
+    int frameWidth;
+    int frameHeight;
 };
 
 /// 所有敌人类型的定义表，按 EnemyType 枚举顺序排列。
