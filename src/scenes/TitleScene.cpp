@@ -88,7 +88,7 @@ void TitleScene::render(sf::RenderWindow& window) {
     }
 
     // ENTER 文字呼吸闪烁：alpha 在 155–255 间以 3 rad/s 振荡
-    float alpha = 155.f + 100.f * (std::sin(m_elapsed * 3.f) * 0.5f + 0.5f);
+    float alpha = 155.f + (100.f * (std::sin(m_elapsed * 3.f) * 0.5f + 0.5f));
     m_startText.setFillColor(
         sf::Color(255, 255, 0, static_cast<std::uint8_t>(std::clamp(alpha, 0.f, 255.f))));
     window.draw(m_startText);
