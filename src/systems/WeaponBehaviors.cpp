@@ -52,7 +52,7 @@ bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& 
     }
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
-    p->damage = stats.damage;
+    p->damage = stats.damage * (1.0f + player.damageBonus);
     p->speed = stats.projectileSpeed;
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
@@ -94,7 +94,7 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
         }
         p->pos = player.pos;
         p->vel = d * stats.projectileSpeed;
-        p->damage = stats.damage;
+        p->damage = stats.damage * (1.0f + player.damageBonus);
         p->speed = stats.projectileSpeed;
         p->lifetime = stats.projectileLifetime;
         p->radius = stats.projectileRadius;
@@ -133,7 +133,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
         p->state.orbit.speed = axeDef.orbitSpeed;
         p->pos =
             player.pos + sf::Vector2f(std::cos(angle), std::sin(angle)) * p->state.orbit.radius;
-        p->damage = stats.damage;
+        p->damage = stats.damage * (1.0f + player.damageBonus);
         p->speed = 0.f;
         p->lifetime = stats.projectileLifetime;
         p->radius = stats.projectileRadius;
@@ -171,7 +171,7 @@ bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& e
     }
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
-    p->damage = stats.damage;
+    p->damage = stats.damage * (1.0f + player.damageBonus);
     p->speed = stats.projectileSpeed;
     p->lifetime = stats.projectileLifetime;
     p->radius = stats.projectileRadius;
@@ -186,7 +186,7 @@ void GarlicBehavior::tickAoE(int level, const PlayerState& player, Pool<Enemy>& 
 
     enemies.forEach([&](Enemy& e) {
         if (circleCircle(player.pos, stats.aoeRadius, e.pos, e.radius)) {
-            e.hp -= stats.damage;
+            e.hp -= stats.damage * (1.0f + player.damageBonus);
         }
     });
 }

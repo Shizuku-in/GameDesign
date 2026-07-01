@@ -13,11 +13,13 @@ struct CharacterDef {
     int frameHeight;
 
     // 属性
-    float hp;          // 最大生命值
-    float speed;       // 移动速度（像素/秒）
-    float radius;      // 碰撞半径
-    float armor;       // 伤害减免 0–1
-    float magnetRange; // 宝石拾取范围
+    float hp;                // 最大生命值
+    float speed;             // 移动速度（像素/秒）
+    float radius;            // 碰撞半径
+    float armor;             // 伤害减免 0–1
+    float magnetRange;       // 宝石拾取范围
+    float damageBonus;       // 伤害加成 0=+0% 1=+100%
+    float cooldownReduction; // 冷却缩减 0=0% 1=100%
 
     // 各方向精灵表路径
     const char* spriteForward; // 面对镜头（朝下）

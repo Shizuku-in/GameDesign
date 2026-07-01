@@ -19,16 +19,20 @@ struct PlayerState {
 
     float armor = 0.f;
     float magnetRange = 0.f;
+    float damageBonus = 0.f;       // 0=+0%, 1=+100%
+    float cooldownReduction = 0.f; // 0=0%, 1=100%
     float xpMultiplier = 1.0f;
 
     /// 从角色定义初始化属性（覆盖默认值）。
     void initFromCharacter(float charHp, float charSpeed, float charRadius, float charArmor,
-                           float charMagnet) {
+                           float charMagnet, float charDmgBonus, float charCDR) {
         hp = maxHp = charHp;
         speed = baseSpeed = charSpeed;
         radius = charRadius;
         armor = charArmor;
         magnetRange = charMagnet;
+        damageBonus = charDmgBonus;
+        cooldownReduction = charCDR;
     }
 
     int level = 1;

@@ -26,6 +26,10 @@ void applyStatBoost(PlayerState& player, WeaponSystem& /*unused*/, const Upgrade
     player.armor += def.armorBonus;
     player.armor = std::min(player.armor, Config::PLAYER_MAX_ARMOR);
     player.magnetRange += def.magnetBonus;
+    player.damageBonus += def.damageBonus;
+    player.cooldownReduction += def.cooldownBonus;
+    player.cooldownReduction =
+        std::min(player.cooldownReduction, Config::PLAYER_MAX_COOLDOWN_REDUCTION);
     player.xpMultiplier += def.xpMultiplierBonus;
 }
 
@@ -43,6 +47,12 @@ std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player,
     if (def.magnetBonus > 0.f) {
         return std::format("Current range: {:.0f}", player.magnetRange);
     }
+    if (def.damageBonus > 0.f) {
+        return std::format("Current Might: +{:.0f}%", player.damageBonus * 100.f);
+    }
+    if (def.cooldownBonus > 0.f) {
+        return std::format("Current CDR: {:.0f}%", player.cooldownReduction * 100.f);
+    }
     if (def.xpMultiplierBonus > 0.f) {
         return std::format("Current XP mult: {:.0f}%", player.xpMultiplier * 100.f);
     }
@@ -50,9 +60,9 @@ std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player,
 }
 
 UpgradeDef makeStatBoost(const char* name, const char* desc, float hp, float speed, float armor,
-                         float magnet, float xpMult) {
-    return {StatBoost, name,  desc,   detailStatBoost, MagicWand,     hp,
-            speed,     armor, magnet, xpMult,          statAvailable, applyStatBoost};
+                         float magnet, float dmg, float cd, float xpMult) {
+    return {StatBoost, name, desc,   detailStatBoost, MagicWand,     hp, speed, armor, magnet,
+            dmg,       cd,   xpMult, statAvailable,   applyStatBoost};
 }
 
 // --- NewWeapon ---
@@ -104,13 +114,18 @@ std::string detailWeaponUpgrade(const UpgradeDef& def, const PlayerState& /*unus
 std::vector<UpgradeDef> buildUpgradeDefs() {
     std::vector<UpgradeDef> d;
 
-    // --- 属性提升（5 项） ---
-    d.push_back(makeStatBoost("Vitality", "+20 Max HP, heal 20", 20.f, 0.f, 0.f, 0.f, 0.f));
-    d.push_back(makeStatBoost("Swiftness", "+10% movement speed", 0.f, 0.10f, 0.f, 0.f, 0.f));
+    // --- 属性提升（7 项） ---
     d.push_back(
-        makeStatBoost("Armor", "+5% damage reduction (max 50%)", 0.f, 0.f, 0.05f, 0.f, 0.f));
-    d.push_back(makeStatBoost("Magnet", "+30 pickup range", 0.f, 0.f, 0.f, 30.f, 0.f));
-    d.push_back(makeStatBoost("Greed", "+15% XP gain", 0.f, 0.f, 0.f, 0.f, 0.15f));
+        makeStatBoost("Vitality", "+20 Max HP, heal 20", 20.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f));
+    d.push_back(
+        makeStatBoost("Swiftness", "+10% movement speed", 0.f, 0.10f, 0.f, 0.f, 0.f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Armor", "+5% damage reduction (max 50%)", 0.f, 0.f, 0.05f, 0.f, 0.f,
+                              0.f, 0.f));
+    d.push_back(makeStatBoost("Magnet", "+30 pickup range", 0.f, 0.f, 0.f, 30.f, 0.f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Might", "+25% weapon damage", 0.f, 0.f, 0.f, 0.f, 0.25f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Haste", "+10% cooldown reduction (max 60%)", 0.f, 0.f, 0.f, 0.f, 0.f,
+                              0.10f, 0.f));
+    d.push_back(makeStatBoost("Greed", "+15% XP gain", 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.15f));
 
     // --- 新武器 + 武器升级（从 WEAPON_DEFS 自动生成） ---
     for (int i = 0; i < static_cast<int>(Count); ++i) {
@@ -118,11 +133,11 @@ std::vector<UpgradeDef> buildUpgradeDefs() {
 
         // NewWeapon
         d.push_back({NewWeapon, wd.name, "New weapon", detailNewWeapon, static_cast<WeaponType>(i),
-                     0.f, 0.f, 0.f, 0.f, 0.f, newWeaponAvailable, applyNewWeapon});
+                     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, newWeaponAvailable, applyNewWeapon});
 
         // WeaponUpgrade
         d.push_back({WeaponUpgrade, wd.name, "Upgrade weapon", detailWeaponUpgrade,
-                     static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, nullptr,
+                     static_cast<WeaponType>(i), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, nullptr,
                      applyWeaponUpgrade});
     }
 

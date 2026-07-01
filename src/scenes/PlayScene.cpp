@@ -69,7 +69,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     // 加载角色精灵表 — 从 CharacterDef 读取路径
     const auto& charDef = CHARACTER_DEFS[0]; // 默认 Elf
     m_player.initFromCharacter(charDef.hp, charDef.speed, charDef.radius, charDef.armor,
-                               charDef.magnetRange);
+                               charDef.magnetRange, charDef.damageBonus, charDef.cooldownReduction);
     const char* dirPaths[K_PLAYER_DIR_COUNT] = {charDef.spriteForward, charDef.spriteBack,
                                                 charDef.spriteLeft, charDef.spriteRight,
                                                 charDef.spriteIdle};

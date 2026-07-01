@@ -30,6 +30,8 @@ struct UpgradeDef {
     float speedBonus = 0.f; // 基于基础速度的加法（非复利）
     float armorBonus = 0.f;
     float magnetBonus = 0.f;
+    float damageBonus = 0.f;   // Might
+    float cooldownBonus = 0.f; // Haste
     float xpMultiplierBonus = 0.f;
 
     AvailFn available = nullptr; // null = 始终可选
