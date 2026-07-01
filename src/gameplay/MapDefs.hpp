@@ -11,8 +11,7 @@ struct MapDef {
     MapType type;
     const char* name;
     const char* bgmPath;
-    const char* tilemapPath; // TMX 文件路径
-    const char* tilesetPath; // tileset 纹理路径
+    const char* tilemapPath; // TMX 文件路径（tileset 纹理由 TMX 内部解析）
 
     // 生成参数
     float spawnDistance;     // 敌人生成距玩家距离

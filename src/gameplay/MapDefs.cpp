@@ -5,7 +5,6 @@ const MapDef MAP_DEFS[] = {
      .name = "Forest",
      .bgmPath = "assets/sounds/bgm/stone fortress.ogg",
      .tilemapPath = "assets/maps/forest.tmx",
-     .tilesetPath = "assets/tilesets/test_16x16.png",
      .spawnDistance = 1200.f,
      .spawnJitter = 200.f,
      .baseSpawnInterval = 3.f,
