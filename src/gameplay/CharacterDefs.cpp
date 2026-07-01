@@ -18,7 +18,15 @@ const CharacterDef CHARACTER_DEFS[] = {
         .spriteBack = "assets/sprites/character/elf/movement/back.png",
         .spriteLeft = "assets/sprites/character/elf/movement/left.png",
         .spriteRight = "assets/sprites/character/elf/movement/right.png",
-        .spriteIdle = "assets/sprites/character/elf/idle/idle.png",
+        .spriteIdle = nullptr, // 弃用全方向 idle，改用 idle_left/idle_right
+        .spriteIdleLeft = "assets/sprites/character/elf/idle/idle_left.png",
+        .spriteIdleRight = "assets/sprites/character/elf/idle/idle_right.png",
+        .spriteAttackLeft = "assets/sprites/character/elf/attack/attack_left.png",
+        .spriteAttackRight = "assets/sprites/character/elf/attack/attack_right.png",
+        .spriteHitLeft = "assets/sprites/character/elf/hit/hit_left.png",
+        .spriteHitRight = "assets/sprites/character/elf/hit/hit_right.png",
+        .spriteDeathLeft = "assets/sprites/character/elf/death/death_left.png",
+        .spriteDeathRight = "assets/sprites/character/elf/death/death_right.png",
     },
 };
 

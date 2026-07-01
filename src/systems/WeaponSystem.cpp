@@ -99,8 +99,9 @@ void WeaponSystem::reset() {
 
 // --- 主更新 ---
 
-void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
                           Pool<Projectile>& projectiles, SoundPlayer& sounds) {
+    bool anyFired = false;
     for (int i = 0; i < MAX_SLOTS; ++i) {
         auto& slot = m_slots[i];
         if (slot.level == 0) {
@@ -120,6 +121,7 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
                 if (slot.behavior) {
                     slot.behavior->tickAoE(slot.level, player, enemies);
                 }
+                anyFired = true;
             }
             continue;
         }
@@ -132,9 +134,11 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
             }
             if (fired) {
                 sounds.shoot();
+                anyFired = true;
             }
             auto stats = getWeaponStats(slot.type, slot.level);
             slot.cooldown = stats.cooldown * cdMultiplier;
         }
     }
+    return anyFired;
 }

@@ -26,7 +26,23 @@ struct CharacterDef {
     const char* spriteBack;    // 背对镜头（朝上）
     const char* spriteLeft;
     const char* spriteRight;
-    const char* spriteIdle; // 待机
+    const char* spriteIdle; // 旧版全方向待机（已弃用，置 nullptr）
+
+    // 朝向区分 idle（left/right）
+    const char* spriteIdleLeft;
+    const char* spriteIdleRight;
+
+    // 攻击动画（仅 left/right，按朝向选择）
+    const char* spriteAttackLeft;
+    const char* spriteAttackRight;
+
+    // 受击动画（仅 left/right，按朝向选择）
+    const char* spriteHitLeft;
+    const char* spriteHitRight;
+
+    // 死亡动画（仅 left/right，暂未绑定）
+    const char* spriteDeathLeft;
+    const char* spriteDeathRight;
 };
 
 /// 所有角色定义表，按 CharacterType 枚举顺序排列。

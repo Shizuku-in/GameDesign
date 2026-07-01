@@ -46,8 +46,21 @@ struct PlayerState {
     const SpriteSheet* spriteBack = nullptr;    // 朝上
     const SpriteSheet* spriteLeft = nullptr;
     const SpriteSheet* spriteRight = nullptr;
-    const SpriteSheet* spriteIdle = nullptr;    // 待机
+    const SpriteSheet* spriteIdle = nullptr;    // 旧版全方向 idle（已弃用）
+    const SpriteSheet* spriteIdleLeft = nullptr;
+    const SpriteSheet* spriteIdleRight = nullptr;
+    const SpriteSheet* spriteAttackLeft = nullptr;
+    const SpriteSheet* spriteAttackRight = nullptr;
+    const SpriteSheet* spriteHitLeft = nullptr;
+    const SpriteSheet* spriteHitRight = nullptr;
     const SpriteSheet* currentSprite = nullptr; // 当前方向（每帧更新）
     int animFrame = 0;
     float animTimer = 0.f;
+
+    // 角色朝向（仅 left/right，用于攻击/受击/待机的朝向选择）
+    bool facingRight = true;
+
+    // 动画状态计时器（> 0 表示对应动画播放中）
+    float attackAnimTimer = 0.f;
+    float hitAnimTimer = 0.f;
 };

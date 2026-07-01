@@ -70,21 +70,46 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     const auto& charDef = CHARACTER_DEFS[0]; // 默认 Elf
     m_player.initFromCharacter(charDef.hp, charDef.speed, charDef.radius, charDef.armor,
                                charDef.magnetRange, charDef.damageBonus, charDef.cooldownReduction);
-    const char* dirPaths[K_PLAYER_DIR_COUNT] = {charDef.spriteForward, charDef.spriteBack,
-                                                charDef.spriteLeft, charDef.spriteRight,
-                                                charDef.spriteIdle};
-    for (std::size_t i = 0; i < K_PLAYER_DIR_COUNT; ++i) {
-        if (!m_playerSprites[i].loadFromFile(dirPaths[i], charDef.frameWidth,
-                                             charDef.frameHeight)) {
-            std::fprintf(stderr, "[WARN] Player sprite load failed: %s\n", dirPaths[i]);
+
+    // 构造路径数组（nullptr = 无此精灵，跳过加载）
+    const char* spritePaths[kCount] = {
+        charDef.spriteForward, charDef.spriteBack,
+        charDef.spriteLeft,   charDef.spriteRight,
+        charDef.spriteIdleLeft,  charDef.spriteIdleRight,
+        charDef.spriteAttackLeft, charDef.spriteAttackRight,
+        charDef.spriteHitLeft,    charDef.spriteHitRight,
+    };
+    for (std::size_t i = 0; i < kCount; ++i) {
+        if (spritePaths[i]) {
+            if (!m_playerSprites[i].loadFromFile(spritePaths[i], charDef.frameWidth,
+                                                  charDef.frameHeight))
+                std::fprintf(stderr, "[WARN] Player sprite load failed: %s\n", spritePaths[i]);
         }
     }
-    m_player.spriteForward = m_playerSprites.data();
-    m_player.spriteBack = &m_playerSprites[1];
-    m_player.spriteLeft = &m_playerSprites[2];
-    m_player.spriteRight = &m_playerSprites[3];
-    m_player.spriteIdle = &m_playerSprites[4];
-    m_player.currentSprite = m_player.spriteIdle;
+
+    // 赋值精灵表指针
+    m_player.spriteForward = &m_playerSprites[kForward];
+    m_player.spriteBack = &m_playerSprites[kBack];
+    m_player.spriteLeft = &m_playerSprites[kLeft];
+    m_player.spriteRight = &m_playerSprites[kRight];
+    m_player.spriteIdleLeft = &m_playerSprites[kIdleLeft];
+    m_player.spriteIdleRight = &m_playerSprites[kIdleRight];
+    m_player.spriteAttackLeft = &m_playerSprites[kAttackLeft];
+    m_player.spriteAttackRight = &m_playerSprites[kAttackRight];
+    m_player.spriteHitLeft = &m_playerSprites[kHitLeft];
+    m_player.spriteHitRight = &m_playerSprites[kHitRight];
+
+    // 默认初始朝向右侧，待机
+    m_player.facingRight = true;
+    m_player.currentSprite = m_player.spriteIdleRight;
+
+    // 计算攻击/受击动画时长（基于精灵帧数）
+    if (m_playerSprites[kAttackRight].frameCount > 0)
+        m_attackAnimDuration = static_cast<float>(m_playerSprites[kAttackRight].frameCount) *
+                               Config::PLAYER_ANIM_FRAME_DURATION;
+    if (m_playerSprites[kHitRight].frameCount > 0)
+        m_hitAnimDuration = static_cast<float>(m_playerSprites[kHitRight].frameCount) *
+                            Config::PLAYER_ANIM_FRAME_DURATION;
 
     // BGM
     if (m_bgm.openFromFile(m_map->bgmPath)) {
@@ -172,8 +197,10 @@ void PlayScene::update(sf::Time dt) {
     movePlayer(dtSec);
     updatePlayerAnimation(dtSec);
 
-    // 武器
-    m_weapons.update(dtSec, m_player, m_enemies, m_projectiles, m_sounds);
+    // 武器（返回是否有开火，触发攻击动画）
+    bool weaponFired = m_weapons.update(dtSec, m_player, m_enemies, m_projectiles, m_sounds);
+    if (weaponFired && m_attackAnimDuration > 0.f)
+        m_player.attackAnimTimer = m_attackAnimDuration;
 
     // 实体更新
     updateEnemies(dtSec);
@@ -181,9 +208,12 @@ void PlayScene::update(sf::Time dt) {
     updateXPGems(dtSec);
     updateDamageTexts(dtSec);
 
-    // 碰撞 + 清理
+    // 碰撞 + 清理（记录碰撞前 HP，用于触发受击动画）
+    float hpBefore = m_player.hp;
     CollisionSystem::processCollisions(m_player, m_enemies, m_projectiles, m_xpGems, m_damageTexts,
                                        m_score, m_sounds, m_worldWidth, m_worldHeight);
+    if (m_player.hp < hpBefore && m_hitAnimDuration > 0.f)
+        m_player.hitAnimTimer = m_hitAnimDuration;
 
     // 生成
     m_spawning.update(dtSec, m_gameTime, m_player.pos, m_enemies);
@@ -278,24 +308,67 @@ void PlayScene::movePlayer(float dt) {
 }
 
 void PlayScene::updatePlayerAnimation(float dt) {
-    // 根据移动方向选择精灵表
-    const SpriteSheet* target = m_player.spriteIdle;
-    if (m_player.vel.y < 0.f) {
-        target = m_player.spriteBack;
-    } else if (m_player.vel.y > 0.f) {
-        target = m_player.spriteForward;
-    } else if (m_player.vel.x < 0.f) {
-        target = m_player.spriteLeft;
-    } else if (m_player.vel.x > 0.f) {
-        target = m_player.spriteRight;
+    // 更新朝向（仅水平移动改变 facing，垂直移动/静止保持上次朝向）
+    if (m_player.vel.x > 0.f)
+        m_player.facingRight = true;
+    else if (m_player.vel.x < 0.f)
+        m_player.facingRight = false;
+
+    // 推进动画状态计时器
+    if (m_player.attackAnimTimer > 0.f)
+        m_player.attackAnimTimer -= dt;
+    if (m_player.hitAnimTimer > 0.f)
+        m_player.hitAnimTimer -= dt;
+
+    bool isMoving = (m_player.vel.x != 0.f || m_player.vel.y != 0.f);
+
+    // 选择精灵表 —— 优先级：受击 > 攻击 > 移动 > 待机
+    const SpriteSheet* target = nullptr;
+
+    if (m_player.hitAnimTimer > 0.f) {
+        target = m_player.facingRight ? m_player.spriteHitRight : m_player.spriteHitLeft;
+    } else if (m_player.attackAnimTimer > 0.f) {
+        target =
+            m_player.facingRight ? m_player.spriteAttackRight : m_player.spriteAttackLeft;
+    } else if (isMoving) {
+        // 移动动画（四方向，不含 left/right 朝向区分）
+        if (m_player.vel.y < 0.f)
+            target = m_player.spriteBack;
+        else if (m_player.vel.y > 0.f)
+            target = m_player.spriteForward;
+        else if (m_player.vel.x < 0.f)
+            target = m_player.spriteLeft;
+        else if (m_player.vel.x > 0.f)
+            target = m_player.spriteRight;
+    } else {
+        // 待机动画（朝向区分 left/right，忽略无朝向的旧 spriteIdle）
+        target =
+            m_player.facingRight ? m_player.spriteIdleRight : m_player.spriteIdleLeft;
     }
 
+    // 回退：朝向相关 sprite 为 null 时尝试旧版 idle
+    if (!target)
+        target = m_player.spriteIdle;
+    // 最后回退：任意已加载的精灵
+    if (!target) {
+        for (std::size_t i = 0; i < kCount; ++i) {
+            if (m_playerSprites[i].frameCount > 0) {
+                target = &m_playerSprites[i];
+                break;
+            }
+        }
+    }
+    if (!target)
+        return;
+
+    // 精灵表切换时重置帧
     if (target != m_player.currentSprite) {
         m_player.currentSprite = target;
         m_player.animFrame = 0;
         m_player.animTimer = 0.f;
     }
 
+    // 推进帧动画
     m_player.animTimer += dt;
     if ((m_player.currentSprite != nullptr) && m_player.currentSprite->frameCount > 0 &&
         m_player.animTimer >= Config::PLAYER_ANIM_FRAME_DURATION) {

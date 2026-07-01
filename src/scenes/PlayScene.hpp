@@ -63,9 +63,25 @@ private:
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesMove;
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesDamaged;
 
-    // 角色精灵表（按方向索引：forward, back, left, right, idle）
-    static constexpr std::size_t K_PLAYER_DIR_COUNT = 5;
-    std::array<SpriteSheet, K_PLAYER_DIR_COUNT> m_playerSprites;
+    // 角色精灵表索引
+    enum PlayerSpriteIdx : std::size_t {
+        kForward,
+        kBack,
+        kLeft,
+        kRight,
+        kIdleLeft,
+        kIdleRight,
+        kAttackLeft,
+        kAttackRight,
+        kHitLeft,
+        kHitRight,
+        kCount
+    };
+    std::array<SpriteSheet, kCount> m_playerSprites;
+
+    // 攻击/受击动画时长（加载精灵后计算）
+    float m_attackAnimDuration = 0.f;
+    float m_hitAnimDuration = 0.f;
 
     // 相机
     sf::View m_camera;
