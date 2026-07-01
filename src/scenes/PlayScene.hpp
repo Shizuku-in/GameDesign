@@ -75,9 +75,9 @@ private:
         kAttackRight,
         kHitLeft,
         kHitRight,
-        kCount
+        kPlayerSpriteCount
     };
-    std::array<SpriteSheet, kCount> m_playerSprites;
+    std::array<SpriteSheet, kPlayerSpriteCount> m_playerSprites;
 
     // 攻击/受击动画时长（加载精灵后计算）
     float m_attackAnimDuration = 0.f;

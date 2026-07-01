@@ -72,14 +72,14 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
                                charDef.magnetRange, charDef.damageBonus, charDef.cooldownReduction);
 
     // 构造路径数组（nullptr = 无此精灵，跳过加载）
-    const char* spritePaths[kCount] = {
+    const char* spritePaths[kPlayerSpriteCount] = {
         charDef.spriteForward, charDef.spriteBack,
         charDef.spriteLeft,   charDef.spriteRight,
         charDef.spriteIdleLeft,  charDef.spriteIdleRight,
         charDef.spriteAttackLeft, charDef.spriteAttackRight,
         charDef.spriteHitLeft,    charDef.spriteHitRight,
     };
-    for (std::size_t i = 0; i < kCount; ++i) {
+    for (std::size_t i = 0; i < kPlayerSpriteCount; ++i) {
         if (spritePaths[i]) {
             if (!m_playerSprites[i].loadFromFile(spritePaths[i], charDef.frameWidth,
                                                   charDef.frameHeight))
@@ -326,10 +326,15 @@ void PlayScene::updatePlayerAnimation(float dt) {
     const SpriteSheet* target = nullptr;
 
     if (m_player.hitAnimTimer > 0.f) {
-        target = m_player.facingRight ? m_player.spriteHitRight : m_player.spriteHitLeft;
+        if (m_player.facingRight)
+            target = m_player.spriteHitRight;
+        else
+            target = m_player.spriteHitLeft;
     } else if (m_player.attackAnimTimer > 0.f) {
-        target =
-            m_player.facingRight ? m_player.spriteAttackRight : m_player.spriteAttackLeft;
+        if (m_player.facingRight)
+            target = m_player.spriteAttackRight;
+        else
+            target = m_player.spriteAttackLeft;
     } else if (isMoving) {
         // 移动动画（四方向，不含 left/right 朝向区分）
         if (m_player.vel.y < 0.f)
@@ -342,8 +347,10 @@ void PlayScene::updatePlayerAnimation(float dt) {
             target = m_player.spriteRight;
     } else {
         // 待机动画（朝向区分 left/right，忽略无朝向的旧 spriteIdle）
-        target =
-            m_player.facingRight ? m_player.spriteIdleRight : m_player.spriteIdleLeft;
+        if (m_player.facingRight)
+            target = m_player.spriteIdleRight;
+        else
+            target = m_player.spriteIdleLeft;
     }
 
     // 回退：朝向相关 sprite 为 null 时尝试旧版 idle
@@ -351,7 +358,7 @@ void PlayScene::updatePlayerAnimation(float dt) {
         target = m_player.spriteIdle;
     // 最后回退：任意已加载的精灵
     if (!target) {
-        for (std::size_t i = 0; i < kCount; ++i) {
+        for (std::size_t i = 0; i < kPlayerSpriteCount; ++i) {
             if (m_playerSprites[i].frameCount > 0) {
                 target = &m_playerSprites[i];
                 break;
