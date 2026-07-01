@@ -5,42 +5,45 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
+#include <array>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
-/// 小型 sf::Sound 对象池，封装 buffer 引用，通过命名方法播放。
+enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
+
+/// 小型 sf::Sound 对象池，封装 buffer 引用，表驱动播放。
 /// 同一音效有多短间隔保护，避免多个实例同时播放导致音量叠加。
 class SoundPlayer {
 public:
     explicit SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds);
 
-    /// 每帧调用，递减冷却计时器。
+    /// 每帧调用，递减所有冷却计时器。
     void update(float dt);
 
-    void shoot();
-    void hit();
-    void kill();
-    void hurt();
-    void pickup();
-    void levelup();
+    /// 通过 ID 播放音效。
+    void play(SoundId id);
+
+    // 便捷方法
+    void shoot() { play(SoundId::Shoot); }
+    void hit() { play(SoundId::Hit); }
+    void kill() { play(SoundId::Kill); }
+    void hurt() { play(SoundId::Hurt); }
+    void pickup() { play(SoundId::Pickup); }
+    void levelup() { play(SoundId::LevelUp); }
 
 private:
-    void play(const sf::SoundBuffer* buf, float volume);
+    static constexpr std::size_t K_COUNT = static_cast<std::size_t>(SoundId::Count);
 
-    sf::SoundBuffer* m_shoot = nullptr;
-    sf::SoundBuffer* m_hit = nullptr;
-    sf::SoundBuffer* m_kill = nullptr;
-    sf::SoundBuffer* m_hurt = nullptr;
-    sf::SoundBuffer* m_pickup = nullptr;
-    sf::SoundBuffer* m_levelup = nullptr;
+    struct Slot {
+        sf::SoundBuffer* buffer = nullptr;
+        float interval = 0.f; // 最短触发间隔（秒），0 = 无限制
+        float volume = 100.f; // 0–100
+    };
+
+    std::array<Slot, K_COUNT> m_slots{};
+    std::array<float, K_COUNT> m_timers{};
 
     std::vector<sf::Sound> m_pool;
     int m_next = 0;
-
-    // 同音效最短间隔（秒），避免多个实例叠加
-    float m_killTimer = 0.f;
-    float m_hitTimer = 0.f;
-    float m_shootTimer = 0.f;
-    float m_hurtTimer = 0.f;
-    float m_pickupTimer = 0.f;
 };
