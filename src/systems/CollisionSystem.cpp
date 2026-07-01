@@ -1,68 +1,51 @@
 #include "systems/CollisionSystem.hpp"
+
 #include "audio/SoundPlayer.hpp"
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "gameplay/EnemyDefs.hpp"
 #include "math/Collision.hpp"
+
 #include <algorithm>
+#include <cassert>
 #include <vector>
 
 namespace CollisionSystem {
 
 namespace {
+
 constexpr float CELL_SIZE = 100.f;
-} // namespace
 
-void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& projectiles,
-                       Pool<XPGem>& gems, Pool<DamageText>& damageTexts, int& score,
-                       SoundPlayer& sounds, float worldWidth, float worldHeight) {
-    // 静态状态：跨帧复用，仅此函数可见
-    static int gridCols = 0;
-    static int gridRows = 0;
-    static std::vector<std::vector<Enemy*>> grid;
-
-    // 动态调整网格尺寸
-    int cols = static_cast<int>(worldWidth / CELL_SIZE) + 1;
-    int rows = static_cast<int>(worldHeight / CELL_SIZE) + 1;
-    if (cols != gridCols || rows != gridRows) {
-        gridCols = cols;
-        gridRows = rows;
-        grid.resize(static_cast<std::size_t>(cols) * static_cast<std::size_t>(rows));
-    }
-
-    auto getCellIndex = [&](sf::Vector2f pos) {
-        int cx = std::clamp(static_cast<int>(pos.x / CELL_SIZE), 0, gridCols - 1);
-        int cy = std::clamp(static_cast<int>(pos.y / CELL_SIZE), 0, gridRows - 1);
-        return (cy * gridCols) + cx;
-    };
-
-    // 缓存最大敌人半径 — ENEMY_DEFS 在运行时不变，只需计算一次
-    static const float MAX_ENEMY_RADIUS = [] {
+// 缓存最大敌人半径 — ENEMY_DEFS 在运行时不变，只需计算一次
+float maxEnemyRadius() {
+    static const float M = [] {
         float m = 0.f;
         for (int i = 0; i < static_cast<int>(EnemyType::Count); ++i) {
             m = std::max(ENEMY_DEFS[i].radius, m);
         }
         return m;
     }();
+    return M;
+}
 
-    // 1. 构建空间哈希网格 (O(N))
-    for (auto& cell : grid) {
-        cell.clear(); // clear 只归零 size，保留 capacity，速度极快
-    }
-    enemies.forEach([&](Enemy& e) {
-        if (e.hp > 0.f) {
-            grid[getCellIndex(e.pos)].push_back(&e);
-        }
-    });
+// ---------------------------------------------------------------------------
+// 子步骤
+// ---------------------------------------------------------------------------
 
-    // 2. 弹幕 vs 敌人 (利用网格进行宽阶段裁剪)
+using Grid = std::vector<std::vector<Enemy*>>;
+
+/// 弹幕 vs 敌人 + AoE 爆炸。
+void processProjectileEnemyCollisions(Pool<Projectile>& projectiles, Grid& grid, int gridCols,
+                                      int gridRows, Pool<DamageText>& damageTexts,
+                                      Pool<XPGem>& gems, int& score, SoundPlayer& sounds) {
+    assert(grid.size() == static_cast<std::size_t>(gridCols) * static_cast<std::size_t>(gridRows));
+
     projectiles.forEach([&](Projectile& p) {
         if (p.lifetime <= 0.f) {
             [[unlikely]] return;
         }
 
-        // 计算弹幕可能触及的格子范围（考虑最大敌人半径，防止边缘漏判）
-        float searchRadius = p.radius + MAX_ENEMY_RADIUS;
+        float searchRadius = p.radius + maxEnemyRadius();
         int minCx =
             std::clamp(static_cast<int>((p.pos.x - searchRadius) / CELL_SIZE), 0, gridCols - 1);
         int maxCx =
@@ -79,12 +62,11 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                     if (e->hp <= 0.f) {
                         [[unlikely]] continue;
                     }
-                    if (e->hitFlashTimer > 0.f) { // 受击硬直中，防止同一弹幕重复伤害
+                    if (e->hitFlashTimer > 0.f) {
                         continue;
                     }
 
                     if (circleCircle(p.pos, p.radius, e->pos, e->radius)) [[unlikely]] {
-                        const sf::Vector2f HIT_POS = p.pos; // 爆炸以命中点为中心
                         e->hp -= p.damage;
                         e->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
 
@@ -100,18 +82,18 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
                         // AoE 爆炸：对范围内所有敌人造成伤害
                         if (p.aoeRadius > 0.f) [[unlikely]] {
-                            float explosionSearch = p.aoeRadius + MAX_ENEMY_RADIUS;
+                            float explosionSearch = p.aoeRadius + maxEnemyRadius();
                             int eMinCx = std::clamp(
-                                static_cast<int>((HIT_POS.x - explosionSearch) / CELL_SIZE), 0,
+                                static_cast<int>((p.pos.x - explosionSearch) / CELL_SIZE), 0,
                                 gridCols - 1);
                             int eMaxCx = std::clamp(
-                                static_cast<int>((HIT_POS.x + explosionSearch) / CELL_SIZE), 0,
+                                static_cast<int>((p.pos.x + explosionSearch) / CELL_SIZE), 0,
                                 gridCols - 1);
                             int eMinCy = std::clamp(
-                                static_cast<int>((HIT_POS.y - explosionSearch) / CELL_SIZE), 0,
+                                static_cast<int>((p.pos.y - explosionSearch) / CELL_SIZE), 0,
                                 gridRows - 1);
                             int eMaxCy = std::clamp(
-                                static_cast<int>((HIT_POS.y + explosionSearch) / CELL_SIZE), 0,
+                                static_cast<int>((p.pos.y + explosionSearch) / CELL_SIZE), 0,
                                 gridRows - 1);
                             for (int ey = eMinCy; ey <= eMaxCy; ++ey) {
                                 for (int ex = eMinCx; ex <= eMaxCx; ++ex) {
@@ -119,7 +101,7 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
                                         if (oe == e || oe->hp <= 0.f) {
                                             [[unlikely]] continue;
                                         }
-                                        if (circleCircle(HIT_POS, p.aoeRadius, oe->pos, oe->radius))
+                                        if (circleCircle(p.pos, p.aoeRadius, oe->pos, oe->radius))
                                             [[unlikely]] {
                                             oe->hp -= p.damage;
                                             oe->hitFlashTimer = Config::ENEMY_HIT_FLASH_DURATION;
@@ -160,54 +142,53 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
 
                         if (p.pierceCount <= 0) {
                             p.lifetime = 0.f;
-                            goto NEXT_PROJECTILE; // 穿透耗尽，直接检测下一发弹幕
+                            return;
                         }
                     }
                 }
             }
         }
-    NEXT_PROJECTILE:;
     });
+}
 
-    // 3. 玩家 vs 敌人 (同样利用网格加速)
-    if (player.invincibilityTimer <= 0.f) {
-        bool tookDamage = false;
+/// 玩家 vs 敌人（触发无敌帧后立即退出）。
+void processPlayerEnemyCollision(PlayerState& player, Grid& grid, int gridCols, int gridRows,
+                                 SoundPlayer& sounds) {
+    if (player.invincibilityTimer > 0.f) {
+        return;
+    }
 
-        float searchRadius = player.radius + MAX_ENEMY_RADIUS;
-        int minCx = std::clamp(static_cast<int>((player.pos.x - searchRadius) / CELL_SIZE), 0,
-                               gridCols - 1);
-        int maxCx = std::clamp(static_cast<int>((player.pos.x + searchRadius) / CELL_SIZE), 0,
-                               gridCols - 1);
-        int minCy = std::clamp(static_cast<int>((player.pos.y - searchRadius) / CELL_SIZE), 0,
-                               gridRows - 1);
-        int maxCy = std::clamp(static_cast<int>((player.pos.y + searchRadius) / CELL_SIZE), 0,
-                               gridRows - 1);
+    float searchRadius = player.radius + maxEnemyRadius();
+    int minCx =
+        std::clamp(static_cast<int>((player.pos.x - searchRadius) / CELL_SIZE), 0, gridCols - 1);
+    int maxCx =
+        std::clamp(static_cast<int>((player.pos.x + searchRadius) / CELL_SIZE), 0, gridCols - 1);
+    int minCy =
+        std::clamp(static_cast<int>((player.pos.y - searchRadius) / CELL_SIZE), 0, gridRows - 1);
+    int maxCy =
+        std::clamp(static_cast<int>((player.pos.y + searchRadius) / CELL_SIZE), 0, gridRows - 1);
 
-        for (int cy = minCy; cy <= maxCy; ++cy) {
-            for (int cx = minCx; cx <= maxCx; ++cx) {
-                int cellIdx = (cy * gridCols) + cx;
-                for (Enemy* e : grid[cellIdx]) {
-                    if (e->hp <= 0.f) {
-                        [[unlikely]] continue;
-                    }
-
-                    if (circleCircle(player.pos, player.radius, e->pos, e->radius)) [[unlikely]] {
-                        float dmg = e->damage * Config::FIXED_DT * (1.f - player.armor);
-                        player.hp -= dmg;
-                        player.invincibilityTimer = Config::PLAYER_IFRAMES;
-                        tookDamage = true;
-                        goto PLAYER_HIT_DONE; // 无敌帧触发，跳出检测
-                    }
+    for (int cy = minCy; cy <= maxCy; ++cy) {
+        for (int cx = minCx; cx <= maxCx; ++cx) {
+            int cellIdx = (cy * gridCols) + cx;
+            for (Enemy* e : grid[cellIdx]) {
+                if (e->hp <= 0.f) {
+                    [[unlikely]] continue;
+                }
+                if (circleCircle(player.pos, player.radius, e->pos, e->radius)) [[unlikely]] {
+                    float dmg = e->damage * Config::FIXED_DT * (1.f - player.armor);
+                    player.hp -= dmg;
+                    player.invincibilityTimer = Config::PLAYER_IFRAMES;
+                    sounds.hurt();
+                    return;
                 }
             }
         }
-    PLAYER_HIT_DONE:
-        if (tookDamage) {
-            sounds.hurt();
-        }
     }
+}
 
-    // 玩家 vs XP 宝石
+/// 玩家 vs XP 宝石。
+void processPlayerGemPickups(PlayerState& player, Pool<XPGem>& gems, SoundPlayer& sounds) {
     gems.forEach([&](XPGem& g) {
         if (circleCircle(player.pos, player.magnetRange, g.pos, g.radius)) {
             player.xp += g.value * player.xpMultiplier;
@@ -215,11 +196,13 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
             sounds.pickup();
         }
     });
+}
 
-    // 清理
+/// 清理死亡敌人、过期弹幕、已收集宝石。未结算掉落在此补发。
+void cleanupEntities(Pool<Enemy>& enemies, Pool<Projectile>& projectiles, Pool<XPGem>& gems,
+                     int& score, SoundPlayer& sounds) {
     enemies.forEachHandle([&](Pool<Enemy>::Handle h, Enemy& e) {
         if (e.hp <= 0.f) {
-            // 未结算的死亡（如大蒜 AoE 击杀）：补发掉落
             if (!e.killed) {
                 auto gemHandle = gems.acquire();
                 if (auto* g = gems.get(gemHandle)) {
@@ -244,6 +227,50 @@ void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectil
             gems.release(h);
         }
     });
+}
+
+} // namespace
+
+// ===========================================================================
+// 主入口
+// ===========================================================================
+
+void processCollisions(PlayerState& player, Pool<Enemy>& enemies, Pool<Projectile>& projectiles,
+                       Pool<XPGem>& gems, Pool<DamageText>& damageTexts, int& score,
+                       SoundPlayer& sounds, float worldWidth, float worldHeight) {
+    // 空间哈希网格 — 跨帧复用
+    static int gridCols = 0;
+    static int gridRows = 0;
+    static Grid grid;
+
+    int cols = static_cast<int>(worldWidth / CELL_SIZE) + 1;
+    int rows = static_cast<int>(worldHeight / CELL_SIZE) + 1;
+    if (cols != gridCols || rows != gridRows) {
+        gridCols = cols;
+        gridRows = rows;
+        grid.resize(static_cast<std::size_t>(cols) * static_cast<std::size_t>(rows));
+    }
+
+    // 1. 构建网格
+    for (auto& cell : grid) {
+        cell.clear();
+    }
+    enemies.forEach([&](Enemy& e) {
+        if (e.hp > 0.f) {
+            int cx = std::clamp(static_cast<int>(e.pos.x / CELL_SIZE), 0, gridCols - 1);
+            int cy = std::clamp(static_cast<int>(e.pos.y / CELL_SIZE), 0, gridRows - 1);
+            grid[(cy * gridCols) + cx].push_back(&e);
+        }
+    });
+
+    // 2. 碰撞检测
+    processProjectileEnemyCollisions(projectiles, grid, gridCols, gridRows, damageTexts, gems,
+                                     score, sounds);
+    processPlayerEnemyCollision(player, grid, gridCols, gridRows, sounds);
+    processPlayerGemPickups(player, gems, sounds);
+
+    // 3. 清理
+    cleanupEntities(enemies, projectiles, gems, score, sounds);
 }
 
 } // namespace CollisionSystem

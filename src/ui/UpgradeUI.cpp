@@ -1,4 +1,5 @@
 #include "ui/UpgradeUI.hpp"
+
 #include "data/Constants.hpp"
 
 #include <SFML/Graphics/Color.hpp>

@@ -22,7 +22,7 @@ PointerAlignment: Left
 
 # Include sorting
 SortIncludes: true
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
 IncludeCategories:
   # Project headers
   - Regex: '^".*"'

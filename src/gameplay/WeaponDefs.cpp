@@ -1,4 +1,5 @@
 #include "gameplay/WeaponDefs.hpp"
+
 #include "systems/WeaponBehaviors.hpp"
 
 const WeaponDef WEAPON_DEFS[] = {

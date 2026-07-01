@@ -1,8 +1,10 @@
 #include "graphics/WorldRenderer.hpp"
+
 #include "data/Constants.hpp"
 #include "graphics/SpriteSheet.hpp"
 
 #include <SFML/Graphics/Color.hpp>
+
 #include <format>
 
 void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,

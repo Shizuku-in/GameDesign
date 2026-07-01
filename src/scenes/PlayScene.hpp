@@ -19,7 +19,6 @@
 #include <SFML/Graphics/View.hpp>
 
 #include <array>
-
 #include <memory>
 #include <vector>
 

@@ -1,6 +1,8 @@
 #include "systems/WeaponBehaviors.hpp"
+
 #include "data/Constants.hpp"
 #include "math/Collision.hpp"
+
 #include <cmath>
 #include <limits>
 

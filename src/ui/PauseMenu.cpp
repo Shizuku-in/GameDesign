@@ -1,4 +1,5 @@
 #include "ui/PauseMenu.hpp"
+
 #include "data/Constants.hpp"
 
 #include <SFML/Graphics/Color.hpp>

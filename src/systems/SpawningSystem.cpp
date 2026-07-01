@@ -1,4 +1,5 @@
 #include "systems/SpawningSystem.hpp"
+
 #include "core/Random.hpp"
 #include "data/Constants.hpp"
 #include "gameplay/EnemyDefs.hpp"

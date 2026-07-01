@@ -1,4 +1,5 @@
 #include "scenes/TitleScene.hpp"
+
 #include "core/Game.hpp"
 #include "data/Constants.hpp"
 #include "scenes/PlayScene.hpp"

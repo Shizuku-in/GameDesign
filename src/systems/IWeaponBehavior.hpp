@@ -4,6 +4,7 @@
 #include "data/EntityTypes.hpp"
 #include "data/PlayerState.hpp"
 #include "gameplay/WeaponDefs.hpp"
+
 #include <memory>
 
 class IWeaponBehavior {

@@ -4,6 +4,7 @@
 #include "data/EntityTypes.hpp"
 
 #include <SFML/System/Vector2.hpp>
+
 #include <span>
 
 struct SpriteSheet;
