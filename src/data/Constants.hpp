@@ -52,47 +52,52 @@ constexpr float BGM_VOLUME = 50.f;
 
 // --- 资源路径 ---
 constexpr const char* FONT_DEFAULT_PATH = "assets/fonts/fusion-pixel-12px-proportional-zh_hans.ttf";
-constexpr const char* SOUND_SHOOT_PATH = "assets/sounds/sfx/shoot.wav";
-constexpr const char* SOUND_HIT_PATH = "assets/sounds/sfx/hit.wav";
-constexpr const char* SOUND_KILL_PATH = "assets/sounds/sfx/kill.wav";
-constexpr const char* SOUND_HURT_PATH = "assets/sounds/sfx/hurt.wav";
-constexpr const char* SOUND_PICKUP_PATH = "assets/sounds/sfx/pickup.wav";
-constexpr const char* SOUND_LEVELUP_PATH = "assets/sounds/sfx/levelup.wav";
 
-// --- 音效配置 ---
-struct SoundConfig {
-    float volume = 100.f; // 音量 0-100
+// --- 音效定义（数据驱动：一行一个音效的全部信息）---
+enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
+
+struct SoundDef {
+    SoundId id;
+    const char* key;      // ResourceManager 查找 key
+    const char* path;     // 音频文件路径
+    float volume = 100.f; // 音量 0–100
     float interval = 0.f; // 最短触发间隔（秒），0 = 无限制
 };
 
-constexpr SoundConfig SOUND_CFG_SHOOT{50.f, 0.08f};
-constexpr SoundConfig SOUND_CFG_HIT{45.f, 0.05f};
-constexpr SoundConfig SOUND_CFG_KILL{55.f, 0.10f};
-constexpr SoundConfig SOUND_CFG_HURT{70.f, 0.25f};
-constexpr SoundConfig SOUND_CFG_PICKUP{40.f, 0.10f};
-constexpr SoundConfig SOUND_CFG_LEVELUP{65.f, 0.f};
-
-enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
-
-/// 返回 SoundId 对应的资源 key，供 ResourceManager 加载/查询。
-constexpr const char* soundKey(SoundId id) {
-    switch (id) {
-    case SoundId::Shoot:
-        return "shoot";
-    case SoundId::Hit:
-        return "hit";
-    case SoundId::Kill:
-        return "kill";
-    case SoundId::Hurt:
-        return "hurt";
-    case SoundId::Pickup:
-        return "pickup";
-    case SoundId::LevelUp:
-        return "levelup";
-    default:
-        return "";
-    }
-}
+constexpr SoundDef SOUND_DEFS[] = {
+    {.id = SoundId::Shoot,
+     .key = "shoot",
+     .path = "assets/sounds/sfx/shoot.wav",
+     .volume = 50.f,
+     .interval = 0.08f},
+    {.id = SoundId::Hit,
+     .key = "hit",
+     .path = "assets/sounds/sfx/hit.wav",
+     .volume = 45.f,
+     .interval = 0.05f},
+    {.id = SoundId::Kill,
+     .key = "kill",
+     .path = "assets/sounds/sfx/kill.wav",
+     .volume = 55.f,
+     .interval = 0.10f},
+    {.id = SoundId::Hurt,
+     .key = "hurt",
+     .path = "assets/sounds/sfx/hurt.wav",
+     .volume = 70.f,
+     .interval = 0.25f},
+    {.id = SoundId::Pickup,
+     .key = "pickup",
+     .path = "assets/sounds/sfx/pickup.wav",
+     .volume = 40.f,
+     .interval = 0.10f},
+    {.id = SoundId::LevelUp,
+     .key = "levelup",
+     .path = "assets/sounds/sfx/levelup.wav",
+     .volume = 65.f,
+     .interval = 0.f},
+};
+static_assert(sizeof(SOUND_DEFS) / sizeof(SOUND_DEFS[0]) == static_cast<int>(SoundId::Count),
+              "SOUND_DEFS must have one entry per SoundId");
 
 // --- 对象池预分配 ---
 constexpr std::size_t POOL_ENEMIES_CAPACITY = 500;

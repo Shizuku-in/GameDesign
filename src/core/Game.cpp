@@ -15,13 +15,9 @@ Game::Game()
     m_fonts.load("default", Config::FONT_DEFAULT_PATH);
 
     // 加载音效
-    using enum Config::SoundId;
-    m_sounds.load(Config::soundKey(Shoot), Config::SOUND_SHOOT_PATH);
-    m_sounds.load(Config::soundKey(Hit), Config::SOUND_HIT_PATH);
-    m_sounds.load(Config::soundKey(Kill), Config::SOUND_KILL_PATH);
-    m_sounds.load(Config::soundKey(Hurt), Config::SOUND_HURT_PATH);
-    m_sounds.load(Config::soundKey(Pickup), Config::SOUND_PICKUP_PATH);
-    m_sounds.load(Config::soundKey(LevelUp), Config::SOUND_LEVELUP_PATH);
+    for (const auto& def : Config::SOUND_DEFS) {
+        m_sounds.load(def.key, def.path);
+    }
 
     m_scene = std::make_unique<TitleScene>(*this); // 直接赋值 — 构造时安全
 }

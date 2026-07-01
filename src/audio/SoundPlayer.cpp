@@ -5,41 +5,14 @@
 #include <cstdio>
 
 SoundPlayer::SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds) {
-    auto load = [&](Config::SoundId id) -> sf::SoundBuffer* {
-        auto ptr = sounds.get(Config::soundKey(id));
-        return ptr.get();
-    };
-
-    m_slots[static_cast<int>(Config::SoundId::Shoot)] = {
-        .buffer = load(Config::SoundId::Shoot),
-        .interval = Config::SOUND_CFG_SHOOT.interval,
-        .volume = Config::SOUND_CFG_SHOOT.volume,
-    };
-    m_slots[static_cast<int>(Config::SoundId::Hit)] = {
-        .buffer = load(Config::SoundId::Hit),
-        .interval = Config::SOUND_CFG_HIT.interval,
-        .volume = Config::SOUND_CFG_HIT.volume,
-    };
-    m_slots[static_cast<int>(Config::SoundId::Kill)] = {
-        .buffer = load(Config::SoundId::Kill),
-        .interval = Config::SOUND_CFG_KILL.interval,
-        .volume = Config::SOUND_CFG_KILL.volume,
-    };
-    m_slots[static_cast<int>(Config::SoundId::Hurt)] = {
-        .buffer = load(Config::SoundId::Hurt),
-        .interval = Config::SOUND_CFG_HURT.interval,
-        .volume = Config::SOUND_CFG_HURT.volume,
-    };
-    m_slots[static_cast<int>(Config::SoundId::Pickup)] = {
-        .buffer = load(Config::SoundId::Pickup),
-        .interval = Config::SOUND_CFG_PICKUP.interval,
-        .volume = Config::SOUND_CFG_PICKUP.volume,
-    };
-    m_slots[static_cast<int>(Config::SoundId::LevelUp)] = {
-        .buffer = load(Config::SoundId::LevelUp),
-        .interval = Config::SOUND_CFG_LEVELUP.interval,
-        .volume = Config::SOUND_CFG_LEVELUP.volume,
-    };
+    for (const auto& def : Config::SOUND_DEFS) {
+        auto ptr = sounds.get(def.key);
+        m_slots[static_cast<int>(def.id)] = {
+            .buffer = ptr.get(),
+            .interval = def.interval,
+            .volume = def.volume,
+        };
+    }
 
     m_pool.reserve(Config::POOL_SOUNDS_CAPACITY);
     for (int i = 0; i < static_cast<int>(Config::POOL_SOUNDS_CAPACITY); ++i) {
