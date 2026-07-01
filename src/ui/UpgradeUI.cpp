@@ -37,7 +37,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
 
     for (int i = 0; i < count; ++i) {
         const auto& opt = options[i];
-        float y = yBase + static_cast<float>(i) * yStep;
+        float y = yBase + (static_cast<float>(i) * yStep);
 
         // 选项名
         sf::Text txt(font);
@@ -54,7 +54,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
         desc.setString(opt.description);
         desc.setCharacterSize(fs(0.015f));
         desc.setFillColor(Config::COLOR_TEXT_MUTED);
-        desc.setPosition({VW * 0.27f, y + VH * 0.022f});
+        desc.setPosition({VW * 0.27f, y + (VH * 0.022f)});
         window.draw(desc);
 
         // 详细数值
@@ -63,7 +63,7 @@ void draw(sf::RenderWindow& window, const sf::Font& font, const std::vector<Upgr
             detail.setString(opt.detail);
             detail.setCharacterSize(fs(0.014f));
             detail.setFillColor(Config::COLOR_TEXT_SUCCESS);
-            detail.setPosition({VW * 0.27f, y + VH * 0.04f});
+            detail.setPosition({VW * 0.27f, y + (VH * 0.04f)});
             window.draw(detail);
         }
     }

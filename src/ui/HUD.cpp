@@ -5,6 +5,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
+#include <algorithm>
 #include <format>
 #include <string>
 
@@ -62,16 +63,14 @@ HUD::HUD(const sf::Font& font)
 void HUD::update(const PlayerState& player, const WeaponSystem& weapons, float gameTime) {
     // HP
     float hpFrac = player.hp / player.maxHp;
-    if (hpFrac < 0.f)
-        hpFrac = 0.f;
+    hpFrac = std::max(hpFrac, 0.f);
     m_hpBarFill.setSize({VW * 0.25f * hpFrac, VH * 0.017f});
     m_hpLabel.setString(
         std::format("HP {}/{}", static_cast<int>(player.hp), static_cast<int>(player.maxHp)));
 
     // XP
     float xpFrac = player.xp / player.xpToNext;
-    if (xpFrac > 1.f)
-        xpFrac = 1.f;
+    xpFrac = std::min(xpFrac, 1.f);
     m_xpBarFill.setSize({VW * 0.98f * xpFrac, VH * 0.013f});
     m_xpLabel.setString(
         std::format("XP {}/{}", static_cast<int>(player.xp), static_cast<int>(player.xpToNext)));

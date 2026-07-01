@@ -81,7 +81,8 @@ static_assert(sizeof(WEAPON_DEFS) / sizeof(WEAPON_DEFS[0]) == static_cast<int>(W
 
 std::unique_ptr<IWeaponBehavior> createWeapon(WeaponType type) {
     auto idx = static_cast<std::size_t>(type);
-    if (idx >= static_cast<std::size_t>(WeaponType::Count))
+    if (idx >= static_cast<std::size_t>(WeaponType::Count)) {
         return nullptr;
+    }
     return WEAPON_DEFS[idx].create();
 }

@@ -59,12 +59,13 @@ struct WeaponStats {
 /// 计算指定武器在等级 L (L >= 1) 时的属性。
 constexpr float constpow(float base, int n) {
     float r = 1.f;
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i) {
         r *= base;
+    }
     return r;
 }
 
-inline constexpr WeaponStats getWeaponStats(WeaponType type, int level) {
+constexpr WeaponStats getWeaponStats(WeaponType type, int level) {
     const auto& def = WEAPON_DEFS[static_cast<int>(type)];
     int lvl = std::clamp(level, 1, def.maxLevel);
     int n = lvl - 1; // 从基础等级起的升级次数

@@ -36,8 +36,9 @@ int Game::run() {
         sf::Time frameTime = m_clock.restart();
 
         // 死亡螺旋保护
-        if (frameTime > TIME_PER_FRAME_MAX)
+        if (frameTime > TIME_PER_FRAME_MAX) {
             frameTime = TIME_PER_FRAME_MAX;
+        }
 
         accumulator += frameTime;
 
@@ -72,31 +73,35 @@ ResourceManager<sf::Font>& Game::getFonts() { return m_fonts; }
 ResourceManager<sf::SoundBuffer>& Game::getSounds() { return m_sounds; }
 
 void Game::processEvents() {
-    while (const std::optional event = m_window.pollEvent()) {
-        if (event->is<sf::Event::Closed>()) {
+    while (const std::optional EVENT = m_window.pollEvent()) {
+        if (EVENT->is<sf::Event::Closed>()) {
             m_window.close();
             m_running = false;
             return;
         }
 
-        if (const auto* resized = event->getIf<sf::Event::Resized>())
+        if (const auto* resized = EVENT->getIf<sf::Event::Resized>()) {
             handleWindowResize(*resized);
+        }
 
-        if (m_scene)
-            m_scene->handleEvent(*event);
+        if (m_scene) {
+            m_scene->handleEvent(*EVENT);
+        }
     }
 }
 
 void Game::update(sf::Time dt) {
-    if (m_scene)
+    if (m_scene) {
         m_scene->update(dt);
+    }
 }
 
 void Game::render() {
     m_window.clear();
 
-    if (m_scene)
+    if (m_scene) {
         m_scene->render(m_window);
+    }
 
     m_window.display();
 }

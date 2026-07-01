@@ -41,21 +41,23 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
     enemies.forEach([&](const Enemy& e) {
         if (!e.currentSprite) {
             sf::Color color = sf::Color::Red;
-            if (e.hitFlashTimer > 0.f)
+            if (e.hitFlashTimer > 0.f) {
                 color = sf::Color::White;
+            }
             addQuad(e.pos, e.radius, color);
         }
     });
 
     // 玩家精灵（在精灵层绘制，此处仅处理无精灵的后备情况）
-    if (!player.currentSprite) {
+    if (player.currentSprite == nullptr) {
         bool visible = true;
         if (player.invincibilityTimer > 0.f) {
             int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
             visible = (flash % 2 == 0);
         }
-        if (visible)
+        if (visible) {
             addQuad(player.pos, player.radius, sf::Color::White);
+        }
     }
 
     // 将所有实体通过 1 次 Draw Call 提交给 GPU！
@@ -63,18 +65,20 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
     // 绘制敌人精灵
     // 缓存任意有效精灵表来构造 sf::Sprite（SFML 3.x 无默认构造）
-    if (!m_cachedSpriteSheet) {
+    if (m_cachedSpriteSheet == nullptr) {
         enemies.forEach([&](const Enemy& e) {
-            if (!m_cachedSpriteSheet && e.currentSprite)
+            if (!m_cachedSpriteSheet && e.currentSprite) {
                 m_cachedSpriteSheet = e.currentSprite;
+            }
         });
     }
-    if (m_cachedSpriteSheet) {
+    if (m_cachedSpriteSheet != nullptr) {
         sf::Sprite enemySprite(m_cachedSpriteSheet->texture);
         enemies.forEach([&](const Enemy& e) {
             const auto* ss = e.currentSprite;
-            if (!ss)
+            if (!ss) {
                 return;
+            }
 
             enemySprite.setTexture(ss->texture);
             enemySprite.setTextureRect(
@@ -90,7 +94,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
     }
 
     // 绘制玩家精灵
-    if (player.currentSprite && m_cachedSpriteSheet) {
+    if ((player.currentSprite != nullptr) && (m_cachedSpriteSheet != nullptr)) {
         bool visible = true;
         if (player.invincibilityTimer > 0.f) {
             int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
@@ -110,7 +114,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
     }
 
     // 绘制伤害飘字
-    if (font) {
+    if (font != nullptr) {
         sf::Text text(*font);
         text.setCharacterSize(16);
         text.setOutlineThickness(1.f);
@@ -122,8 +126,9 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
             // 随时间淡出
             float alphaRatio = dt.lifetime / dt.maxLifetime;
             sf::Color textColor = sf::Color::White;
-            if (dt.damage >= 20.f)
+            if (dt.damage >= 20.f) {
                 textColor = sf::Color::Yellow; // 暴击/高伤害变黄
+            }
 
             textColor.a = static_cast<std::uint8_t>(255 * alphaRatio);
             sf::Color outlineColor = sf::Color::Black;
@@ -134,7 +139,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
             sf::FloatRect bounds = text.getLocalBounds();
             text.setPosition(
-                sf::Vector2f(dt.pos.x - bounds.size.x / 2.f, dt.pos.y - bounds.size.y / 2.f));
+                sf::Vector2f(dt.pos.x - (bounds.size.x / 2.f), dt.pos.y - (bounds.size.y / 2.f)));
 
             window.draw(text);
         });

@@ -29,7 +29,7 @@ public:
 
 private:
     void spawnEnemy(EnemyType type, sf::Vector2f playerPos, Pool<Enemy>& enemies);
-    sf::Vector2f randomSpawnPosition(sf::Vector2f playerPos) const;
+    [[nodiscard]] sf::Vector2f randomSpawnPosition(sf::Vector2f playerPos) const;
 
     const MapDef* m_map = nullptr;
 

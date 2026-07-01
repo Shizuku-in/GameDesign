@@ -41,11 +41,11 @@ public:
     void draw(sf::RenderWindow& window);
 
     /// 地图尺寸（像素）。
-    float getWidth() const { return static_cast<float>(m_mapWidth * m_tileWidth); }
-    float getHeight() const { return static_cast<float>(m_mapHeight * m_tileHeight); }
+    [[nodiscard]] float getWidth() const { return static_cast<float>(m_mapWidth * m_tileWidth); }
+    [[nodiscard]] float getHeight() const { return static_cast<float>(m_mapHeight * m_tileHeight); }
 
     /// 对象层数据（只读）。
-    const std::vector<MapObject>& getObjects() const { return m_objects; }
+    [[nodiscard]] const std::vector<MapObject>& getObjects() const { return m_objects; }
 
 private:
     /// 单个 tileset 纹理及其元数据。
@@ -84,7 +84,7 @@ private:
     int m_mapHeight = 0;
 
     /// 返回 GID 所属 tileset 的索引，-1 表示越界或空 tile。
-    int findTilesetIndex(std::uint32_t gid) const;
+    [[nodiscard]] int findTilesetIndex(std::uint32_t gid) const;
 
     /// 递归展平 layer tree，累积不透明度和可见性。
     void flattenLayers(const tmx::Map& map, std::vector<FlatEntry>& out);

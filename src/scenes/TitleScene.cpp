@@ -20,8 +20,9 @@ TitleScene::TitleScene(Game& game)
     auto fontPtr = m_game.getFonts().get("default");
     m_font = fontPtr.get();
 
-    if (!m_font)
+    if (m_font == nullptr) {
         return;
+    }
 
     m_titleText.setString("Survivor-like");
     m_titleText.setCharacterSize(fs(0.055f));
@@ -56,8 +57,9 @@ void TitleScene::update(sf::Time /*dt*/) {}
 void TitleScene::render(sf::RenderWindow& window) {
     window.clear(Config::COLOR_BG_TITLE);
 
-    if (!m_font)
+    if (m_font == nullptr) {
         return;
+    }
 
     window.draw(m_titleText);
     window.draw(m_startText);

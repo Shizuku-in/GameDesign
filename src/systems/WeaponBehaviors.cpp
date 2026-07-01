@@ -13,8 +13,9 @@ const Enemy* findNearestEnemy(sf::Vector2f from, float maxRange, const Pool<Enem
     float bestDistSq = maxRange > 0.f ? maxRange * maxRange : std::numeric_limits<float>::max();
 
     enemies.forEach([&](const Enemy& e) {
-        if (e.hp <= 0.f) // 忽略已被击杀但尚未清理的敌人
+        if (e.hp <= 0.f) { // 忽略已被击杀但尚未清理的敌人
             return;
+        }
         float d2 = distanceSq(from, e.pos);
         if (d2 < bestDistSq) {
             bestDistSq = d2;
@@ -31,11 +32,12 @@ bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& 
     auto stats = getWeaponStats(MagicWand, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
-    if (!target)
+    if (target == nullptr) {
         return false;
+    }
 
     sf::Vector2f dir = target->pos - player.pos;
-    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
     if (len > 0.f) {
         dir.x /= len;
         dir.y /= len;
@@ -43,8 +45,9 @@ bool MagicWandBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& 
 
     auto handle = proj.acquire();
     auto* p = proj.get(handle);
-    if (!p)
+    if (p == nullptr) {
         return false;
+    }
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
     p->damage = stats.damage;
@@ -62,9 +65,9 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
 
     sf::Vector2f dir = {1.f, 0.f};
     const auto* target = findNearestEnemy(player.pos, Config::RANGE_UNLIMITED, enemies);
-    if (target) {
+    if (target != nullptr) {
         dir = target->pos - player.pos;
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
         if (len > 0.f) {
             dir.x /= len;
             dir.y /= len;
@@ -75,7 +78,7 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
     const auto& knifeDef = WEAPON_DEFS[static_cast<int>(Knife)];
     float spread = (count - 1) * knifeDef.spread;
     float baseAngle = std::atan2(dir.y, dir.x);
-    float startAngle = baseAngle - spread / 2.f;
+    float startAngle = baseAngle - (spread / 2.f);
     bool anySpawned = false;
 
     for (int i = 0; i < count; ++i) {
@@ -84,8 +87,9 @@ bool KnifeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& enem
 
         auto handle = proj.acquire();
         auto* p = proj.get(handle);
-        if (!p)
+        if (p == nullptr) {
             continue;
+        }
         p->pos = player.pos;
         p->vel = d * stats.projectileSpeed;
         p->damage = stats.damage;
@@ -105,19 +109,21 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
     const auto& axeDef = WEAPON_DEFS[static_cast<int>(Axe)];
 
     int count = stats.projectileCount;
-    if (count <= 0)
+    if (count <= 0) {
         return false;
+    }
 
     float angleStep = Config::TAU / static_cast<float>(count);
     bool anySpawned = false;
 
     for (int i = 0; i < count; ++i) {
-        float angle = m_orbitBaseAngle + angleStep * static_cast<float>(i);
+        float angle = m_orbitBaseAngle + (angleStep * static_cast<float>(i));
 
         auto handle = proj.acquire();
         auto* p = proj.get(handle);
-        if (!p)
+        if (p == nullptr) {
             continue;
+        }
 
         p->motion = ProjMotion::Orbit;
         p->state.orbit.angle = angle;
@@ -135,7 +141,7 @@ bool AxeBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& /*enem
 
     // 推进基准角度供下次发射（实现无缝衔接）
     m_orbitBaseAngle =
-        std::fmod(m_orbitBaseAngle + stats.cooldown * axeDef.orbitSpeed, Config::TAU);
+        std::fmod(m_orbitBaseAngle + (stats.cooldown * axeDef.orbitSpeed), Config::TAU);
 
     return anySpawned;
 }
@@ -145,11 +151,12 @@ bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& e
     auto stats = getWeaponStats(Fireball, level);
 
     const auto* target = findNearestEnemy(player.pos, stats.range, enemies);
-    if (!target)
+    if (target == nullptr) {
         return false;
+    }
 
     sf::Vector2f dir = target->pos - player.pos;
-    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
     if (len > 0.f) {
         dir.x /= len;
         dir.y /= len;
@@ -157,8 +164,9 @@ bool FireballBehavior::fire(int level, const PlayerState& player, Pool<Enemy>& e
 
     auto handle = proj.acquire();
     auto* p = proj.get(handle);
-    if (!p)
+    if (p == nullptr) {
         return false;
+    }
     p->pos = player.pos;
     p->vel = dir * stats.projectileSpeed;
     p->damage = stats.damage;

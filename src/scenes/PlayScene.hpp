@@ -60,13 +60,13 @@ private:
     std::unique_ptr<HUD> m_hud;
 
     // 敌人精灵表（按 EnemyType 索引）
-    static constexpr std::size_t kEnemyTypeCount = static_cast<std::size_t>(EnemyType::Count);
-    std::array<SpriteSheet, kEnemyTypeCount> m_spritesMove;
-    std::array<SpriteSheet, kEnemyTypeCount> m_spritesDamaged;
+    static constexpr std::size_t K_ENEMY_TYPE_COUNT = static_cast<std::size_t>(EnemyType::Count);
+    std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesMove;
+    std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesDamaged;
 
     // 角色精灵表（按方向索引：forward, back, left, right, idle）
-    static constexpr std::size_t kPlayerDirCount = 5;
-    std::array<SpriteSheet, kPlayerDirCount> m_playerSprites;
+    static constexpr std::size_t K_PLAYER_DIR_COUNT = 5;
+    std::array<SpriteSheet, K_PLAYER_DIR_COUNT> m_playerSprites;
 
     // 相机
     sf::View m_camera;

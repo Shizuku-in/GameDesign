@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <numbers>
 
 namespace Config {
 
@@ -28,7 +29,7 @@ constexpr float FIXED_DT = 1.f / 60.f; // 固定时间步
 constexpr float RANGE_UNLIMITED = 0.f; // 表示无射程限制
 
 // --- 数学 ---
-constexpr float PI = 3.14159265f;
+constexpr float PI = std::numbers::pi_v<float>;
 constexpr float TAU = 2.f * PI;
 
 // --- 敌人（非按类型的通用常数）---

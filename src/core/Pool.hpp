@@ -27,8 +27,9 @@ public:
         }
 
         std::uint32_t gen = m_nextGen++;
-        if (gen == 0)
+        if (gen == 0) {
             gen = m_nextGen++; // gen==0 保留给"空闲"状态，跳过
+        }
 
         m_slots[idx].gen = gen;
         m_slots[idx].data = T{}; // 初始化为默认状态
@@ -37,37 +38,42 @@ public:
 
     /// 释放槽位回 freelist。句柄立即失效（其 generation 永远不会再匹配此槽位）。
     void release(Handle h) {
-        if (!valid(h))
+        if (!valid(h)) {
             return;
+        }
         m_slots[h.idx].gen = 0;
         m_freelist.push_back(h.idx);
     }
 
     /// 返回数据指针，句柄过期则返回 nullptr。
     T* get(Handle h) {
-        if (!valid(h))
+        if (!valid(h)) {
             return nullptr;
+        }
         return &m_slots[h.idx].data;
     }
 
-    const T* get(Handle h) const {
-        if (!valid(h))
+    [[nodiscard]] const T* get(Handle h) const {
+        if (!valid(h)) {
             return nullptr;
+        }
         return &m_slots[h.idx].data;
     }
 
     /// 对所有占用槽位调用 fn(T&)。
     template <typename F> void forEach(F&& fn) {
         for (auto& slot : m_slots) {
-            if (slot.gen != 0)
+            if (slot.gen != 0) {
                 fn(slot.data);
+            }
         }
     }
 
     template <typename F> void forEach(F&& fn) const {
         for (const auto& slot : m_slots) {
-            if (slot.gen != 0)
+            if (slot.gen != 0) {
                 fn(slot.data);
+            }
         }
     }
 
@@ -84,10 +90,10 @@ public:
     }
 
     /// 当前占用槽位数。
-    std::size_t activeCount() const { return m_slots.size() - m_freelist.size(); }
+    [[nodiscard]] std::size_t activeCount() const { return m_slots.size() - m_freelist.size(); }
 
     /// 总容量（占用 + 空闲）。
-    std::size_t capacity() const { return m_slots.size(); }
+    [[nodiscard]] std::size_t capacity() const { return m_slots.size(); }
 
     /// 清空所有槽位和 freelist。
     void clear() {
@@ -105,7 +111,7 @@ private:
         std::uint32_t gen = 0; // 0 = 空闲; >0 = 占用（与 Handle::gen 匹配）
     };
 
-    bool valid(Handle h) const {
+    [[nodiscard]] bool valid(Handle h) const {
         return h.idx < m_slots.size() && h.gen != 0 && m_slots[h.idx].gen == h.gen;
     }
 

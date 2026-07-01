@@ -13,8 +13,9 @@ public:
     /// 首次访问时用 `args` 构造资源并缓存；后续调用返回缓存实例。
     template <typename... Args> Ptr load(const std::string& key, Args&&... args) {
         auto it = m_resources.find(key);
-        if (it != m_resources.end())
+        if (it != m_resources.end()) {
             return it->second;
+        }
 
         auto resource = std::make_shared<Resource>(std::forward<Args>(args)...);
         m_resources.emplace(key, resource);
@@ -24,13 +25,14 @@ public:
     /// Retrieve a resource by key. Throws if not found.
     Ptr get(const std::string& key) const {
         auto it = m_resources.find(key);
-        if (it == m_resources.end())
+        if (it == m_resources.end()) {
             throw std::runtime_error("Resource not found: " + key);
+        }
         return it->second;
     }
 
     /// Check whether a key exists.
-    bool has(const std::string& key) const { return m_resources.contains(key); }
+    [[nodiscard]] bool has(const std::string& key) const { return m_resources.contains(key); }
 
     /// Remove a single resource.
     void remove(const std::string& key) { m_resources.erase(key); }

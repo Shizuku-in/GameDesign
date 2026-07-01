@@ -17,30 +17,35 @@ namespace {
 
 // --- StatBoost ---
 
-bool statAvailable(const PlayerState&, const WeaponSystem&) { return true; }
+bool statAvailable(const PlayerState& /*unused*/, const WeaponSystem& /*unused*/) { return true; }
 
-void applyStatBoost(PlayerState& player, WeaponSystem&, const UpgradeDef& def) {
+void applyStatBoost(PlayerState& player, WeaponSystem& /*unused*/, const UpgradeDef& def) {
     player.maxHp += def.hpBonus;
     player.hp += def.hpBonus;
     player.speed += player.baseSpeed * def.speedBonus; // 基于基础速度，非复利
     player.armor += def.armorBonus;
-    if (player.armor > Config::PLAYER_MAX_ARMOR)
-        player.armor = Config::PLAYER_MAX_ARMOR;
+    player.armor = std::min(player.armor, Config::PLAYER_MAX_ARMOR);
     player.magnetRange += def.magnetBonus;
     player.xpMultiplier += def.xpMultiplierBonus;
 }
 
-std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player, const WeaponSystem&) {
-    if (def.hpBonus > 0.f)
+std::string detailStatBoost(const UpgradeDef& def, const PlayerState& player,
+                            const WeaponSystem& /*unused*/) {
+    if (def.hpBonus > 0.f) {
         return std::format("Current Max HP: {:.0f}", player.maxHp);
-    if (def.speedBonus > 0.f)
+    }
+    if (def.speedBonus > 0.f) {
         return std::format("Current speed: {:.0f}", player.speed);
-    if (def.armorBonus > 0.f)
+    }
+    if (def.armorBonus > 0.f) {
         return std::format("Current armor: {:.0f}%", player.armor * 100.f);
-    if (def.magnetBonus > 0.f)
+    }
+    if (def.magnetBonus > 0.f) {
         return std::format("Current range: {:.0f}", player.magnetRange);
-    if (def.xpMultiplierBonus > 0.f)
+    }
+    if (def.xpMultiplierBonus > 0.f) {
         return std::format("Current XP mult: {:.0f}%", player.xpMultiplier * 100.f);
+    }
     return "";
 }
 
@@ -52,30 +57,33 @@ UpgradeDef makeStatBoost(const char* name, const char* desc, float hp, float spe
 
 // --- NewWeapon ---
 
-bool newWeaponAvailable(const PlayerState&, const WeaponSystem& weapons) {
+bool newWeaponAvailable(const PlayerState& /*unused*/, const WeaponSystem& weapons) {
     return !weapons.isFull();
 }
 
-void applyNewWeapon(PlayerState&, WeaponSystem& weapons, const UpgradeDef& def) {
+void applyNewWeapon(PlayerState& /*unused*/, WeaponSystem& weapons, const UpgradeDef& def) {
     weapons.addWeapon(def.weaponType);
 }
 
-std::string detailNewWeapon(const UpgradeDef& def, const PlayerState&, const WeaponSystem&) {
+std::string detailNewWeapon(const UpgradeDef& def, const PlayerState& /*unused*/,
+                            const WeaponSystem& /*unused*/) {
     const auto& wd = WEAPON_DEFS[static_cast<int>(def.weaponType)];
-    if (wd.isAOE)
+    if (wd.isAOE) {
         return "AoE aura, no projectiles";
-    if (wd.aoeRadius > 0.f)
+    }
+    if (wd.aoeRadius > 0.f) {
         return "Projectile, explodes on hit";
+    }
     return "Auto-targeting projectile";
 }
 
 // --- WeaponUpgrade ---
 
-void applyWeaponUpgrade(PlayerState&, WeaponSystem& weapons, const UpgradeDef& def) {
+void applyWeaponUpgrade(PlayerState& /*unused*/, WeaponSystem& weapons, const UpgradeDef& def) {
     weapons.upgradeWeapon(def.weaponType);
 }
 
-std::string detailWeaponUpgrade(const UpgradeDef& def, const PlayerState&,
+std::string detailWeaponUpgrade(const UpgradeDef& def, const PlayerState& /*unused*/,
                                 const WeaponSystem& weapons) {
     int curLvl = weapons.getLevel(def.weaponType);
     auto cur = getWeaponStats(def.weaponType, curLvl);
@@ -122,8 +130,8 @@ std::vector<UpgradeDef> buildUpgradeDefs() {
 }
 
 const std::vector<UpgradeDef>& getUpgradeDefs() {
-    static const std::vector<UpgradeDef> defs = buildUpgradeDefs();
-    return defs;
+    static const std::vector<UpgradeDef> DEFS = buildUpgradeDefs();
+    return DEFS;
 }
 
 } // namespace
@@ -150,9 +158,10 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
                     break;
                 }
             }
-            if (!found)
+            if (!found) {
                 continue;
-        } else if (def.available && !def.available(player, weapons)) {
+            }
+        } else if ((def.available != nullptr) && !def.available(player, weapons)) {
             continue;
         }
 
@@ -163,8 +172,9 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
         opt.weaponType = def.weaponType;
         opt.defIndex = i;
 
-        if (def.detailFn)
+        if (def.detailFn != nullptr) {
             opt.detail = def.detailFn(def, player, weapons);
+        }
 
         pool.push_back(opt);
     }
@@ -176,16 +186,16 @@ std::vector<UpgradeOption> generateUpgrades(const PlayerState& player,
 }
 
 void applyUpgrade(PlayerState& player, WeaponSystem& weapons, const UpgradeOption& option) {
-    if (option.defIndex < 0 || option.defIndex >= std::ssize(getUpgradeDefs()))
+    if (option.defIndex < 0 || option.defIndex >= std::ssize(getUpgradeDefs())) {
         return;
+    }
 
     const auto& def = getUpgradeDefs()[option.defIndex];
-    if (def.apply)
+    if (def.apply != nullptr) {
         def.apply(player, weapons, def);
+    }
 
     // 升级后：HP 钳制到最大值
-    if (player.hp > player.maxHp)
-        player.hp = player.maxHp;
-    if (player.hp < 0.f)
-        player.hp = 0.f;
+    player.hp = std::min(player.hp, player.maxHp);
+    player.hp = std::max(player.hp, 0.f);
 }

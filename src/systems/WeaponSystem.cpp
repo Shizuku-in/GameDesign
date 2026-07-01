@@ -11,13 +11,15 @@ WeaponSystem::WeaponSystem() { reset(); }
 // --- 槽位管理 ---
 
 bool WeaponSystem::addWeapon(WeaponType type) {
-    if (hasWeapon(type))
+    if (hasWeapon(type)) {
         return false;
+    }
     for (auto& slot : m_slots) {
         if (slot.level == 0) {
             auto newBehavior = createWeapon(type);
-            if (!newBehavior)
+            if (!newBehavior) {
                 return false;
+            }
 
             slot.type = type;
             slot.level = 1;
@@ -33,8 +35,9 @@ bool WeaponSystem::upgradeWeapon(WeaponType type) {
     for (auto& slot : m_slots) {
         if (slot.level > 0 && slot.type == type) {
             const auto& def = WEAPON_DEFS[static_cast<int>(type)];
-            if (slot.level >= def.maxLevel)
+            if (slot.level >= def.maxLevel) {
                 return false;
+            }
             ++slot.level;
             return true;
         }
@@ -44,24 +47,27 @@ bool WeaponSystem::upgradeWeapon(WeaponType type) {
 
 bool WeaponSystem::hasWeapon(WeaponType type) const {
     for (const auto& slot : m_slots) {
-        if (slot.level > 0 && slot.type == type)
+        if (slot.level > 0 && slot.type == type) {
             return true;
+        }
     }
     return false;
 }
 
 int WeaponSystem::getLevel(WeaponType type) const {
     for (const auto& slot : m_slots) {
-        if (slot.level > 0 && slot.type == type)
+        if (slot.level > 0 && slot.type == type) {
             return slot.level;
+        }
     }
     return 0;
 }
 
 bool WeaponSystem::isFull() const {
     for (const auto& slot : m_slots) {
-        if (slot.level == 0)
+        if (slot.level == 0) {
             return false;
+        }
     }
     return true;
 }
@@ -69,8 +75,9 @@ bool WeaponSystem::isFull() const {
 int WeaponSystem::emptySlotCount() const {
     int n = 0;
     for (const auto& slot : m_slots) {
-        if (slot.level == 0)
+        if (slot.level == 0) {
             ++n;
+        }
     }
     return n;
 }
@@ -80,8 +87,9 @@ std::vector<WeaponType> WeaponSystem::getUpgradeableWeapons() const {
     for (const auto& slot : m_slots) {
         if (slot.level > 0) {
             const auto& def = WEAPON_DEFS[static_cast<int>(slot.type)];
-            if (slot.level < def.maxLevel)
+            if (slot.level < def.maxLevel) {
                 result.push_back(slot.type);
+            }
         }
     }
     return result;
@@ -104,8 +112,9 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
                           Pool<Projectile>& projectiles, SoundPlayer& sounds) {
     for (int i = 0; i < MAX_SLOTS; ++i) {
         auto& slot = m_slots[i];
-        if (slot.level == 0)
+        if (slot.level == 0) {
             continue;
+        }
 
         const auto& def = WEAPON_DEFS[static_cast<int>(slot.type)];
         slot.cooldown -= dt;
@@ -128,8 +137,9 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
             if (slot.behavior) {
                 fired = slot.behavior->fire(slot.level, player, enemies, projectiles);
             }
-            if (fired)
+            if (fired) {
                 sounds.shoot();
+            }
             auto stats = getWeaponStats(slot.type, slot.level);
             slot.cooldown = stats.cooldown;
         }

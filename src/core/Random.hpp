@@ -14,5 +14,5 @@ public:
     static std::mt19937& getEngine();
 
 private:
-    static std::mt19937 s_engine;
+    static std::mt19937 m_s_engine;
 };

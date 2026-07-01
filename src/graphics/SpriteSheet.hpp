@@ -12,10 +12,12 @@ struct SpriteSheet {
     /// 从文件加载精灵表并自动计算帧数。
     /// frameSize = 单帧宽高，纹理宽度 / frameSize 即为帧数。
     bool loadFromFile(const char* path, int frameW, int frameH) {
-        if (frameW <= 0)
+        if (frameW <= 0) {
             return false;
-        if (!texture.loadFromFile(path))
+        }
+        if (!texture.loadFromFile(path)) {
             return false;
+        }
         frameWidth = frameW;
         frameHeight = frameH;
         frameCount = static_cast<int>(texture.getSize().x) / frameW;

@@ -21,11 +21,11 @@ public:
     // --- 槽位管理 ---
     bool addWeapon(WeaponType type);
     bool upgradeWeapon(WeaponType type); // 未拥有或已满级时返回 false
-    bool hasWeapon(WeaponType type) const;
-    int getLevel(WeaponType type) const;
-    bool isFull() const;
-    int emptySlotCount() const;
-    std::vector<WeaponType> getUpgradeableWeapons() const;
+    [[nodiscard]] bool hasWeapon(WeaponType type) const;
+    [[nodiscard]] int getLevel(WeaponType type) const;
+    [[nodiscard]] bool isFull() const;
+    [[nodiscard]] int emptySlotCount() const;
+    [[nodiscard]] std::vector<WeaponType> getUpgradeableWeapons() const;
 
     // --- 主更新（60 Hz 调用）---
     void update(float dt, const PlayerState& player, Pool<Enemy>& enemies,

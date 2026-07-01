@@ -15,6 +15,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -40,8 +41,9 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
 
     auto fontPtr = m_game.getFonts().get("default");
     m_font = fontPtr.get();
-    if (m_font)
+    if (m_font != nullptr) {
         m_hud = std::make_unique<HUD>(*m_font);
+    }
 
     Random::init();
 
@@ -58,9 +60,10 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
             m_spritesMove[i].loadFromFile(def.spriteMovePath, def.frameWidth, def.frameHeight);
         bool damagedOk = m_spritesDamaged[i].loadFromFile(def.spriteDamagedPath, def.frameWidth,
                                                           def.frameHeight);
-        if (!moveOk || !damagedOk)
+        if (!moveOk || !damagedOk) {
             std::fprintf(stderr, "[WARN] Enemy sprite load failed: %s (move=%d, damaged=%d)\n",
-                         def.name, moveOk, damagedOk);
+                         def.name, static_cast<int>(moveOk), static_cast<int>(damagedOk));
+        }
     }
     m_spawning.setEnemySprites(m_spritesMove, m_spritesDamaged);
 
@@ -68,14 +71,16 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     const auto& charDef = CHARACTER_DEFS[0]; // 默认 Elf
     m_player.initFromCharacter(charDef.hp, charDef.speed, charDef.radius, charDef.armor,
                                charDef.magnetRange);
-    const char* dirPaths[kPlayerDirCount] = {charDef.spriteForward, charDef.spriteBack,
-                                             charDef.spriteLeft, charDef.spriteRight,
-                                             charDef.spriteIdle};
-    for (std::size_t i = 0; i < kPlayerDirCount; ++i) {
-        if (!m_playerSprites[i].loadFromFile(dirPaths[i], charDef.frameWidth, charDef.frameHeight))
+    const char* dirPaths[K_PLAYER_DIR_COUNT] = {charDef.spriteForward, charDef.spriteBack,
+                                                charDef.spriteLeft, charDef.spriteRight,
+                                                charDef.spriteIdle};
+    for (std::size_t i = 0; i < K_PLAYER_DIR_COUNT; ++i) {
+        if (!m_playerSprites[i].loadFromFile(dirPaths[i], charDef.frameWidth,
+                                             charDef.frameHeight)) {
             std::fprintf(stderr, "[WARN] Player sprite load failed: %s\n", dirPaths[i]);
+        }
     }
-    m_player.spriteForward = &m_playerSprites[0];
+    m_player.spriteForward = m_playerSprites.data();
     m_player.spriteBack = &m_playerSprites[1];
     m_player.spriteLeft = &m_playerSprites[2];
     m_player.spriteRight = &m_playerSprites[3];
@@ -96,8 +101,9 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
 // 事件处理
 // ---------------------------------------------------------------------------
 void PlayScene::handleEvent(const sf::Event& event) {
-    if (m_gameOver)
+    if (m_gameOver) {
         return;
+    }
 
     if (const auto* kp = event.getIf<sf::Event::KeyPressed>()) {
         using Key = sf::Keyboard::Key;
@@ -156,8 +162,9 @@ void PlayScene::handleEvent(const sf::Event& event) {
 // update — 主游戏循环（60 Hz）
 // ---------------------------------------------------------------------------
 void PlayScene::update(sf::Time dt) {
-    if (m_gameOver || m_paused || m_menuPaused)
+    if (m_gameOver || m_paused || m_menuPaused) {
         return;
+    }
 
     float dtSec = dt.asSeconds();
 
@@ -192,14 +199,16 @@ void PlayScene::update(sf::Time dt) {
     }
 
     // 升级检查
-    if (m_player.xp >= m_player.xpToNext)
+    if (m_player.xp >= m_player.xpToNext) {
         onLevelUp();
+    }
 
     m_gameTime += dtSec;
     m_sounds.update(dtSec);
 
-    if (m_hud)
+    if (m_hud) {
         m_hud->update(m_player, m_weapons, m_gameTime);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -213,13 +222,16 @@ void PlayScene::render(sf::RenderWindow& window) {
                            m_font);
 
     window.setView(window.getDefaultView());
-    if (m_hud)
+    if (m_hud) {
         m_hud->render(window);
+    }
 
-    if (m_paused && m_font)
+    if (m_paused && (m_font != nullptr)) {
         UpgradeUI::draw(window, *m_font, m_upgradeOptions, m_selectedOption);
-    if (m_menuPaused && m_font)
+    }
+    if (m_menuPaused && (m_font != nullptr)) {
         PauseMenu::draw(window, *m_font, m_selectedOption);
+    }
 }
 
 // ===========================================================================
@@ -232,16 +244,20 @@ void PlayScene::handleInput() {
 
     m_player.vel = {0.f, 0.f};
 
-    if (isDown(Key::Right) || isDown(Key::D))
+    if (isDown(Key::Right) || isDown(Key::D)) {
         m_player.vel.x += 1.f;
-    if (isDown(Key::Left) || isDown(Key::A))
+    }
+    if (isDown(Key::Left) || isDown(Key::A)) {
         m_player.vel.x -= 1.f;
-    if (isDown(Key::Down) || isDown(Key::S))
+    }
+    if (isDown(Key::Down) || isDown(Key::S)) {
         m_player.vel.y += 1.f;
-    if (isDown(Key::Up) || isDown(Key::W))
+    }
+    if (isDown(Key::Up) || isDown(Key::W)) {
         m_player.vel.y -= 1.f;
+    }
 
-    float len = std::sqrt(m_player.vel.x * m_player.vel.x + m_player.vel.y * m_player.vel.y);
+    float len = std::sqrt((m_player.vel.x * m_player.vel.x) + (m_player.vel.y * m_player.vel.y));
     if (len > 0.f) {
         m_player.vel.x /= len;
         m_player.vel.y /= len;
@@ -252,30 +268,28 @@ void PlayScene::movePlayer(float dt) {
     m_player.pos += m_player.vel * m_player.speed * dt;
 
     // 钳制到世界边界
-    if (m_player.pos.x < m_player.radius)
-        m_player.pos.x = m_player.radius;
-    if (m_player.pos.y < m_player.radius)
-        m_player.pos.y = m_player.radius;
-    if (m_player.pos.x > m_worldWidth - m_player.radius)
-        m_player.pos.x = m_worldWidth - m_player.radius;
-    if (m_player.pos.y > m_worldHeight - m_player.radius)
-        m_player.pos.y = m_worldHeight - m_player.radius;
+    m_player.pos.x = std::max(m_player.pos.x, m_player.radius);
+    m_player.pos.y = std::max(m_player.pos.y, m_player.radius);
+    m_player.pos.x = std::min(m_player.pos.x, m_worldWidth - m_player.radius);
+    m_player.pos.y = std::min(m_player.pos.y, m_worldHeight - m_player.radius);
 
-    if (m_player.invincibilityTimer > 0.f)
+    if (m_player.invincibilityTimer > 0.f) {
         m_player.invincibilityTimer -= dt;
+    }
 }
 
 void PlayScene::updatePlayerAnimation(float dt) {
     // 根据移动方向选择精灵表
     const SpriteSheet* target = m_player.spriteIdle;
-    if (m_player.vel.y < 0.f)
+    if (m_player.vel.y < 0.f) {
         target = m_player.spriteBack;
-    else if (m_player.vel.y > 0.f)
+    } else if (m_player.vel.y > 0.f) {
         target = m_player.spriteForward;
-    else if (m_player.vel.x < 0.f)
+    } else if (m_player.vel.x < 0.f) {
         target = m_player.spriteLeft;
-    else if (m_player.vel.x > 0.f)
+    } else if (m_player.vel.x > 0.f) {
         target = m_player.spriteRight;
+    }
 
     if (target != m_player.currentSprite) {
         m_player.currentSprite = target;
@@ -284,7 +298,7 @@ void PlayScene::updatePlayerAnimation(float dt) {
     }
 
     m_player.animTimer += dt;
-    if (m_player.currentSprite && m_player.currentSprite->frameCount > 0 &&
+    if ((m_player.currentSprite != nullptr) && m_player.currentSprite->frameCount > 0 &&
         m_player.animTimer >= Config::PLAYER_ANIM_FRAME_DURATION) {
         m_player.animTimer -= Config::PLAYER_ANIM_FRAME_DURATION;
         m_player.animFrame = (m_player.animFrame + 1) % m_player.currentSprite->frameCount;
@@ -301,7 +315,7 @@ void PlayScene::updateEnemies(float dt) {
     m_enemies.forEach([&](Enemy& e) {
         // AI 移动：朝向玩家
         sf::Vector2f dir = m_player.pos - e.pos;
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
         if (len > 0.f) {
             dir.x /= len;
             dir.y /= len;
@@ -351,8 +365,9 @@ void PlayScene::updateProjectiles(float dt) {
     });
 
     m_projectiles.forEachHandle([&](Pool<Projectile>::Handle h, Projectile& p) {
-        if (p.lifetime <= 0.f)
+        if (p.lifetime <= 0.f) {
             m_projectiles.release(h);
+        }
     });
 }
 
@@ -362,8 +377,9 @@ void PlayScene::updateDamageTexts(float dt) {
         text.lifetime -= dt;
     });
     m_damageTexts.forEachHandle([&](Pool<DamageText>::Handle h, DamageText& text) {
-        if (text.lifetime <= 0.f)
+        if (text.lifetime <= 0.f) {
             m_damageTexts.release(h);
+        }
     });
 }
 
@@ -374,9 +390,10 @@ void PlayScene::updateXPGems(float dt) {
             return;
         }
         sf::Vector2f dir = m_player.pos - g.pos;
-        float lenSq = dir.x * dir.x + dir.y * dir.y;
-        if (lenSq > m_player.magnetRange * m_player.magnetRange)
+        float lenSq = (dir.x * dir.x) + (dir.y * dir.y);
+        if (lenSq > m_player.magnetRange * m_player.magnetRange) {
             return;
+        }
         float len = std::sqrt(lenSq);
         if (len > 0.f) {
             dir.x /= len;
@@ -393,14 +410,10 @@ void PlayScene::updateCamera() {
     float halfH = Config::VIEW_HEIGHT / 2.f;
     sf::Vector2f center = m_camera.getCenter();
 
-    if (center.x < halfW)
-        center.x = halfW;
-    if (center.y < halfH)
-        center.y = halfH;
-    if (center.x > m_worldWidth - halfW)
-        center.x = m_worldWidth - halfW;
-    if (center.y > m_worldHeight - halfH)
-        center.y = m_worldHeight - halfH;
+    center.x = std::max(center.x, halfW);
+    center.y = std::max(center.y, halfH);
+    center.x = std::min(center.x, m_worldWidth - halfW);
+    center.y = std::min(center.y, m_worldHeight - halfH);
 
     m_camera.setCenter(center);
 }
