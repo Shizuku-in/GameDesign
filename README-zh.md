@@ -71,7 +71,8 @@ cmake --build build --config Release
 ├── README.md
 ├── README-zh.md
 ├── CLAUDE.md                 # 架构说明与编码规范
-├── .clang-format             # 代码风格配置（基于 WebKit）
+├── .clang-format             # 代码风格配置（LLVM，C++20）
+├── .clang-tidy               # 静态分析检查
 ├── assets/
 │   ├── fonts/                # UI 字体
 │   ├── sounds/
@@ -145,7 +146,27 @@ cmake --build build --target format        # 格式化所有源文件
 cmake --build build --target format-check  # 仅检查（CI 用）
 ```
 
-风格：`.clang-format`（WebKit，4 空格，100 列）。
+风格：`.clang-format`（LLVM，4 空格，100 列，C++20）。
+
+## 代码检查与静态分析
+
+两套互补工具已配置好——提交前建议都跑一遍：
+
+```bash
+cmake --build build --target lint       # clang-tidy（C++ 最佳实践、常见错误）
+cmake --build build --target lint-fix   # clang-tidy 自动修复
+cmake --build build --target cppcheck   # cppcheck（内存、未定义行为、性能）
+```
+
+安装依赖（Ubuntu）：
+
+```bash
+sudo apt install clang-tidy-19 cppcheck
+```
+
+- **clang-tidy** 规则见 `.clang-tidy`——启用了 `bugprone-*`、`cert-*`、`modernize-*`、`performance-*`、`readability-*`，并根据项目风格调优（struct 成员不加 `m_`、允许 `0.f` 小写后缀等）
+- **cppcheck** 对 `src/` 运行 `--enable=all`，忽略 `third_party/`
+- 两者都需要先执行 `cmake -B build` 来生成 `compile_commands.json`
 
 ## 许可证
 

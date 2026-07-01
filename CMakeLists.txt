@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Generate compile_commands.json for clang-tidy / LSP
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # --- Static linking with SFML ---
 set(SFML_STATIC_LIBRARIES ON)
 
@@ -123,5 +126,66 @@ if(CLANG_FORMAT)
     add_custom_target(format-check
         COMMAND ${CLANG_FORMAT} --dry-run -Werror ${FORMAT_SOURCES}
         COMMENT "Checking source formatting with clang-format..."
+    )
+endif()
+
+# --- Lint (clang-tidy) ---
+find_program(CLANG_TIDY
+    NAMES run-clang-tidy-19 run-clang-tidy-18 run-clang-tidy
+    DOC "Path to run-clang-tidy"
+)
+
+if(NOT CLANG_TIDY)
+    message(WARNING "run-clang-tidy not found — lint target disabled. "
+                    "Install clang-tidy via your package manager.")
+endif()
+
+if(CLANG_TIDY)
+    add_custom_target(lint
+        COMMAND ${CLANG_TIDY}
+            -p ${CMAKE_BINARY_DIR}
+            -quiet
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.cpp
+        COMMENT "Running clang-tidy on source files..."
+        USES_TERMINAL
+    )
+    add_custom_target(lint-fix
+        COMMAND ${CLANG_TIDY}
+            -p ${CMAKE_BINARY_DIR}
+            -quiet
+            -fix
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.cpp
+        COMMENT "Running clang-tidy with -fix on source files..."
+        USES_TERMINAL
+    )
+endif()
+
+# --- Static Analysis (cppcheck) ---
+find_program(CPPCHECK
+    NAMES cppcheck
+    DOC "Path to cppcheck"
+)
+
+if(NOT CPPCHECK)
+    message(WARNING "cppcheck not found — cppcheck target disabled. "
+                    "Install it via your package manager.")
+endif()
+
+if(CPPCHECK)
+    add_custom_target(cppcheck
+        COMMAND ${CPPCHECK}
+            --enable=all
+            --suppress=missingInclude
+            --suppress=missingIncludeSystem
+            --suppress=unmatchedSuppression
+            --suppress=checkersReport
+            --inline-suppr
+            --std=c++20
+            --error-exitcode=0
+            -I ${CMAKE_CURRENT_SOURCE_DIR}/src
+            -i ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+        COMMENT "Running cppcheck on source files..."
+        USES_TERMINAL
     )
 endif()

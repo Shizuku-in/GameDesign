@@ -71,7 +71,8 @@ Assets are automatically copied to the build directory via CMake `POST_BUILD`.
 ├── README.md
 ├── README-zh.md
 ├── CLAUDE.md                 # Architecture & coding conventions
-├── .clang-format             # Code style rules (WebKit-based)
+├── .clang-format             # Code style rules (LLVM, C++20)
+├── .clang-tidy               # Static analysis checks
 ├── assets/
 │   ├── fonts/                # UI font
 │   ├── sounds/
@@ -145,7 +146,27 @@ cmake --build build --target format        # format all source files
 cmake --build build --target format-check  # check only (CI)
 ```
 
-Style: `.clang-format` (WebKit, 4-space, 100-column).
+Style: `.clang-format` (LLVM, 4-space, 100-column, C++20).
+
+## Lint & Static Analysis
+
+Two complementary tools are configured — run both before committing:
+
+```bash
+cmake --build build --target lint       # clang-tidy (C++ best practices, bug patterns)
+cmake --build build --target lint-fix   # clang-tidy auto-fix where possible
+cmake --build build --target cppcheck   # cppcheck (memory, undefined behavior, performance)
+```
+
+Install dependencies (Ubuntu):
+
+```bash
+sudo apt install clang-tidy-19 cppcheck
+```
+
+- **clang-tidy** checks are defined in `.clang-tidy` — covers `bugprone-*`, `cert-*`, `modernize-*`, `performance-*`, `readability-*` tuned for the project's style (struct members without `m_`, lowercase `0.f`, etc.)
+- **cppcheck** runs `--enable=all` over `src/`, ignores `third_party/`
+- Both require `cmake -B build` first to generate `compile_commands.json`
 
 ## License
 
