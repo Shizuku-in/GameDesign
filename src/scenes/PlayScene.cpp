@@ -6,13 +6,13 @@
 #include "gameplay/CharacterDefs.hpp"
 #include "gameplay/EnemyDefs.hpp"
 #include "graphics/SpriteSheet.hpp"
-#include "scenes/GameOverScene.hpp"
 #include "scenes/TitleScene.hpp"
 #include "systems/CollisionSystem.hpp"
 #include "ui/PauseMenu.hpp"
 #include "ui/UpgradeUI.hpp"
 
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
@@ -85,7 +85,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
         }
     }
 
-    // 赋值精灵表指针（idle/attack/hit 仅保留右朝向，左朝向通过翻转实现）
+    // 赋值精灵表指针（idle/attack/hit/death 仅保留右朝向，左朝向通过翻转实现）
     m_player.spriteForward = &m_playerSprites[KForward];
     m_player.spriteBack = &m_playerSprites[KBack];
     m_player.spriteSide = &m_playerSprites[KSide];
@@ -126,7 +126,21 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
 // 事件处理
 // ---------------------------------------------------------------------------
 void PlayScene::handleEvent(const sf::Event& event) {
-    if (m_gameOver) {
+    // 死亡动画播放中 — 不接受任何输入
+    if (m_deathPhase == DeathPhase::Animation) {
+        return;
+    }
+
+    // 死亡冻结阶段 — 仅接受重新开始 / 退出
+    if (m_deathPhase == DeathPhase::Frozen) {
+        if (const auto* kp = event.getIf<sf::Event::KeyPressed>()) {
+            using Key = sf::Keyboard::Key;
+            if (kp->code == Key::Enter || kp->code == Key::Space) {
+                m_game.changeScene(std::make_unique<PlayScene>(m_game));
+            } else if (kp->code == Key::Escape) {
+                m_game.getWindow().close();
+            }
+        }
         return;
     }
 
@@ -193,15 +207,14 @@ void PlayScene::update(sf::Time dt) {
 
     float dtSec = dt.asSeconds();
 
-    // 死亡动画播放中：仅更新动画和相机，冻结游戏逻辑
-    if (m_gameOver) {
-        m_player.deathAnimTimer -= dtSec;
-        updatePlayerAnimation(dtSec);
-        updateCamera();
-        if (m_player.deathAnimTimer <= 0.f) {
-            m_game.changeScene(
-                std::make_unique<GameOverScene>(m_game, m_score, m_player.level, m_gameTime));
-        }
+    // 死亡动画阶段 — 仅推进死亡动画和相机缩放，冻结游戏逻辑
+    if (m_deathPhase == DeathPhase::Animation) {
+        updateDeathAnimation(dtSec);
+        return;
+    }
+
+    // 死亡冻结阶段 — 完全停止更新
+    if (m_deathPhase == DeathPhase::Frozen) {
         return;
     }
 
@@ -236,9 +249,9 @@ void PlayScene::update(sf::Time dt) {
     // 相机
     updateCamera();
 
-    // 死亡检查
+    // 死亡检测 — 触发死亡动画序列
     if (m_player.hp <= 0.f) {
-        onDeath();
+        beginDeath();
         return;
     }
 
@@ -275,6 +288,11 @@ void PlayScene::render(sf::RenderWindow& window) {
     }
     if (m_menuPaused && (m_font != nullptr)) {
         PauseMenu::draw(window, *m_font, m_selectedOption);
+    }
+
+    // 死亡冻结阶段 — 绘制半透明暗幕 + Game Over 信息
+    if (m_deathPhase == DeathPhase::Frozen) {
+        renderDeathOverlay(window);
     }
 }
 
@@ -515,11 +533,144 @@ void PlayScene::onLevelUp() {
     m_sounds.levelup();
 }
 
-void PlayScene::onDeath() {
-    m_gameOver = true;
-    m_player.deathAnimTimer = m_deathAnimDuration;
-    // 立即切换到死亡精灵
+// ===========================================================================
+// 死亡动画序列
+// ===========================================================================
+
+void PlayScene::beginDeath() {
+    m_deathPhase = DeathPhase::Animation;
+    m_deathAnimTimer = m_deathAnimDuration;
+
+    // 切换到死亡精灵，清除无敌闪烁以保证死亡精灵始终可见
     m_player.currentSprite = m_player.spriteDeath;
     m_player.animFrame = 0;
     m_player.animTimer = 0.f;
+    m_player.invincibilityTimer = 0.f;
+    m_player.deathAnimTimer = m_deathAnimDuration;
+
+    // 无死亡精灵 — 跳过动画阶段，直接进冻结
+    if (m_player.spriteDeath == nullptr || m_player.spriteDeath->frameCount <= 0) {
+        m_deathPhase = DeathPhase::Frozen;
+        return;
+    }
+
+    // 记录相机初态，用于缩放插值
+    m_deathCameraInitialSize = m_camera.getSize();
+
+    // 目标缩放：4× 放大（视口缩小为 1/4）
+    m_deathCameraTargetSize = {m_deathCameraInitialSize.x * 0.25f,
+                               m_deathCameraInitialSize.y * 0.25f};
+
+    // 目标中心：相机下移，使玩家最终显示在屏幕上四分之二处
+    float targetH = m_deathCameraTargetSize.y;
+    m_deathCameraTargetCenter = {m_player.pos.x, m_player.pos.y + targetH * 0.25f};
+}
+
+void PlayScene::updateDeathAnimation(float dt) {
+    m_deathAnimTimer -= dt;
+
+    // 推进死亡精灵帧（不循环，停在最后一帧）
+    const auto* deathSprite = m_player.currentSprite;
+    if (deathSprite != nullptr && deathSprite->frameCount > 0) {
+        m_player.animTimer += dt;
+        int targetFrame = m_player.animFrame;
+        while (m_player.animTimer >= Config::PLAYER_ANIM_FRAME_DURATION) {
+            m_player.animTimer -= Config::PLAYER_ANIM_FRAME_DURATION;
+            if (targetFrame < deathSprite->frameCount - 1) {
+                ++targetFrame; // 不循环，到最后一帧停止
+            }
+        }
+        m_player.animFrame = targetFrame;
+    }
+
+    // 相机缩放 + 中心偏移的线性插值（0 → 1）
+    float t = 1.f - (m_deathAnimTimer / m_deathAnimDuration);
+    t = std::clamp(t, 0.f, 1.f);
+
+    auto lerp = [](float a, float b, float tv) { return a + (b - a) * tv; };
+
+    m_camera.setSize({lerp(m_deathCameraInitialSize.x, m_deathCameraTargetSize.x, t),
+                      lerp(m_deathCameraInitialSize.y, m_deathCameraTargetSize.y, t)});
+
+    sf::Vector2f initialCenter = m_player.pos;
+    m_camera.setCenter({lerp(initialCenter.x, m_deathCameraTargetCenter.x, t),
+                        lerp(initialCenter.y, m_deathCameraTargetCenter.y, t)});
+
+    // 动画结束 → 进入冻结阶段
+    if (m_deathAnimTimer <= 0.f) {
+        m_deathAnimTimer = 0.f;
+        // 确保停在最后一帧
+        if (deathSprite != nullptr && deathSprite->frameCount > 0) {
+            m_player.animFrame = deathSprite->frameCount - 1;
+        }
+        m_deathPhase = DeathPhase::Frozen;
+    }
+}
+
+void PlayScene::renderDeathOverlay(sf::RenderWindow& window) {
+    const float VW = Config::VIEW_WIDTH;
+    const float VH = Config::VIEW_HEIGHT;
+    auto fs = [VH](float r) -> unsigned int { return static_cast<unsigned int>(VH * r); };
+
+    // 50% 不透明度黑色暗幕（非全屏红色）
+    sf::RectangleShape overlay({VW, VH});
+    overlay.setFillColor(sf::Color(0, 0, 0, 128));
+    window.draw(overlay);
+
+    if (m_font == nullptr) {
+        return;
+    }
+
+    // 所有文字水平居中，纵向从屏幕 48% 开始排列
+    auto centerX = [VW](const sf::Text& t) { return (VW - t.getLocalBounds().size.x) / 2.f; };
+
+    // "GAME OVER" 标题
+    {
+        sf::Text text(*m_font, "GAME OVER", fs(0.055f));
+        text.setFillColor(sf::Color::Red);
+        text.setPosition({centerX(text), VH * 0.48f});
+        window.draw(text);
+    }
+
+    // 击败敌人数
+    {
+        sf::Text text(*m_font, std::format("Enemies defeated: {}", m_score), fs(0.026f));
+        text.setFillColor(sf::Color::White);
+        text.setPosition({centerX(text), VH * 0.56f});
+        window.draw(text);
+    }
+
+    // 达到等级
+    {
+        sf::Text text(*m_font, std::format("Level reached: {}", m_player.level), fs(0.026f));
+        text.setFillColor(sf::Color::White);
+        text.setPosition({centerX(text), VH * 0.61f});
+        window.draw(text);
+    }
+
+    // 存活时间
+    {
+        int totalSec = static_cast<int>(m_gameTime);
+        sf::Text text(*m_font, std::format("Survived: {:02d}:{:02d}", totalSec / 60, totalSec % 60),
+                      fs(0.026f));
+        text.setFillColor(sf::Color::White);
+        text.setPosition({centerX(text), VH * 0.66f});
+        window.draw(text);
+    }
+
+    // 重新开始提示
+    {
+        sf::Text text(*m_font, "Press ENTER to play again", fs(0.022f));
+        text.setFillColor(sf::Color::Yellow);
+        text.setPosition({centerX(text), VH * 0.74f});
+        window.draw(text);
+    }
+
+    // 退出提示
+    {
+        sf::Text text(*m_font, "Press ESCAPE to quit", fs(0.022f));
+        text.setFillColor(sf::Color::Yellow);
+        text.setPosition({centerX(text), VH * 0.78f});
+        window.draw(text);
+    }
 }

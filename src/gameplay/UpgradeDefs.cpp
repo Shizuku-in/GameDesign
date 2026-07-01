@@ -115,8 +115,7 @@ std::vector<UpgradeDef> buildUpgradeDefs() {
     std::vector<UpgradeDef> d;
 
     // --- 属性提升（7 项） ---
-    d.push_back(
-        makeStatBoost("Vitality", "+20 Max HP, heal 20", 20.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f));
+    d.push_back(makeStatBoost("Vitality", "+3 Max HP, heal 3", 3.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f));
     d.push_back(
         makeStatBoost("Swiftness", "+10% movement speed", 0.f, 0.10f, 0.f, 0.f, 0.f, 0.f, 0.f));
     d.push_back(makeStatBoost("Armor", "+5% damage reduction (max 50%)", 0.f, 0.f, 0.05f, 0.f, 0.f,
