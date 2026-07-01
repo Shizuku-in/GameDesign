@@ -5,38 +5,38 @@
 #include <cstdio>
 
 SoundPlayer::SoundPlayer(ResourceManager<sf::SoundBuffer>& sounds) {
-    auto load = [&](const char* key) -> sf::SoundBuffer* {
-        auto ptr = sounds.get(key);
+    auto load = [&](Config::SoundId id) -> sf::SoundBuffer* {
+        auto ptr = sounds.get(Config::soundKey(id));
         return ptr.get();
     };
 
-    m_slots[static_cast<int>(SoundId::Shoot)] = {
-        .buffer = load("shoot"),
+    m_slots[static_cast<int>(Config::SoundId::Shoot)] = {
+        .buffer = load(Config::SoundId::Shoot),
         .interval = Config::SOUND_CFG_SHOOT.interval,
         .volume = Config::SOUND_CFG_SHOOT.volume,
     };
-    m_slots[static_cast<int>(SoundId::Hit)] = {
-        .buffer = load("hit"),
+    m_slots[static_cast<int>(Config::SoundId::Hit)] = {
+        .buffer = load(Config::SoundId::Hit),
         .interval = Config::SOUND_CFG_HIT.interval,
         .volume = Config::SOUND_CFG_HIT.volume,
     };
-    m_slots[static_cast<int>(SoundId::Kill)] = {
-        .buffer = load("kill"),
+    m_slots[static_cast<int>(Config::SoundId::Kill)] = {
+        .buffer = load(Config::SoundId::Kill),
         .interval = Config::SOUND_CFG_KILL.interval,
         .volume = Config::SOUND_CFG_KILL.volume,
     };
-    m_slots[static_cast<int>(SoundId::Hurt)] = {
-        .buffer = load("hurt"),
+    m_slots[static_cast<int>(Config::SoundId::Hurt)] = {
+        .buffer = load(Config::SoundId::Hurt),
         .interval = Config::SOUND_CFG_HURT.interval,
         .volume = Config::SOUND_CFG_HURT.volume,
     };
-    m_slots[static_cast<int>(SoundId::Pickup)] = {
-        .buffer = load("pickup"),
+    m_slots[static_cast<int>(Config::SoundId::Pickup)] = {
+        .buffer = load(Config::SoundId::Pickup),
         .interval = Config::SOUND_CFG_PICKUP.interval,
         .volume = Config::SOUND_CFG_PICKUP.volume,
     };
-    m_slots[static_cast<int>(SoundId::LevelUp)] = {
-        .buffer = load("levelup"),
+    m_slots[static_cast<int>(Config::SoundId::LevelUp)] = {
+        .buffer = load(Config::SoundId::LevelUp),
         .interval = Config::SOUND_CFG_LEVELUP.interval,
         .volume = Config::SOUND_CFG_LEVELUP.volume,
     };
@@ -56,7 +56,7 @@ void SoundPlayer::update(float dt) {
     }
 }
 
-void SoundPlayer::play(SoundId id) {
+void SoundPlayer::play(Config::SoundId id) {
     const auto& slot = m_slots[static_cast<int>(id)];
     if (slot.buffer == nullptr) {
         return;

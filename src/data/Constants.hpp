@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <cstdint>
 #include <numbers>
 
 namespace Config {
@@ -68,6 +69,28 @@ constexpr SoundConfig SOUND_CFG_KILL{55.f, 0.10f};
 constexpr SoundConfig SOUND_CFG_HURT{70.f, 0.25f};
 constexpr SoundConfig SOUND_CFG_PICKUP{40.f, 0.10f};
 constexpr SoundConfig SOUND_CFG_LEVELUP{65.f, 0.f};
+
+enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
+
+/// 返回 SoundId 对应的资源 key，供 ResourceManager 加载/查询。
+constexpr const char* soundKey(SoundId id) {
+    switch (id) {
+    case SoundId::Shoot:
+        return "shoot";
+    case SoundId::Hit:
+        return "hit";
+    case SoundId::Kill:
+        return "kill";
+    case SoundId::Hurt:
+        return "hurt";
+    case SoundId::Pickup:
+        return "pickup";
+    case SoundId::LevelUp:
+        return "levelup";
+    default:
+        return "";
+    }
+}
 
 // --- 对象池预分配 ---
 constexpr std::size_t POOL_ENEMIES_CAPACITY = 500;

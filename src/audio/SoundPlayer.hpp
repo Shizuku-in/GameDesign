@@ -1,16 +1,14 @@
 #pragma once
 
 #include "core/ResourceManager.hpp"
+#include "data/Constants.hpp"
 
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
 #include <array>
-#include <cstdint>
 #include <memory>
 #include <vector>
-
-enum class SoundId : std::uint8_t { Shoot, Hit, Kill, Hurt, Pickup, LevelUp, Count };
 
 /// 小型 sf::Sound 对象池，封装 buffer 引用，表驱动播放。
 /// 同一音效有多短间隔保护，避免多个实例同时播放导致音量叠加。
@@ -22,18 +20,18 @@ public:
     void update(float dt);
 
     /// 通过 ID 播放音效。
-    void play(SoundId id);
+    void play(Config::SoundId id);
 
     // 便捷方法
-    void shoot() { play(SoundId::Shoot); }
-    void hit() { play(SoundId::Hit); }
-    void kill() { play(SoundId::Kill); }
-    void hurt() { play(SoundId::Hurt); }
-    void pickup() { play(SoundId::Pickup); }
-    void levelup() { play(SoundId::LevelUp); }
+    void shoot() { play(Config::SoundId::Shoot); }
+    void hit() { play(Config::SoundId::Hit); }
+    void kill() { play(Config::SoundId::Kill); }
+    void hurt() { play(Config::SoundId::Hurt); }
+    void pickup() { play(Config::SoundId::Pickup); }
+    void levelup() { play(Config::SoundId::LevelUp); }
 
 private:
-    static constexpr std::size_t K_COUNT = static_cast<std::size_t>(SoundId::Count);
+    static constexpr std::size_t K_COUNT = static_cast<std::size_t>(Config::SoundId::Count);
 
     struct Slot {
         sf::SoundBuffer* buffer = nullptr;
