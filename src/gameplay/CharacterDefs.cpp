@@ -14,11 +14,13 @@ const CharacterDef CHARACTER_DEFS[] = {
         .magnetRange = 100.f,
         .damageBonus = 0.f,
         .cooldownReduction = 0.f,
-        .spriteForward = "assets/sprites/character/elf/movement/forward.png",
-        .spriteBack = "assets/sprites/character/elf/movement/back.png",
-        .spriteLeft = "assets/sprites/character/elf/movement/left.png",
-        .spriteRight = "assets/sprites/character/elf/movement/right.png",
-        .spriteIdle = "assets/sprites/character/elf/idle/idle.png",
+        .spriteForward = "assets/sprites/character/elf/movement_forward.png",
+        .spriteBack = "assets/sprites/character/elf/movement_back.png",
+        .spriteSide = "assets/sprites/character/elf/movement_side.png",
+        .spriteIdle = "assets/sprites/character/elf/idle.png",
+        .spriteAttack = "assets/sprites/character/elf/attack.png",
+        .spriteHit = "assets/sprites/character/elf/hit.png",
+        .spriteDeath = "assets/sprites/character/elf/death.png",
     },
 };
 

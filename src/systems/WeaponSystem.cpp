@@ -99,8 +99,9 @@ void WeaponSystem::reset() {
 
 // --- 主更新 ---
 
-void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
+bool WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
                           Pool<Projectile>& projectiles, SoundPlayer& sounds) {
+    bool anyFired = false;
     for (int i = 0; i < MAX_SLOTS; ++i) {
         auto& slot = m_slots[i];
         if (slot.level == 0) {
@@ -113,6 +114,7 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
         float cdMultiplier = 1.0f - player.cooldownReduction;
 
         // AoE 武器冷却完毕时每帧造成伤害（while 确保 lag 时不丢失 tick）
+        // 注意：AoE 不触发攻击动画
         if (def.isAOE) {
             auto stats = getWeaponStats(slot.type, slot.level);
             while (slot.cooldown <= 0.f) {
@@ -132,9 +134,11 @@ void WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
             }
             if (fired) {
                 sounds.shoot();
+                anyFired = true;
             }
             auto stats = getWeaponStats(slot.type, slot.level);
             slot.cooldown = stats.cooldown * cdMultiplier;
         }
     }
+    return anyFired;
 }

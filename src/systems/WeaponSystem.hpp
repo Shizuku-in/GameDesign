@@ -26,8 +26,8 @@ public:
     [[nodiscard]] bool isFull() const;
     [[nodiscard]] std::vector<WeaponType> getUpgradeableWeapons() const;
 
-    // --- 主更新（60 Hz 调用）---
-    void update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
+    // --- 主更新（60 Hz 调用）。返回 true 表示有武器开火 ---
+    bool update(float dt, const PlayerState& player, Pool<Enemy>& enemies,
                 Pool<Projectile>& projectiles, SoundPlayer& sounds);
 
     // --- 新一局重置 ---
