@@ -64,20 +64,8 @@ private:
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesDamaged;
 
     // 角色精灵表索引
-    enum PlayerSpriteIdx : std::size_t {
-        kForward,
-        kBack,
-        kLeft,
-        kRight,
-        kIdleLeft,
-        kIdleRight,
-        kAttackLeft,
-        kAttackRight,
-        kHitLeft,
-        kHitRight,
-        kPlayerSpriteCount
-    };
-    std::array<SpriteSheet, kPlayerSpriteCount> m_playerSprites;
+    enum PlayerSpriteIdx : std::size_t { kForward, kBack, kSide, kIdle, kAttack, kHit, kCount };
+    std::array<SpriteSheet, kCount> m_playerSprites;
 
     // 攻击/受击动画时长（加载精灵后计算）
     float m_attackAnimDuration = 0.f;

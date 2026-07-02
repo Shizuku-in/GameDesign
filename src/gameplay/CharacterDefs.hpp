@@ -24,25 +24,13 @@ struct CharacterDef {
     // 各方向精灵表路径
     const char* spriteForward; // 面对镜头（朝下）
     const char* spriteBack;    // 背对镜头（朝上）
-    const char* spriteLeft;
-    const char* spriteRight;
-    const char* spriteIdle; // 旧版全方向待机（已弃用，置 nullptr）
+    const char* spriteSide;    // 侧向移动（翻转实现左右朝向）
+    const char* spriteIdle;    // 待机（单方向，翻转实现左右）
 
-    // 朝向区分 idle（left/right）
-    const char* spriteIdleLeft;
-    const char* spriteIdleRight;
-
-    // 攻击动画（仅 left/right，按朝向选择）
-    const char* spriteAttackLeft;
-    const char* spriteAttackRight;
-
-    // 受击动画（仅 left/right，按朝向选择）
-    const char* spriteHitLeft;
-    const char* spriteHitRight;
-
-    // 死亡动画（仅 left/right，暂未绑定）
-    const char* spriteDeathLeft;
-    const char* spriteDeathRight;
+    // 以下精灵仅保留右朝向，左朝向通过翻转实现
+    const char* spriteAttack; // 攻击（仅右朝向）
+    const char* spriteHit;    // 受击（仅右朝向）
+    const char* spriteDeath;  // 死亡（仅右朝向，暂未绑定）
 };
 
 /// 所有角色定义表，按 CharacterType 枚举顺序排列。

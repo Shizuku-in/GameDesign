@@ -113,7 +113,8 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
             sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
                               static_cast<float>(ss->frameHeight) / 2.f});
             sprite.setPosition(player.pos);
-            sprite.setScale({1.f, 1.f});
+            float xScale = player.facingRight ? 1.f : -1.f;
+            sprite.setScale({xScale, 1.f});
             window.draw(sprite);
         }
     }

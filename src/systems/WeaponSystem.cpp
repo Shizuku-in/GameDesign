@@ -114,6 +114,7 @@ bool WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
         float cdMultiplier = 1.0f - player.cooldownReduction;
 
         // AoE 武器冷却完毕时每帧造成伤害（while 确保 lag 时不丢失 tick）
+        // 注意：AoE 不触发攻击动画
         if (def.isAOE) {
             auto stats = getWeaponStats(slot.type, slot.level);
             while (slot.cooldown <= 0.f) {
@@ -121,7 +122,6 @@ bool WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
                 if (slot.behavior) {
                     slot.behavior->tickAoE(slot.level, player, enemies);
                 }
-                anyFired = true;
             }
             continue;
         }
