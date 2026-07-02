@@ -64,12 +64,22 @@ private:
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesDamaged;
 
     // 角色精灵表索引
-    enum PlayerSpriteIdx : std::size_t { kForward, kBack, kSide, kIdle, kAttack, kHit, kCount };
+    enum PlayerSpriteIdx : std::size_t {
+        kForward,
+        kBack,
+        kSide,
+        kIdle,
+        kAttack,
+        kHit,
+        kDeath,
+        kCount
+    };
     std::array<SpriteSheet, kCount> m_playerSprites;
 
-    // 攻击/受击动画时长（加载精灵后计算）
+    // 攻击/受击/死亡动画时长（加载精灵后计算）
     float m_attackAnimDuration = 0.f;
     float m_hitAnimDuration = 0.f;
+    float m_deathAnimDuration = 0.f;
 
     // 相机
     sf::View m_camera;

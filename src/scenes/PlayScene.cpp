@@ -73,8 +73,8 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
 
     // 构造路径数组（nullptr = 无此精灵，跳过加载）
     const char* spritePaths[kCount] = {
-        charDef.spriteForward, charDef.spriteBack,   charDef.spriteSide,
-        charDef.spriteIdle,    charDef.spriteAttack, charDef.spriteHit,
+        charDef.spriteForward, charDef.spriteBack, charDef.spriteSide,  charDef.spriteIdle,
+        charDef.spriteAttack,  charDef.spriteHit,  charDef.spriteDeath,
     };
     for (std::size_t i = 0; i < kCount; ++i) {
         if (spritePaths[i]) {
@@ -91,6 +91,7 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_player.spriteIdle = &m_playerSprites[kIdle];
     m_player.spriteAttack = &m_playerSprites[kAttack];
     m_player.spriteHit = &m_playerSprites[kHit];
+    m_player.spriteDeath = &m_playerSprites[kDeath];
 
     // 默认初始朝向右侧，待机
     m_player.facingRight = true;
@@ -103,6 +104,9 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     if (m_playerSprites[kHit].frameCount > 0)
         m_hitAnimDuration = static_cast<float>(m_playerSprites[kHit].frameCount) *
                             Config::PLAYER_ANIM_FRAME_DURATION;
+    if (m_playerSprites[kDeath].frameCount > 0)
+        m_deathAnimDuration = static_cast<float>(m_playerSprites[kDeath].frameCount) *
+                              Config::PLAYER_ANIM_FRAME_DURATION;
 
     // BGM
     if (m_bgm.openFromFile(m_map->bgmPath)) {
@@ -179,11 +183,23 @@ void PlayScene::handleEvent(const sf::Event& event) {
 // update — 主游戏循环（60 Hz）
 // ---------------------------------------------------------------------------
 void PlayScene::update(sf::Time dt) {
-    if (m_gameOver || m_paused || m_menuPaused) {
+    if (m_paused || m_menuPaused) {
         return;
     }
 
     float dtSec = dt.asSeconds();
+
+    // 死亡动画播放中：仅更新动画和相机，冻结游戏逻辑
+    if (m_gameOver) {
+        m_player.deathAnimTimer -= dtSec;
+        updatePlayerAnimation(dtSec);
+        updateCamera();
+        if (m_player.deathAnimTimer <= 0.f) {
+            m_game.changeScene(
+                std::make_unique<GameOverScene>(m_game, m_score, m_player.level, m_gameTime));
+        }
+        return;
+    }
 
     // 输入 + 移动
     handleInput();
@@ -315,11 +331,13 @@ void PlayScene::updatePlayerAnimation(float dt) {
 
     bool isMoving = (m_player.vel.x != 0.f || m_player.vel.y != 0.f);
 
-    // 选择精灵表 —— 优先级：受击 > 攻击 > 移动 > 待机
-    // idle/attack/hit 仅保留右朝向，左朝向通过 WorldRenderer 翻转实现
+    // 选择精灵表 —— 优先级：死亡 > 受击 > 攻击 > 移动 > 待机
+    // idle/attack/hit/death 仅保留右朝向，左朝向通过 WorldRenderer 翻转实现
     const SpriteSheet* target = nullptr;
 
-    if (m_player.hitAnimTimer > 0.f) {
+    if (m_player.deathAnimTimer > 0.f) {
+        target = m_player.spriteDeath;
+    } else if (m_player.hitAnimTimer > 0.f) {
         target = m_player.spriteHit;
     } else if (m_player.attackAnimTimer > 0.f) {
         target = m_player.spriteAttack;
@@ -329,10 +347,8 @@ void PlayScene::updatePlayerAnimation(float dt) {
             target = m_player.spriteBack;
         else if (m_player.vel.y > 0.f)
             target = m_player.spriteForward;
-        else if (m_player.vel.x < 0.f)
-            target = m_player.spriteSide; // 向左翻转
-        else if (m_player.vel.x > 0.f)
-            target = m_player.spriteSide;
+        else if (m_player.vel.x != 0.f)
+            target = m_player.spriteSide; // 左右翻转由 WorldRenderer 处理
     } else {
         target = m_player.spriteIdle;
     }
@@ -490,6 +506,9 @@ void PlayScene::onLevelUp() {
 
 void PlayScene::onDeath() {
     m_gameOver = true;
-    m_game.changeScene(
-        std::make_unique<GameOverScene>(m_game, m_score, m_player.level, m_gameTime));
+    m_player.deathAnimTimer = m_deathAnimDuration;
+    // 立即切换到死亡精灵
+    m_player.currentSprite = m_player.spriteDeath;
+    m_player.animFrame = 0;
+    m_player.animTimer = 0.f;
 }
