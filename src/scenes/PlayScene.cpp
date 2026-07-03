@@ -589,7 +589,6 @@ void PlayScene::beginDeath() {
     m_player.animFrame = 0;
     m_player.animTimer = 0.f;
     m_player.invincibilityTimer = 0.f;
-    m_player.deathAnimTimer = m_deathAnimDuration;
 
     // 无死亡精灵 — 跳过动画阶段，直接进冻结
     if (m_player.spriteDeath == nullptr || m_player.spriteDeath->frameCount <= 0) {

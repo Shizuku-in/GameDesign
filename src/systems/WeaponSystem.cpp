@@ -122,7 +122,6 @@ bool WeaponSystem::update(float dt, const PlayerState& player, Pool<Enemy>& enem
                 if (slot.behavior) {
                     slot.behavior->tickAoE(slot.level, player, enemies);
                 }
-                anyFired = true;
             }
             continue;
         }
