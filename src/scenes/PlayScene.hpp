@@ -75,6 +75,12 @@ private:
         KAttack,
         KHit,
         KDeath,
+        // 移动中攻击/受击变体
+        KMovingAttackForward,
+        KMovingAttackBack,
+        KMovingAttackSide,
+        KMovingHitBack,
+        KMovingHitSide,
         KCount
     };
     std::array<SpriteSheet, KCount> m_playerSprites;

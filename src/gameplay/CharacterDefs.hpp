@@ -31,6 +31,13 @@ struct CharacterDef {
     const char* spriteAttack; // 攻击
     const char* spriteHit;    // 受击
     const char* spriteDeath;  // 死亡
+
+    // 移动中攻击/受击变体（仅 side 朝向通过翻转实现左右）
+    const char* spriteMovingAttackForward; // 移动中朝下开火
+    const char* spriteMovingAttackBack;    // 移动中朝上开火
+    const char* spriteMovingAttackSide;    // 移动中侧向开火
+    const char* spriteMovingHitBack;       // 移动中朝上受击
+    const char* spriteMovingHitSide;       // 移动中侧向受击
 };
 
 /// 所有角色定义表，按 CharacterType 枚举顺序排列。

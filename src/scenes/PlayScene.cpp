@@ -73,8 +73,19 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
 
     // 构造路径数组（nullptr = 无此精灵，跳过加载）
     const char* spritePaths[KCount] = {
-        charDef.spriteForward, charDef.spriteBack, charDef.spriteSide,  charDef.spriteIdle,
-        charDef.spriteAttack,  charDef.spriteHit,  charDef.spriteDeath,
+        charDef.spriteForward,
+        charDef.spriteBack,
+        charDef.spriteSide,
+        charDef.spriteIdle,
+        charDef.spriteAttack,
+        charDef.spriteHit,
+        charDef.spriteDeath,
+        // 移动中攻击/受击变体
+        charDef.spriteMovingAttackForward,
+        charDef.spriteMovingAttackBack,
+        charDef.spriteMovingAttackSide,
+        charDef.spriteMovingHitBack,
+        charDef.spriteMovingHitSide,
     };
     for (std::size_t i = 0; i < KCount; ++i) {
         if (spritePaths[i] != nullptr) {
@@ -93,6 +104,11 @@ PlayScene::PlayScene(Game& game) : m_game(game), m_sounds(m_game.getSounds()) {
     m_player.spriteAttack = &m_playerSprites[KAttack];
     m_player.spriteHit = &m_playerSprites[KHit];
     m_player.spriteDeath = &m_playerSprites[KDeath];
+    m_player.spriteMovingAttackForward = &m_playerSprites[KMovingAttackForward];
+    m_player.spriteMovingAttackBack = &m_playerSprites[KMovingAttackBack];
+    m_player.spriteMovingAttackSide = &m_playerSprites[KMovingAttackSide];
+    m_player.spriteMovingHitBack = &m_playerSprites[KMovingHitBack];
+    m_player.spriteMovingHitSide = &m_playerSprites[KMovingHitSide];
 
     // 默认初始朝向右侧，待机
     m_player.facingRight = true;
@@ -365,9 +381,36 @@ void PlayScene::updatePlayerAnimation(float dt) {
     if (m_player.deathAnimTimer > 0.f) {
         target = m_player.spriteDeath;
     } else if (m_player.hitAnimTimer > 0.f) {
-        target = m_player.spriteHit;
+        // 受击：移动中优先使用 moving_hit 变体（缺少 down/forward 时回退到 stationary hit）
+        if (isMoving) {
+            if (m_player.vel.y < 0.f && m_player.spriteMovingHitBack != nullptr &&
+                m_player.spriteMovingHitBack->frameCount > 0) {
+                target = m_player.spriteMovingHitBack; // 朝上受击
+            } else if (m_player.vel.x != 0.f && m_player.spriteMovingHitSide != nullptr &&
+                       m_player.spriteMovingHitSide->frameCount > 0) {
+                target = m_player.spriteMovingHitSide; // 侧向受击，左右翻转由 WorldRenderer 处理
+            }
+        }
+        if (target == nullptr) {
+            target = m_player.spriteHit; // 回退到 stationary hit
+        }
     } else if (m_player.attackAnimTimer > 0.f) {
-        target = m_player.spriteAttack;
+        // 攻击：移动中优先使用 moving_attack 变体
+        if (isMoving) {
+            if (m_player.vel.y > 0.f && m_player.spriteMovingAttackForward != nullptr &&
+                m_player.spriteMovingAttackForward->frameCount > 0) {
+                target = m_player.spriteMovingAttackForward; // 朝下开火
+            } else if (m_player.vel.y < 0.f && m_player.spriteMovingAttackBack != nullptr &&
+                       m_player.spriteMovingAttackBack->frameCount > 0) {
+                target = m_player.spriteMovingAttackBack; // 朝上开火
+            } else if (m_player.vel.x != 0.f && m_player.spriteMovingAttackSide != nullptr &&
+                       m_player.spriteMovingAttackSide->frameCount > 0) {
+                target = m_player.spriteMovingAttackSide; // 侧向开火，左右翻转由 WorldRenderer 处理
+            }
+        }
+        if (target == nullptr) {
+            target = m_player.spriteAttack; // 回退到 stationary attack
+        }
     } else if (isMoving) {
         // 移动动画（四方向）
         if (m_player.vel.y < 0.f) {
