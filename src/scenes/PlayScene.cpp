@@ -464,7 +464,7 @@ void PlayScene::updateEnemies(float dt) {
         // 冻结计时器
         if (e.frozenTimer > 0.f) {
             e.frozenTimer -= dt;
-            // 冻结状态下不移动，但动画继续
+            // 冻结状态下不移动，也不推进动画帧
         } else {
             // AI 移动：朝向玩家
             sf::Vector2f dir = m_player.pos - e.pos;
@@ -474,7 +474,7 @@ void PlayScene::updateEnemies(float dt) {
                 dir.y /= len;
             }
             e.pos += dir * e.speed * dt;
-            
+
             // 更新朝向
             if (dir.x > 0.f) {
                 e.facingRight = true;
@@ -483,14 +483,16 @@ void PlayScene::updateEnemies(float dt) {
             }
         }
 
-        // 精灵动画（即使冻结也播放）
+        // 精灵动画（冻结时不推进帧，保持静止）
         const SpriteSheet* target = (e.hitFlashTimer > 0.f) ? e.spriteDamaged : e.spriteMove;
         if (target && target != e.currentSprite) {
             e.currentSprite = target;
             e.animFrame = 0;
             e.animTimer = 0.f;
         }
-        e.animTimer += dt;
+        if (e.frozenTimer <= 0.f) {
+            e.animTimer += dt;
+        }
         if (e.currentSprite && e.currentSprite->frameCount > 0 &&
             e.animTimer >= Config::ENEMY_ANIM_FRAME_DURATION) {
             e.animTimer -= Config::ENEMY_ANIM_FRAME_DURATION;

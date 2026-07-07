@@ -90,7 +90,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
             sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
                               static_cast<float>(ss->frameHeight) / 2.f});
             sprite.setPosition(e.pos);
-            
+
             // 应用朝向缩放
             float xScale = e.facingRight ? e.spriteScale : -e.spriteScale;
             sprite.setScale({xScale, e.spriteScale});
