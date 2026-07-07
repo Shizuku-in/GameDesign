@@ -32,3 +32,8 @@ class GarlicBehavior : public IWeaponBehavior {
 public:
     void tickAoE(int level, const PlayerState& player, Pool<Enemy>& enemies) override;
 };
+
+class TimeStopBehavior : public IWeaponBehavior {
+public:
+    void tickAoE(int level, const PlayerState& player, Pool<Enemy>& enemies) override;
+};

@@ -461,23 +461,38 @@ void PlayScene::updateEnemies(float dt) {
             e.hitFlashTimer -= dt;
         }
 
-        // AI 移动：朝向玩家
-        sf::Vector2f dir = m_player.pos - e.pos;
-        float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
-        if (len > 0.f) {
-            dir.x /= len;
-            dir.y /= len;
-        }
-        e.pos += dir * e.speed * dt;
+        // 冻结计时器
+        if (e.frozenTimer > 0.f) {
+            e.frozenTimer -= dt;
+            // 冻结状态下不移动，也不推进动画帧
+        } else {
+            // AI 移动：朝向玩家
+            sf::Vector2f dir = m_player.pos - e.pos;
+            float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
+            if (len > 0.f) {
+                dir.x /= len;
+                dir.y /= len;
+            }
+            e.pos += dir * e.speed * dt;
 
-        // 精灵动画
+            // 更新朝向
+            if (dir.x > 0.f) {
+                e.facingRight = true;
+            } else if (dir.x < 0.f) {
+                e.facingRight = false;
+            }
+        }
+
+        // 精灵动画（冻结时不推进帧，保持静止）
         const SpriteSheet* target = (e.hitFlashTimer > 0.f) ? e.spriteDamaged : e.spriteMove;
         if (target && target != e.currentSprite) {
             e.currentSprite = target;
             e.animFrame = 0;
             e.animTimer = 0.f;
         }
-        e.animTimer += dt;
+        if (e.frozenTimer <= 0.f) {
+            e.animTimer += dt;
+        }
         if (e.currentSprite && e.currentSprite->frameCount > 0 &&
             e.animTimer >= Config::ENEMY_ANIM_FRAME_DURATION) {
             e.animTimer -= Config::ENEMY_ANIM_FRAME_DURATION;

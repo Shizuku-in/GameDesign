@@ -103,6 +103,26 @@ const WeaponDef WEAPON_DEFS[] = {
      .create = []() -> std::unique_ptr<IWeaponBehavior> {
          return std::make_unique<GarlicBehavior>();
      }},
+    // TimeStop — 持续 AoE，冻结范围内敌人
+    {.type = WeaponType::TimeStop,
+     .name = "Time Stop",
+     .baseCooldown = 0.3f,
+     .baseDamage = 0.f, // 不造成伤害，只冻结
+     .projectileSpeed = 0.f,
+     .projectileLifetime = 0.f,
+     .projectileRadius = 0.f,
+     .range = 0.f,
+     .baseProjectiles = 0,
+     .basePierce = 0,
+     .maxLevel = 8,
+     .isAOE = true,
+     .aoeRadius = 100.f,
+     .spread = 0.f,
+     .orbitRadius = 0.f,
+     .orbitSpeed = 0.f,
+     .create = []() -> std::unique_ptr<IWeaponBehavior> {
+         return std::make_unique<TimeStopBehavior>();
+     }},
 };
 
 static_assert(sizeof(WEAPON_DEFS) / sizeof(WEAPON_DEFS[0]) == static_cast<int>(WeaponType::Count),

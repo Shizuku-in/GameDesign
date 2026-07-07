@@ -10,6 +10,7 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+CMakeSettings.json
 
 # Object files / libraries / binaries
 *.o
@@ -24,12 +25,16 @@ Makefile
 # IDE / editor
 .vscode/
 .idea/
+.vs/
 *.swp
 *.swo
 *~
 .DS_Store
 *.user
 *.suo
+
+# Third party (should be cloned separately)
+third_party/
 
 # macOS app bundles
 *.app/
