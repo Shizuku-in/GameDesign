@@ -175,6 +175,10 @@ void processPlayerEnemyCollision(PlayerState& player, Grid& grid, int gridCols, 
                 if (e->hp <= 0.f) {
                     [[unlikely]] continue;
                 }
+                if (e->frozenTimer > 0.f) {
+                    // 冻结的敌人不造成伤害
+                    continue;
+                }
                 if (circleCircle(player.pos, player.radius, e->pos, e->radius)) [[unlikely]] {
                     float dmg = e->damage * Config::FIXED_DT * (1.f - player.armor);
                     player.hp -= dmg;

@@ -21,8 +21,10 @@ struct Enemy {
     float damage = 0.f; // 接触伤害（每秒）
     float xpValue = 0.f;
     bool killed = false; // 已结算掉落（防止重复）
+    float frozenTimer = 0.f; // 冻结时间（>0表示被冻结）
     EnemyType type = EnemyType::Basic;
     float spriteScale = 1.0f; // 精灵绘制缩放
+    bool facingRight = true;  // 朝向（true=右，false=左）
 
     // 精灵动画
     const SpriteSheet* spriteMove = nullptr;    // 移动动画精灵表

@@ -42,6 +42,8 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
             sf::Color color = sf::Color::Red;
             if (e.hitFlashTimer > 0.f) {
                 color = sf::Color::White;
+            } else if (e.frozenTimer > 0.f) {
+                color = sf::Color::Cyan; // 冻结时变青色
             }
             addQuad(e.pos, e.radius, color);
         }
@@ -88,7 +90,17 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
             sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
                               static_cast<float>(ss->frameHeight) / 2.f});
             sprite.setPosition(e.pos);
-            sprite.setScale({e.spriteScale, e.spriteScale});
+            
+            // 应用朝向缩放
+            float xScale = e.facingRight ? e.spriteScale : -e.spriteScale;
+            sprite.setScale({xScale, e.spriteScale});
+
+            if (e.frozenTimer > 0.f) {
+                // 冻结时给精灵添加蓝色调
+                sprite.setColor(sf::Color(150, 200, 255));
+            } else {
+                sprite.setColor(sf::Color::White);
+            }
 
             window.draw(sprite);
         });

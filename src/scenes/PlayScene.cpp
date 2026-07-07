@@ -461,16 +461,29 @@ void PlayScene::updateEnemies(float dt) {
             e.hitFlashTimer -= dt;
         }
 
-        // AI 移动：朝向玩家
-        sf::Vector2f dir = m_player.pos - e.pos;
-        float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
-        if (len > 0.f) {
-            dir.x /= len;
-            dir.y /= len;
+        // 冻结计时器
+        if (e.frozenTimer > 0.f) {
+            e.frozenTimer -= dt;
+            // 冻结状态下不移动，但动画继续
+        } else {
+            // AI 移动：朝向玩家
+            sf::Vector2f dir = m_player.pos - e.pos;
+            float len = std::sqrt((dir.x * dir.x) + (dir.y * dir.y));
+            if (len > 0.f) {
+                dir.x /= len;
+                dir.y /= len;
+            }
+            e.pos += dir * e.speed * dt;
+            
+            // 更新朝向
+            if (dir.x > 0.f) {
+                e.facingRight = true;
+            } else if (dir.x < 0.f) {
+                e.facingRight = false;
+            }
         }
-        e.pos += dir * e.speed * dt;
 
-        // 精灵动画
+        // 精灵动画（即使冻结也播放）
         const SpriteSheet* target = (e.hitFlashTimer > 0.f) ? e.spriteDamaged : e.spriteMove;
         if (target && target != e.currentSprite) {
             e.currentSprite = target;

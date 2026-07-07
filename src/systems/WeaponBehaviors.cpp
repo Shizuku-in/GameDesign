@@ -190,3 +190,15 @@ void GarlicBehavior::tickAoE(int level, const PlayerState& player, Pool<Enemy>& 
         }
     });
 }
+
+void TimeStopBehavior::tickAoE(int level, const PlayerState& player, Pool<Enemy>& enemies) {
+    auto stats = getWeaponStats(WeaponType::TimeStop, level);
+    const float freezeDuration = 0.1f; // 每次tick增加的冻结时间
+
+    enemies.forEach([&](Enemy& e) {
+        if (circleCircle(player.pos, stats.aoeRadius, e.pos, e.radius)) {
+            // 冻结敌人，增加冻结时间
+            e.frozenTimer = std::max(e.frozenTimer, freezeDuration);
+        }
+    });
+}

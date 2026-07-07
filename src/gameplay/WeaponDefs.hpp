@@ -12,6 +12,7 @@ enum class WeaponType : std::uint8_t {
     Axe,
     Fireball,
     Garlic, // AoE 光环，不生成弹幕
+    TimeStop, // 时间冻结，冻结范围内敌人
     Count
 };
 
