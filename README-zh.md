@@ -9,10 +9,9 @@ WASD 移动，武器自动索敌攻击，击杀敌人掉落经验宝石，升级
 - **CMake** >= 3.16
 - **SFML** >= 3.1（头文件 + 静态库）
 - 支持 C++20 的编译器（GCC 13+ / Clang 17+ / MSVC 2022+）
-- **tmxlite** — 已内置在 `third_party/`，需手动克隆：
+- **tmxlite** — git submodule，使用 `--recurse-submodules` 克隆：
   ```bash
-  mkdir -p third_party && cd third_party
-  git clone https://github.com/fallahn/tmxlite.git
+  git clone --recurse-submodules https://github.com/Shizuku-in/GameDesign.git
   ```
 
 ### 安装 SFML 3.1
@@ -83,8 +82,7 @@ cmake --build build --config Release
 │   │   └── enemies/          # 敌人精灵表
 │   ├── tilesets/             # 地图瓦片素材
 │   └── maps/                 # Tiled .tmx 地图文件
-├── third_party/
-│   └── tmxlite/              # Tiled 地图解析库（内置）
+├── tmxlite/                  # Tiled map parser (git submodule)
 └── src/
     ├── main.cpp
     ├── core/                 # 引擎层
@@ -165,7 +163,7 @@ sudo apt install clang-tidy-19 cppcheck
 ```
 
 - **clang-tidy** 规则见 `.clang-tidy`——启用了 `bugprone-*`、`cert-*`、`modernize-*`、`performance-*`、`readability-*`，并根据项目风格调优（struct 成员不加 `m_`、允许 `0.f` 小写后缀等）
-- **cppcheck** 对 `src/` 运行 `--enable=all`，忽略 `third_party/`
+- **cppcheck** 对 `src/` 运行 `--enable=all`，忽略 `tmxlite/`
 - 两者都需要先执行 `cmake -B build` 来生成 `compile_commands.json`
 
 ## 许可证

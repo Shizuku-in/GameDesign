@@ -24,6 +24,9 @@
 
 class Game;
 
+/// 死亡阶段：控制死亡动画 → 冻结 → 遮罩的状态机
+enum class DeathPhase : std::uint8_t { None, Animation, Frozen };
+
 class PlayScene : public Scene {
 public:
     explicit PlayScene(Game& game);
@@ -63,7 +66,7 @@ private:
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesMove;
     std::array<SpriteSheet, K_ENEMY_TYPE_COUNT> m_spritesDamaged;
 
-    // 角色精灵表索引
+    // 角色精灵表索引（仅保留右朝向，左朝向通过翻转实现）
     enum PlayerSpriteIdx : std::uint8_t {
         KForward,
         KBack,
@@ -72,6 +75,12 @@ private:
         KAttack,
         KHit,
         KDeath,
+        // 移动中攻击/受击变体
+        KMovingAttackForward,
+        KMovingAttackBack,
+        KMovingAttackSide,
+        KMovingHitBack,
+        KMovingHitSide,
         KCount
     };
     std::array<SpriteSheet, KCount> m_playerSprites;
@@ -90,7 +99,13 @@ private:
     int m_score = 0;
     bool m_paused = false;     // 升级暂停
     bool m_menuPaused = false; // 菜单暂停 (Escape)
-    bool m_gameOver = false;
+
+    // 死亡动画状态机
+    DeathPhase m_deathPhase = DeathPhase::None;
+    float m_deathAnimTimer = 0.f;          // 死亡动画阶段剩余时间（倒数计时）
+    sf::Vector2f m_deathCameraInitialSize; // 死亡瞬间的相机视口尺寸
+    sf::Vector2f m_deathCameraTargetSize;  // 缩放目标视口尺寸（4× 放大）
+    sf::Vector2f m_deathCameraTargetCenter; // 冻结阶段相机中心（偏移使角色在上半部）
 
     // 升级UI状态
     std::vector<UpgradeOption> m_upgradeOptions;
@@ -106,5 +121,9 @@ private:
     void updateCamera();
     void updatePlayerAnimation(float dt);
     void onLevelUp();
-    void onDeath();
+
+    // 死亡动画序列
+    void beginDeath();
+    void updateDeathAnimation(float dt);
+    void renderDeathOverlay(sf::RenderWindow& window);
 };

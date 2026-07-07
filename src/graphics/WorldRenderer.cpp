@@ -94,8 +94,8 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         });
     }
 
-    // 绘制玩家精灵
-    if ((player.currentSprite != nullptr) && (m_cachedSpriteSheet != nullptr)) {
+    // 绘制玩家精灵（直接用玩家自己的纹理，不依赖敌人缓存）
+    if (player.currentSprite != nullptr) {
         bool visible = true;
         if (player.invincibilityTimer > 0.f) {
             int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
@@ -104,7 +104,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
         if (visible) {
             const auto* ss = player.currentSprite;
             if (!m_sprite.has_value()) {
-                m_sprite.emplace(m_cachedSpriteSheet->texture);
+                m_sprite.emplace(ss->texture);
             }
             auto& sprite = *m_sprite;
             sprite.setTexture(ss->texture);

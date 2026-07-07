@@ -21,7 +21,7 @@ endif()
 find_package(SFML 3.1 COMPONENTS System Window Graphics Audio REQUIRED)
 
 # --- tmxlite (Tiled map parser, bundled) ---
-set(TMXLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tmxlite/tmxlite)
+set(TMXLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tmxlite/tmxlite)
 add_library(tmxlite STATIC
     ${TMXLITE_DIR}/src/FreeFuncs.cpp
     ${TMXLITE_DIR}/src/ImageLayer.cpp
@@ -183,7 +183,7 @@ if(CPPCHECK)
             --std=c++20
             --error-exitcode=0
             -I ${CMAKE_CURRENT_SOURCE_DIR}/src
-            -i ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+            -i ${CMAKE_CURRENT_SOURCE_DIR}/tmxlite
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         COMMENT "Running cppcheck on source files..."
         USES_TERMINAL

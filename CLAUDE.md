@@ -31,7 +31,7 @@ Asset paths are relative to the working directory, so the binary only finds asse
 
 ### Dependencies
 
-SFML 3.1 (system, statically linked) and tmxlite (bundled, built from `third_party/tmxlite/`). `third_party/` is gitignored and must be cloned manually — see README. SFML 3 renamed/restructured much of the SFML 2 API; match existing usage rather than older SFML 2 examples.
+SFML 3.1 (system, statically linked) and tmxlite (bundled, built from `tmxlite/`). `tmxlite/` is a git submodule — clone with `--recurse-submodules`. SFML 3 renamed/restructured much of the SFML 2 API; match existing usage rather than older SFML 2 examples.
 
 ## Architecture
 

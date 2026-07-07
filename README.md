@@ -9,10 +9,9 @@ Move with WASD, weapons auto-fire at the nearest enemies, collect XP gems, level
 - **CMake** >= 3.16
 - **SFML** >= 3.1 (headers + static libraries)
 - A C++20 compiler (GCC 13+, Clang 17+, MSVC 2022+)
-- **tmxlite** — bundled in `third_party/`, clone with:
+- **tmxlite** — git submodule, clone with `--recurse-submodules`:
   ```bash
-  mkdir -p third_party && cd third_party
-  git clone https://github.com/fallahn/tmxlite.git
+  git clone --recurse-submodules https://github.com/Shizuku-in/GameDesign.git
   ```
 
 ### Installing SFML 3.1
@@ -83,8 +82,7 @@ Assets are automatically copied to the build directory via CMake `POST_BUILD`.
 │   │   └── enemies/          # Enemy sprite sheets
 │   ├── tilesets/             # Tile images for maps
 │   └── maps/                 # Tiled .tmx files
-├── third_party/
-│   └── tmxlite/              # Tiled map parser (bundled)
+├── tmxlite/                  # Tiled map parser (git submodule)
 └── src/
     ├── main.cpp
     ├── core/                 # Engine layer
@@ -165,7 +163,7 @@ sudo apt install clang-tidy-19 cppcheck
 ```
 
 - **clang-tidy** checks are defined in `.clang-tidy` — covers `bugprone-*`, `cert-*`, `modernize-*`, `performance-*`, `readability-*` tuned for the project's style (struct members without `m_`, lowercase `0.f`, etc.)
-- **cppcheck** runs `--enable=all` over `src/`, ignores `third_party/`
+- **cppcheck** runs `--enable=all` over `src/`, ignores `tmxlite/`
 - Both require `cmake -B build` first to generate `compile_commands.json`
 
 ## License

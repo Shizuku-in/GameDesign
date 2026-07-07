@@ -21,6 +21,11 @@ const CharacterDef CHARACTER_DEFS[] = {
         .spriteAttack = "assets/sprites/character/elf/attack.png",
         .spriteHit = "assets/sprites/character/elf/hit.png",
         .spriteDeath = "assets/sprites/character/elf/death.png",
+        .spriteMovingAttackForward = "assets/sprites/character/elf/moving_attack_forward.png",
+        .spriteMovingAttackBack = "assets/sprites/character/elf/moving_attack_back.png",
+        .spriteMovingAttackSide = "assets/sprites/character/elf/moving_attack_side.png",
+        .spriteMovingHitBack = "assets/sprites/character/elf/moving_hit_back.png",
+        .spriteMovingHitSide = "assets/sprites/character/elf/moving_hit_side.png",
     },
 };
 
