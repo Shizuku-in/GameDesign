@@ -19,7 +19,7 @@ int fs(float ratio) { return static_cast<int>(VH * ratio); }
 HUD::HUD(const sf::Font& font)
     : m_font(font), m_hpLabel(font, "", fs(0.015f)), m_xpLabel(font, "", fs(0.013f)),
       m_levelText(font, "", fs(0.022f)), m_timerText(font, "", fs(0.017f)),
-      m_weaponList(font, "", fs(0.014f)) {
+      m_fpsText(font, "", fs(0.015f)), m_weaponList(font, "", fs(0.014f)) {
     // HP 条
     float hpW = VW * 0.25f;
     float hpH = VH * 0.017f;
@@ -33,6 +33,12 @@ HUD::HUD(const sf::Font& font)
 
     m_hpLabel.setFillColor(sf::Color::White);
     m_hpLabel.setPosition({VW * 0.012f, VH * 0.01f});
+
+    // 帧数
+    m_fpsText.setFillColor(sf::Color::Yellow);
+    m_fpsText.setOutlineColor(sf::Color::Black);
+    m_fpsText.setOutlineThickness(2.f);
+    m_fpsText.setPosition({VW * 0.99f, VH * 0.035f});
 
     // XP 条
     float xpW = VW * 0.98f;
@@ -96,10 +102,16 @@ void HUD::update(const PlayerState& player, const WeaponSystem& weapons, float g
     m_weaponList.setString(weaponStr);
 }
 
+void HUD::setFramesPerSecond(float framesPerSecond) {
+    m_fpsText.setString(std::format("FPS {:.0f}", framesPerSecond));
+    m_fpsText.setOrigin({m_fpsText.getLocalBounds().size.x, 0.f});
+}
+
 void HUD::render(sf::RenderWindow& window) {
     window.draw(m_hpBarBg);
     window.draw(m_hpBarFill);
     window.draw(m_hpLabel);
+    window.draw(m_fpsText);
     window.draw(m_xpBarBg);
     window.draw(m_xpBarFill);
     window.draw(m_xpLabel);

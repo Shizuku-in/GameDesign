@@ -51,14 +51,7 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
     // 玩家精灵（在精灵层绘制，此处仅处理无精灵的后备情况）
     if (player.currentSprite == nullptr) {
-        bool visible = true;
-        if (player.invincibilityTimer > 0.f) {
-            int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
-            visible = (flash % 2 == 0);
-        }
-        if (visible) {
-            addQuad(player.pos, player.radius, sf::Color::White);
-        }
+        addQuad(player.pos, player.radius, sf::Color::White);
     }
 
     // 将所有实体通过 1 次 Draw Call 提交给 GPU！
@@ -108,27 +101,20 @@ void WorldRenderer::render(sf::RenderWindow& window, const PlayerState& player,
 
     // 绘制玩家精灵（直接用玩家自己的纹理，不依赖敌人缓存）
     if (player.currentSprite != nullptr) {
-        bool visible = true;
-        if (player.invincibilityTimer > 0.f) {
-            int flash = static_cast<int>(player.invincibilityTimer / 0.1f);
-            visible = (flash % 2 == 0);
+        const auto* ss = player.currentSprite;
+        if (!m_sprite.has_value()) {
+            m_sprite.emplace(ss->texture);
         }
-        if (visible) {
-            const auto* ss = player.currentSprite;
-            if (!m_sprite.has_value()) {
-                m_sprite.emplace(ss->texture);
-            }
-            auto& sprite = *m_sprite;
-            sprite.setTexture(ss->texture);
-            sprite.setTextureRect(sf::IntRect({player.animFrame * ss->frameWidth, 0},
-                                              {ss->frameWidth, ss->frameHeight}));
-            sprite.setOrigin({static_cast<float>(ss->frameWidth) / 2.f,
-                              static_cast<float>(ss->frameHeight) / 2.f});
-            sprite.setPosition(player.pos);
-            float xScale = player.facingRight ? 1.f : -1.f;
-            sprite.setScale({xScale, 1.f});
-            window.draw(sprite);
-        }
+        auto& sprite = *m_sprite;
+        sprite.setTexture(ss->texture);
+        sprite.setTextureRect(
+            sf::IntRect({player.animFrame * ss->frameWidth, 0}, {ss->frameWidth, ss->frameHeight}));
+        sprite.setOrigin(
+            {static_cast<float>(ss->frameWidth) / 2.f, static_cast<float>(ss->frameHeight) / 2.f});
+        sprite.setPosition(player.pos);
+        float xScale = player.facingRight ? 1.f : -1.f;
+        sprite.setScale({xScale, 1.f});
+        window.draw(sprite);
     }
 
     // 绘制伤害飘字

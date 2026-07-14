@@ -33,6 +33,14 @@ int Game::run() {
 
         sf::Time frameTime = m_clock.restart();
 
+        ++m_fpsSampleFrames;
+        m_fpsSampleTime += frameTime;
+        if (m_fpsSampleTime >= sf::seconds(0.5f)) {
+            m_framesPerSecond = static_cast<float>(m_fpsSampleFrames) / m_fpsSampleTime.asSeconds();
+            m_fpsSampleTime = sf::Time::Zero;
+            m_fpsSampleFrames = 0;
+        }
+
         // 死亡螺旋保护
         if (frameTime > TIME_PER_FRAME_MAX) {
             frameTime = TIME_PER_FRAME_MAX;
@@ -69,6 +77,8 @@ sf::RenderWindow& Game::getWindow() { return m_window; }
 ResourceManager<sf::Font>& Game::getFonts() { return m_fonts; }
 
 ResourceManager<sf::SoundBuffer>& Game::getSounds() { return m_sounds; }
+
+float Game::getFramesPerSecond() const { return m_framesPerSecond; }
 
 void Game::processEvents() {
     while (const std::optional EVENT = m_window.pollEvent()) {

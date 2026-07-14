@@ -9,10 +9,10 @@
 namespace Config {
 
 // --- 玩家（通用，非按角色） ---
-constexpr float PLAYER_IFRAMES = 0.5f; // 受击后无敌时间（秒）
 constexpr int PLAYER_MAX_WEAPONS = 6;
 constexpr float PLAYER_MAX_ARMOR = 0.5f;              // 护甲上限 50%
 constexpr float PLAYER_MAX_COOLDOWN_REDUCTION = 0.6f; // 冷却缩减上限 60%
+constexpr float PLAYER_CONTACT_DAMAGE_SCALE = 0.4f;   // 敌人接触伤害倍率
 
 // --- 敌人（通用，非按地图） ---
 constexpr float ENEMY_CULL_MARGIN = 0.35f; // 清理边距（VIEW_WIDTH 比例）

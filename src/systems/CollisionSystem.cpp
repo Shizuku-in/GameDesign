@@ -151,13 +151,9 @@ void processProjectileEnemyCollisions(Pool<Projectile>& projectiles, Grid& grid,
     });
 }
 
-/// 玩家 vs 敌人（触发无敌帧后立即退出）。
+/// 玩家 vs 敌人（每个固定更新最多结算一次接触伤害）。
 void processPlayerEnemyCollision(PlayerState& player, Grid& grid, int gridCols, int gridRows,
                                  SoundPlayer& sounds) {
-    if (player.invincibilityTimer > 0.f) {
-        return;
-    }
-
     float searchRadius = player.radius + maxEnemyRadius();
     int minCx =
         std::clamp(static_cast<int>((player.pos.x - searchRadius) / CELL_SIZE), 0, gridCols - 1);
@@ -180,9 +176,9 @@ void processPlayerEnemyCollision(PlayerState& player, Grid& grid, int gridCols, 
                     continue;
                 }
                 if (circleCircle(player.pos, player.radius, e->pos, e->radius)) [[unlikely]] {
-                    float dmg = e->damage * Config::FIXED_DT * (1.f - player.armor);
+                    float dmg = e->damage * Config::PLAYER_CONTACT_DAMAGE_SCALE * Config::FIXED_DT *
+                                (1.f - player.armor);
                     player.hp -= dmg;
-                    player.invincibilityTimer = Config::PLAYER_IFRAMES;
                     sounds.hurt();
                     return;
                 }

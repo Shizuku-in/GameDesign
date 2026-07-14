@@ -26,6 +26,7 @@ public:
     sf::RenderWindow& getWindow();
     ResourceManager<sf::Font>& getFonts();
     ResourceManager<sf::SoundBuffer>& getSounds();
+    float getFramesPerSecond() const;
 
 private:
     void processEvents();
@@ -48,6 +49,10 @@ private:
     ResourceManager<sf::Font> m_fonts;
     ResourceManager<sf::SoundBuffer> m_sounds;
     sf::Clock m_clock;
+
+    float m_framesPerSecond = 0.f;
+    sf::Time m_fpsSampleTime = sf::Time::Zero;
+    unsigned int m_fpsSampleFrames = 0;
 
     bool m_running = true;
 };

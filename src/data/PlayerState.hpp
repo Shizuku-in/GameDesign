@@ -39,8 +39,6 @@ struct PlayerState {
     float xp = 0.f;
     float xpToNext = Config::XP_BASE_THRESHOLD;
 
-    float invincibilityTimer = 0.f; // > 0 表示无敌，不受伤害
-
     // 角色精灵动画（由 PlayScene 赋值，WorldRenderer 读取）
     const SpriteSheet* spriteForward = nullptr; // 朝下
     const SpriteSheet* spriteBack = nullptr;    // 朝上

@@ -296,6 +296,7 @@ void PlayScene::render(sf::RenderWindow& window) {
 
     window.setView(window.getDefaultView());
     if (m_hud) {
+        m_hud->setFramesPerSecond(m_game.getFramesPerSecond());
         m_hud->render(window);
     }
 
@@ -350,10 +351,6 @@ void PlayScene::movePlayer(float dt) {
     m_player.pos.y = std::max(m_player.pos.y, m_player.radius);
     m_player.pos.x = std::min(m_player.pos.x, m_worldWidth - m_player.radius);
     m_player.pos.y = std::min(m_player.pos.y, m_worldHeight - m_player.radius);
-
-    if (m_player.invincibilityTimer > 0.f) {
-        m_player.invincibilityTimer -= dt;
-    }
 }
 
 void PlayScene::updatePlayerAnimation(float dt) {
@@ -599,11 +596,10 @@ void PlayScene::beginDeath() {
     m_deathPhase = DeathPhase::Animation;
     m_deathAnimTimer = m_deathAnimDuration;
 
-    // 切换到死亡精灵，清除无敌闪烁以保证死亡精灵始终可见
+    // 切换到死亡精灵并从第一帧开始播放
     m_player.currentSprite = m_player.spriteDeath;
     m_player.animFrame = 0;
     m_player.animTimer = 0.f;
-    m_player.invincibilityTimer = 0.f;
 
     // 无死亡精灵 — 跳过动画阶段，直接进冻结
     if (m_player.spriteDeath == nullptr || m_player.spriteDeath->frameCount <= 0) {
