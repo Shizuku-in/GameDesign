@@ -4,6 +4,7 @@
 
 /// 水平条带精灵表。每帧等宽等高，从左到右水平排列。
 struct SpriteSheet {
+    /// 包含所有水平排列动画帧的纹理。
     sf::Texture texture;
     int frameWidth = 0;  // 单帧宽度（像素）
     int frameHeight = 0; // 单帧高度（像素）

@@ -10,7 +10,9 @@
 template <typename T> class Pool {
 public:
     struct Handle {
+        /// 槽位在线性存储中的索引。
         std::uint32_t idx;
+        /// 槽位被分配时的代数，用于失效检测。
         std::uint32_t gen;
     };
 
@@ -69,6 +71,7 @@ public:
         }
     }
 
+    /// 对所有占用槽位调用只读回调 fn(const T&)。
     template <typename F> void forEach(F&& fn) const {
         for (const auto& slot : m_slots) {
             if (slot.gen != 0) {
@@ -77,8 +80,7 @@ public:
         }
     }
 
-    /// 对所有占用槽位调用 fn(Handle, T&)。可在回调中安全调用 release()
-    /// （已释放的槽位在当前遍历的剩余部分会被跳过）。
+    /// 对所有占用槽位调用 fn(Handle, T&)；回调可安全释放当前槽位。
     template <typename F> void forEachHandle(F&& fn) {
         for (std::uint32_t i = 0; i < m_slots.size(); ++i) {
             auto& slot = m_slots[i];
@@ -107,15 +109,21 @@ public:
 
 private:
     struct Slot {
+        /// 槽位保存的对象值。
         T data{};
-        std::uint32_t gen = 0; // 0 = 空闲; >0 = 占用（与 Handle::gen 匹配）
+        /// 当前分配代数；零表示空闲，非零时与 Handle::gen 匹配。
+        std::uint32_t gen = 0;
     };
 
+    /// 判断句柄是否对应当前仍被占用的槽位。
     [[nodiscard]] bool valid(Handle h) const {
         return h.idx < m_slots.size() && h.gen != 0 && m_slots[h.idx].gen == h.gen;
     }
 
+    /// 所有已创建的槽位，空闲槽位仍保留在此处以供复用。
     std::vector<Slot> m_slots;
+    /// 可立即复用的空闲槽位索引栈。
     std::vector<std::uint32_t> m_freelist;
+    /// 下次分配使用的代数计数器，零保留为空闲标记。
     std::uint32_t m_nextGen = 1;
 };

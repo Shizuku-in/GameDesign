@@ -21,10 +21,13 @@ public:
                 const Pool<DamageText>& damageTexts, const sf::Font* font);
 
 private:
+    /// 无纹理实体使用的合批三角形顶点。
     sf::VertexArray m_entityBatch{sf::PrimitiveType::Triangles};
-    const SpriteSheet* m_cachedSpriteSheet = nullptr; // 缓存，避免每帧遍历查找
+    /// 用于延迟构造精灵的首个有效精灵表缓存。
+    const SpriteSheet* m_cachedSpriteSheet = nullptr;
 
-    // 复用成员，避免每帧构造/析构（SFML 3 无默认构造，用 optional 延迟初始化）
+    /// 复用的精灵对象；SFML 3 无默认构造，首次使用时延迟创建。
     std::optional<sf::Sprite> m_sprite;
+    /// 复用的伤害飘字对象；首次需要字体时延迟创建。
     std::optional<sf::Text> m_text;
 };
